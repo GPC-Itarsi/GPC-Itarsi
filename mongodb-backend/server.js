@@ -49,6 +49,7 @@ app.use(cors({
     'https://gpc-itarsi-frontend.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
     'https://gpc-itarsi-5coi.onrender.com',
+    'https://gpc-itarsi-5c17.onrender.com',
     'https://gpc-itarsi-backend-8dod.onrender.com'
   ],
   credentials: true,
