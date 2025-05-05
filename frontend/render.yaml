@@ -1,0 +1,40 @@
+services:
+  # Frontend service
+  - type: web
+    name: gpc-itarsi-5coi
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://gpc-itarsi-backend-1wu5.onrender.com
+
+  # Backend service
+  - type: web
+    name: gpc-itarsi-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node file-server.js
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://gpc-itarsi-5coi.onrender.com
+      - key: BACKEND_URL
+        value: https://gpc-itarsi-backend-1wu5.onrender.com
+    disks:
+      - name: data
+        mountPath: /opt/render/project/src/data
+        sizeGB: 1
+      - name: uploads
+        mountPath: /opt/render/project/src/uploads
+        sizeGB: 1

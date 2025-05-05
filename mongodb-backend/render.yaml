@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: gpc-itarsi-mongodb-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 5001
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_URL
+        value: https://gpc-itarsi-5coi.onrender.com
+      - key: MONGODB_URI
+        value: mongodb+srv://GPC:anmol4328@gpc-itarsi.puza0ta.mongodb.net/gpc-itarsi
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/uploads
+      sizeGB: 1
