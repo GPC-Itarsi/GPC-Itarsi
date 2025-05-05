@@ -33,29 +33,19 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Middleware
-app.use(cors({
-  origin: [
-    // Local development URLs
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-    'http://localhost:8000',
-    'http://localhost:8080',
-    // Render deployment URLs
-    'https://gpc-itarsi-frontend.onrender.com',
-    'https://gpc-itarsi-developer.onrender.com',
-    'https://gpc-itarsi-5coi.onrender.com',
-    'https://gpc-itarsi-5c17.onrender.com',
-    'https://gpc-itarsi-backend-8dod.onrender.com'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware - More permissive CORS configuration to fix cross-origin issues
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 console.log('CORS configured with both local and production origins');
 
