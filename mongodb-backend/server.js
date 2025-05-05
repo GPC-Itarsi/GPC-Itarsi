@@ -35,13 +35,27 @@ mongoose.connect(MONGODB_URI)
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:5176', 'http://localhost:8000', 'http://localhost:8080'],
+  origin: [
+    // Local development URLs
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://localhost:5176',
+    'http://localhost:8000',
+    'http://localhost:8080',
+    // Render deployment URLs
+    'https://gpc-itarsi-frontend.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'https://gpc-itarsi-5coi.onrender.com'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-console.log('CORS configured with origins: http://localhost:3000, http://localhost:3001, http://localhost:5173, http://localhost:5174, http://localhost:5175, http://localhost:5176, http://localhost:8000, http://localhost:8080');
+console.log('CORS configured with both local and production origins');
 
 // Log incoming requests for debugging
 app.use((req, res, next) => {
