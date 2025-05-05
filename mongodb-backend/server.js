@@ -48,7 +48,8 @@ app.use(cors({
     // Render deployment URLs
     'https://gpc-itarsi-frontend.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
-    'https://gpc-itarsi-5coi.onrender.com'
+    'https://gpc-itarsi-5coi.onrender.com',
+    'https://gpc-itarsi-backend-8dod.onrender.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

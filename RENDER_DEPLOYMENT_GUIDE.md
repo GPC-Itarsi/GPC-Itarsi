@@ -15,7 +15,7 @@ This guide provides step-by-step instructions for deploying the GPC Itarsi proje
 2. Click "New" and select "Web Service"
 3. Connect your GitHub repository
 4. Configure the service:
-   - **Name**: `gpc-itarsi-mongodb-backend`
+   - **Name**: `gpc-itarsi-backend-8dod`
    - **Root Directory**: `mongodb-backend`
    - **Environment**: Node
    - **Build Command**: `npm install`
@@ -37,7 +37,7 @@ This guide provides step-by-step instructions for deploying the GPC Itarsi proje
    - Mount path: `/opt/render/project/src/uploads`
 
 7. Click "Create Web Service" and wait for the deployment to complete
-8. Note the URL of your deployed backend (e.g., `https://gpc-itarsi-mongodb-backend.onrender.com`)
+8. Note the URL of your deployed backend (e.g., `https://gpc-itarsi-backend-8dod.onrender.com`)
 
 ## Step 2: Deploy the Frontend
 

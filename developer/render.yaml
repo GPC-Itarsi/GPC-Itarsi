@@ -10,4 +10,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://gpc-itarsi-mongodb-backend.onrender.com
+        value: https://gpc-itarsi-backend-8dod.onrender.com
