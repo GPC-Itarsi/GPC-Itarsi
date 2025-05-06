@@ -1,5 +1,5 @@
 const express = require('express');
-// cors package removed - using custom middleware instead
+const cors = require('cors');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
@@ -33,13 +33,45 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Import custom CORS middleware
-const corsMiddleware = require('./middleware/cors-middleware');
+// Configure CORS
+const corsOptions = {
+  origin: function (origin, callback) {
+    // List of allowed origins
+    const allowedOrigins = [
+      'https://gpc-itarsi-9cl7.onrender.com',
+      'https://gpc-itarsi-developer.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175'
+    ];
 
-// Apply custom CORS middleware first - before any other middleware
-app.use(corsMiddleware);
+    // Allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin) {
+      console.log('Request has no origin, allowing');
+      return callback(null, true);
+    }
 
-console.log('Custom CORS middleware applied');
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('Allowed origin:', origin);
+      callback(null, true);
+    } else {
+      console.log('Blocked origin:', origin);
+      // Still allow the request but don't set CORS headers
+      callback(null, true);
+    }
+  },
+  credentials: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS middleware first - before any other middleware
+app.use(cors(corsOptions));
+
+console.log('CORS middleware applied');
 
 // Log incoming requests for debugging
 app.use((req, res, next) => {
@@ -94,13 +126,7 @@ const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const uploadTestRoutes = require('./routes/upload-test');
 
-// Import extra CORS middleware for problematic endpoints
-const extraCorsMiddleware = require('./middleware/extra-cors-middleware');
-
-// Apply extra CORS middleware to specific problematic routes
-app.use('/api/custom-buttons', extraCorsMiddleware);
-app.use('/api/notices', extraCorsMiddleware);
-app.use('/api/contact-info', extraCorsMiddleware);
+// No need for extra CORS middleware since we're using the standard cors package
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -130,6 +156,9 @@ app.use('/api/upload-test', uploadTestRoutes);
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to GPC Itarsi MongoDB Backend API' });
 });
+
+// Handle OPTIONS requests for all routes
+app.options('*', cors(corsOptions));
 
 // Start the server
 app.listen(PORT, () => {
