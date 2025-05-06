@@ -35,32 +35,7 @@ mongoose.connect(MONGODB_URI)
 
 // Configure CORS
 const corsOptions = {
-  origin: function (origin, callback) {
-    // List of allowed origins
-    const allowedOrigins = [
-      'https://gpc-itarsi-9cl7.onrender.com',
-      'https://gpc-itarsi-developer.onrender.com',
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175'
-    ];
-
-    // Allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin) {
-      console.log('Request has no origin, allowing');
-      return callback(null, true);
-    }
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('Allowed origin:', origin);
-      callback(null, origin); // Return the origin instead of true to set the Access-Control-Allow-Origin header
-    } else {
-      console.log('Blocked origin:', origin);
-      // For security, we'll still allow the request but with a wildcard origin
-      callback(null, '*');
-    }
-  },
+  origin: '*', // Allow all origins for now to fix the immediate issue
   credentials: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -70,6 +45,10 @@ const corsOptions = {
 
 // Apply CORS middleware first - before any other middleware
 app.use(cors(corsOptions));
+
+// Apply global CORS middleware to ensure all responses have CORS headers
+const globalCorsMiddleware = require('./middleware/global-cors-middleware');
+app.use(globalCorsMiddleware);
 
 console.log('CORS middleware applied');
 
@@ -145,6 +124,11 @@ app.use('/api/contact-info', extraCorsMiddleware);
 app.use('/api/custom-buttons', extraCorsMiddleware);
 app.use('/api/notices', extraCorsMiddleware);
 
+// Add specific CORS handling for problematic routes
+app.options('/api/contact-info', cors({ origin: '*' }));
+app.options('/api/custom-buttons', cors({ origin: '*' }));
+app.options('/api/notices', cors({ origin: '*' }));
+
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -193,7 +177,15 @@ app.get('/api/test-cors', (req, res) => {
 });
 
 // Handle OPTIONS requests for all routes
-app.options('*', cors(corsOptions));
+app.options('*', cors({ origin: '*' }));
+
+// Add a catch-all middleware to ensure CORS headers are set for all responses
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Start the server
 app.listen(PORT, () => {
