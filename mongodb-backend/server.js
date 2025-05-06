@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+// cors package removed - using custom middleware instead
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
@@ -33,45 +33,13 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Configure CORS - place this before any other middleware
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow any origin
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
+// Import custom CORS middleware
+const corsMiddleware = require('./middleware/cors-middleware');
 
-// Apply CORS middleware first
-app.use(cors(corsOptions));
+// Apply custom CORS middleware first - before any other middleware
+app.use(corsMiddleware);
 
-// Add additional CORS headers to every response as a fallback
-app.use((req, res, next) => {
-  // Log request information for debugging
-  console.log('Request from origin:', req.headers.origin);
-  console.log('Request method:', req.method);
-  console.log('Request path:', req.path);
-
-  // Set CORS headers directly as a backup
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS preflight request');
-    return res.status(204).send();
-  }
-
-  next();
-});
-
-console.log('CORS configured with permissive settings');
+console.log('Custom CORS middleware applied');
 
 // Log incoming requests for debugging
 app.use((req, res, next) => {
@@ -126,31 +94,13 @@ const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const uploadTestRoutes = require('./routes/upload-test');
 
-// Special handler for the problematic custom-buttons endpoint
-app.use('/api/custom-buttons', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+// Import extra CORS middleware for problematic endpoints
+const extraCorsMiddleware = require('./middleware/extra-cors-middleware');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
-  next();
-});
-
-// Special handler for the problematic notices endpoint
-app.use('/api/notices', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(204).end();
-  }
-
-  next();
-});
+// Apply extra CORS middleware to specific problematic routes
+app.use('/api/custom-buttons', extraCorsMiddleware);
+app.use('/api/notices', extraCorsMiddleware);
+app.use('/api/contact-info', extraCorsMiddleware);
 
 // Use routes
 app.use('/api/auth', authRoutes);
