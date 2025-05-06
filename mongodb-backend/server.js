@@ -157,6 +157,15 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to GPC Itarsi MongoDB Backend API' });
 });
 
+// Test CORS route
+app.get('/api/test-cors', (req, res) => {
+  res.json({
+    message: 'CORS is working!',
+    origin: req.headers.origin || 'No origin header',
+    time: new Date().toISOString()
+  });
+});
+
 // Handle OPTIONS requests for all routes
 app.options('*', cors(corsOptions));
 
