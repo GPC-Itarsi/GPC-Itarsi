@@ -43,6 +43,13 @@ const mockNotices = [
 // Get all notices
 router.get('/', async (req, res) => {
   try {
+    // Set CORS headers explicitly for this route
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+    console.log('Fetching notices...');
+
     // Use mock data if in mock environment
     if (process.env.NODE_ENV === 'mock' || (process.env.MONGODB_URI && process.env.MONGODB_URI.includes('localhost'))) {
       // Sort mock notices by createdAt in descending order

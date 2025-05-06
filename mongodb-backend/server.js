@@ -33,22 +33,9 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Configure CORS
-const corsOptions = {
-  origin: '*', // Allow all origins for now to fix the immediate issue
-  credentials: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-// Apply CORS middleware first - before any other middleware
-app.use(cors(corsOptions));
-
-// Apply global CORS middleware to ensure all responses have CORS headers
-const globalCorsMiddleware = require('./middleware/global-cors-middleware');
-app.use(globalCorsMiddleware);
+// Apply universal CORS middleware first - before any other middleware
+const universalCors = require('./middleware/universal-cors');
+app.use(universalCors);
 
 console.log('CORS middleware applied');
 
@@ -115,19 +102,30 @@ const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const uploadTestRoutes = require('./routes/upload-test');
 
-// Apply additional CORS middleware for problematic routes
-const corsMiddleware = require('./middleware/cors-middleware');
-const extraCorsMiddleware = require('./middleware/extra-cors-middleware');
+// Special handling for problematic routes
+app.options('/api/contact-info', (req, res) => {
+  console.log('Special handling for OPTIONS request to /api/contact-info');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.status(204).send();
+});
 
-// Apply extra CORS middleware to specific routes that have been causing issues
-app.use('/api/contact-info', extraCorsMiddleware);
-app.use('/api/custom-buttons', extraCorsMiddleware);
-app.use('/api/notices', extraCorsMiddleware);
+app.options('/api/custom-buttons', (req, res) => {
+  console.log('Special handling for OPTIONS request to /api/custom-buttons');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.status(204).send();
+});
 
-// Add specific CORS handling for problematic routes
-app.options('/api/contact-info', cors({ origin: '*' }));
-app.options('/api/custom-buttons', cors({ origin: '*' }));
-app.options('/api/notices', cors({ origin: '*' }));
+app.options('/api/notices', (req, res) => {
+  console.log('Special handling for OPTIONS request to /api/notices');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.status(204).send();
+});
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -177,14 +175,12 @@ app.get('/api/test-cors', (req, res) => {
 });
 
 // Handle OPTIONS requests for all routes
-app.options('*', cors({ origin: '*' }));
-
-// Add a catch-all middleware to ensure CORS headers are set for all responses
-app.use((req, res, next) => {
+app.options('*', (req, res) => {
+  console.log('Catch-all OPTIONS handler for:', req.path);
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
+  res.status(204).send();
 });
 
 // Start the server

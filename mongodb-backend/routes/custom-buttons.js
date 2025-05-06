@@ -12,6 +12,12 @@ const CustomButtonModel = process.env.NODE_ENV === 'mock' || (process.env.MONGOD
 // Get all custom buttons
 router.get('/', async (req, res) => {
   try {
+    // Set CORS headers explicitly for this route
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+    console.log('Fetching custom buttons...');
     const buttons = await CustomButtonModel.find();
     res.json(buttons);
   } catch (error) {
@@ -38,7 +44,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     const { title, url, icon, color, position, isActive } = req.body;
-    
+
     // Create a new custom button
     const newButton = new CustomButton({
       title,
@@ -48,7 +54,7 @@ router.post('/', authenticateToken, authorize(['admin']), async (req, res) => {
       position,
       isActive: isActive !== undefined ? isActive : true
     });
-    
+
     await newButton.save();
     res.status(201).json(newButton);
   } catch (error) {
@@ -61,7 +67,7 @@ router.post('/', authenticateToken, authorize(['admin']), async (req, res) => {
 router.put('/:id', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     const { title, url, icon, color, position, isActive } = req.body;
-    
+
     // Find and update the custom button
     const updatedButton = await CustomButtonModel.findByIdAndUpdate(
       req.params.id,
@@ -75,11 +81,11 @@ router.put('/:id', authenticateToken, authorize(['admin']), async (req, res) => 
       },
       { new: true }
     );
-    
+
     if (!updatedButton) {
       return res.status(404).json({ message: 'Custom button not found' });
     }
-    
+
     res.json(updatedButton);
   } catch (error) {
     console.error('Error updating custom button:', error);
@@ -91,11 +97,11 @@ router.put('/:id', authenticateToken, authorize(['admin']), async (req, res) => 
 router.delete('/:id', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     const deletedButton = await CustomButtonModel.findByIdAndDelete(req.params.id);
-    
+
     if (!deletedButton) {
       return res.status(404).json({ message: 'Custom button not found' });
     }
-    
+
     res.json({ message: 'Custom button deleted successfully' });
   } catch (error) {
     console.error('Error deleting custom button:', error);

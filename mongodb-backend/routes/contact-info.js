@@ -39,10 +39,15 @@ const ContactInfoModel = process.env.NODE_ENV === 'mock' || (process.env.MONGODB
 router.get('/', async (req, res) => {
   try {
     console.log('Fetching contact information...');
-    
+
+    // Set CORS headers explicitly for this route
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
     // Find the contact info document or create a default one if it doesn't exist
     let contactInfo = await ContactInfoModel.findOne();
-    
+
     if (!contactInfo) {
       // Create default contact info
       contactInfo = new ContactInfo({
@@ -61,10 +66,10 @@ router.get('/', async (req, res) => {
         },
         officeHours: 'Monday to Friday: 9:00 AM - 5:00 PM'
       });
-      
+
       await contactInfo.save();
     }
-    
+
     res.json(contactInfo);
   } catch (error) {
     console.error('Error fetching contact information:', error);
@@ -83,7 +88,7 @@ router.put('/', authenticateToken, authorize(['admin']), async (req, res) => {
       mapLocation,
       officeHours
     } = req.body;
-    
+
     // Update the contact info
     const updatedContactInfo = await ContactInfoModel.findOneAndUpdate(
       {}, // Find the first document
@@ -100,7 +105,7 @@ router.put('/', authenticateToken, authorize(['admin']), async (req, res) => {
       },
       { new: true, upsert: true } // Return the updated document and create if it doesn't exist
     );
-    
+
     res.json(updatedContactInfo);
   } catch (error) {
     console.error('Error updating contact information:', error);
