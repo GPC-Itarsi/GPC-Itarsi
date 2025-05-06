@@ -34,10 +34,14 @@ module.exports = function(req, res, next) {
     // Set the specific origin instead of wildcard '*'
     res.header('Access-Control-Allow-Origin', origin);
     console.log(`Extra CORS Middleware - Allowing specific origin: ${origin}`);
-  } else {
-    // For all other origins, use wildcard (or you could deny them)
+  } else if (origin) {
+    // For security, we'll still allow the request but with a wildcard origin
     res.header('Access-Control-Allow-Origin', '*');
-    console.log('Extra CORS Middleware - Using wildcard origin');
+    console.log(`Extra CORS Middleware - Origin ${origin} not in allowed list, using wildcard`);
+  } else {
+    // No origin header (like from curl, postman)
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log('Extra CORS Middleware - No origin header, using wildcard');
   }
 
   // Set other CORS headers

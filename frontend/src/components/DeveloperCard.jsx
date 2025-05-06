@@ -22,7 +22,7 @@ const DeveloperCard = ({ isOpen, onClose }) => {
         try {
           setLoading(true);
           setError(null);
-          const response = await axios.get(`${config.apiUrl}/api/developers`);
+          const response = await axios.get(`${config.apiUrl}/api/developer/s`);
           if (response.data && response.data.length > 0) {
             setDeveloper(response.data[0]); // Assuming the first developer is the one we want to display
           }

@@ -10,11 +10,11 @@ const path = require('path');
 router.get('/profile', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.json(user);
   } catch (error) {
     console.error('Error fetching developer profile:', error);
@@ -27,11 +27,11 @@ router.get('/profile-public', async (req, res) => {
   try {
     // Find a user with developer role
     const developer = await User.findOne({ role: 'developer' }).select('-password');
-    
+
     if (!developer) {
       return res.status(404).json({ message: 'Developer not found' });
     }
-    
+
     res.json(developer);
   } catch (error) {
     console.error('Error fetching public developer profile:', error);
@@ -43,7 +43,7 @@ router.get('/profile-public', async (req, res) => {
 router.put('/profile', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
     const { name, title, bio, education, experience, socialLinks } = req.body;
-    
+
     // Build profile object
     const profileFields = {};
     if (name) profileFields.name = name;
@@ -58,14 +58,14 @@ router.put('/profile', authenticateToken, authorize(['developer']), async (req, 
         profileFields.socialLinks = socialLinks;
       }
     }
-    
+
     // Update user
     const user = await User.findByIdAndUpdate(
       req.user.id,
       { $set: profileFields },
       { new: true }
     ).select('-password');
-    
+
     res.json(user);
   } catch (error) {
     console.error('Error updating developer profile:', error);
@@ -77,7 +77,7 @@ router.put('/profile', authenticateToken, authorize(['developer']), async (req, 
 router.put('/profile-public', async (req, res) => {
   try {
     const { name, title, bio, education, experience, socialLinks } = req.body;
-    
+
     // Build profile object
     const profileFields = {};
     if (name) profileFields.name = name;
@@ -92,21 +92,21 @@ router.put('/profile-public', async (req, res) => {
         profileFields.socialLinks = socialLinks;
       }
     }
-    
+
     // Find and update developer user
     const developer = await User.findOne({ role: 'developer' });
-    
+
     if (!developer) {
       return res.status(404).json({ message: 'Developer not found' });
     }
-    
+
     // Update user
     const user = await User.findByIdAndUpdate(
       developer._id,
       { $set: profileFields },
       { new: true }
     ).select('-password');
-    
+
     res.json(user);
   } catch (error) {
     console.error('Error updating public developer profile:', error);
@@ -120,13 +120,13 @@ router.put('/profile-picture', authenticateToken, authorize(['developer']), uplo
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    
+
     const user = await User.findById(req.user.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // Delete old profile picture if exists
     if (user.profilePicture) {
       const oldPicturePath = path.join(__dirname, '..', 'uploads', user.profilePicture);
@@ -134,11 +134,11 @@ router.put('/profile-picture', authenticateToken, authorize(['developer']), uplo
         fs.unlinkSync(oldPicturePath);
       }
     }
-    
+
     // Update user with new profile picture
     user.profilePicture = req.file.filename;
     await user.save();
-    
+
     res.json({ message: 'Profile picture updated successfully', filename: req.file.filename });
   } catch (error) {
     console.error('Error updating profile picture:', error);
@@ -152,14 +152,14 @@ router.put('/profile-picture-public', upload.single('profilePicture'), async (re
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    
+
     // Find developer user
     const user = await User.findOne({ role: 'developer' });
-    
+
     if (!user) {
       return res.status(404).json({ message: 'Developer not found' });
     }
-    
+
     // Delete old profile picture if exists
     if (user.profilePicture) {
       const oldPicturePath = path.join(__dirname, '..', 'uploads', user.profilePicture);
@@ -167,14 +167,31 @@ router.put('/profile-picture-public', upload.single('profilePicture'), async (re
         fs.unlinkSync(oldPicturePath);
       }
     }
-    
+
     // Update user with new profile picture
     user.profilePicture = req.file.filename;
     await user.save();
-    
+
     res.json({ message: 'Profile picture updated successfully', filename: req.file.filename });
   } catch (error) {
     console.error('Error updating public profile picture:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get all developers (for public display)
+router.get('/s', async (req, res) => {
+  try {
+    // Find all users with developer role
+    const developers = await User.find({ role: 'developer' }).select('-password');
+
+    if (!developers || developers.length === 0) {
+      return res.status(404).json({ message: 'No developers found' });
+    }
+
+    res.json(developers);
+  } catch (error) {
+    console.error('Error fetching developers:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import config from '../../../frontend/src/config';
+import config from '../config';
 
 const Profile = () => {
   const [loading, setLoading] = useState(true);

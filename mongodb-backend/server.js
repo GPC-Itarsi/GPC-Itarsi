@@ -54,11 +54,11 @@ const corsOptions = {
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       console.log('Allowed origin:', origin);
-      callback(null, true);
+      callback(null, origin); // Return the origin instead of true to set the Access-Control-Allow-Origin header
     } else {
       console.log('Blocked origin:', origin);
-      // Still allow the request but don't set CORS headers
-      callback(null, true);
+      // For security, we'll still allow the request but with a wildcard origin
+      callback(null, '*');
     }
   },
   credentials: true,
@@ -103,6 +103,16 @@ uploadSubdirs.forEach(dir => {
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ensure public directory exists
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) {
+  console.log('Creating public directory at:', publicDir);
+  fs.mkdirSync(publicDir, { recursive: true });
+}
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -126,7 +136,14 @@ const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const uploadTestRoutes = require('./routes/upload-test');
 
-// No need for extra CORS middleware since we're using the standard cors package
+// Apply additional CORS middleware for problematic routes
+const corsMiddleware = require('./middleware/cors-middleware');
+const extraCorsMiddleware = require('./middleware/extra-cors-middleware');
+
+// Apply extra CORS middleware to specific routes that have been causing issues
+app.use('/api/contact-info', extraCorsMiddleware);
+app.use('/api/custom-buttons', extraCorsMiddleware);
+app.use('/api/notices', extraCorsMiddleware);
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -159,9 +176,18 @@ app.get('/', (req, res) => {
 
 // Test CORS route
 app.get('/api/test-cors', (req, res) => {
+  // Log all request headers for debugging
+  console.log('Test CORS route - All headers:', req.headers);
+
   res.json({
     message: 'CORS is working!',
     origin: req.headers.origin || 'No origin header',
+    headers: {
+      'access-control-allow-origin': res.getHeader('Access-Control-Allow-Origin'),
+      'access-control-allow-methods': res.getHeader('Access-Control-Allow-Methods'),
+      'access-control-allow-headers': res.getHeader('Access-Control-Allow-Headers'),
+      'access-control-allow-credentials': res.getHeader('Access-Control-Allow-Credentials')
+    },
     time: new Date().toISOString()
   });
 });

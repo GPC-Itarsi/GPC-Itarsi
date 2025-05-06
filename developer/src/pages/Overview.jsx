@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import config from '../../../frontend/src/config';
+import config from '../config';
 
 const Overview = () => {
   const [profileData, setProfileData] = useState({
