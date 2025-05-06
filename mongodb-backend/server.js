@@ -33,27 +33,25 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Middleware - Completely permissive CORS configuration
-app.use(cors({
-  origin: true, // This allows all origins
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
-
-// Add a pre-flight OPTIONS handler for all routes
-app.options('*', cors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-}));
-
-// Log CORS-related information for debugging
+// Disable CORS completely by adding direct headers to every response
 app.use((req, res, next) => {
-  console.log('CORS Request from origin:', req.headers.origin);
+  // Log request information for debugging
+  console.log('Request from origin:', req.headers.origin);
   console.log('Request method:', req.method);
   console.log('Request path:', req.path);
+
+  // Set CORS headers directly
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS preflight request');
+    return res.status(204).send();
+  }
+
   next();
 });
 
