@@ -33,14 +33,30 @@ mongoose.connect(MONGODB_URI)
     console.log('Continuing with mock data...');
   });
 
-// Disable CORS completely by adding direct headers to every response
+// Configure CORS - place this before any other middleware
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow any origin
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+// Apply CORS middleware first
+app.use(cors(corsOptions));
+
+// Add additional CORS headers to every response as a fallback
 app.use((req, res, next) => {
   // Log request information for debugging
   console.log('Request from origin:', req.headers.origin);
   console.log('Request method:', req.method);
   console.log('Request path:', req.path);
 
-  // Set CORS headers directly
+  // Set CORS headers directly as a backup
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -55,7 +71,7 @@ app.use((req, res, next) => {
   next();
 });
 
-console.log('CORS configured with both local and production origins');
+console.log('CORS configured with permissive settings');
 
 // Log incoming requests for debugging
 app.use((req, res, next) => {
@@ -109,6 +125,32 @@ const adminRoutes = require('./routes/admin');
 const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const uploadTestRoutes = require('./routes/upload-test');
+
+// Special handler for the problematic custom-buttons endpoint
+app.use('/api/custom-buttons', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
+
+// Special handler for the problematic notices endpoint
+app.use('/api/notices', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+
+  next();
+});
 
 // Use routes
 app.use('/api/auth', authRoutes);
