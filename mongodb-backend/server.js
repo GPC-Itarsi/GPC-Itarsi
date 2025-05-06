@@ -35,12 +35,37 @@ mongoose.connect(MONGODB_URI)
 
 // Middleware - More permissive CORS configuration to fix cross-origin issues
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  // Log CORS-related information for debugging
+  console.log('CORS Request from origin:', req.headers.origin);
+  console.log('Request method:', req.method);
+  console.log('Request path:', req.path);
+
+  // Set CORS headers
+  const allowedOrigins = [
+    'https://gpc-itarsi-9cl7.onrender.com',
+    'https://gpc-itarsi-5c17.onrender.com',
+    'https://gpc-itarsi-5coi.onrender.com',
+    'https://gpc-itarsi-frontend.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173',
+    'http://localhost:5174'
+  ];
+
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
 
   if (req.method === 'OPTIONS') {
+    console.log('Responding to OPTIONS preflight request');
     return res.status(200).end();
   }
 
