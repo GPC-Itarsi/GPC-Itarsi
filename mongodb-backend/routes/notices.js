@@ -43,22 +43,28 @@ const mockNotices = [
 // Get all notices
 router.get('/', async (req, res) => {
   try {
-    // Set CORS headers explicitly for this route
-    res.header('Access-Control-Allow-Origin', '*');
+    // Set CORS headers explicitly for this route - use specific origin
+    res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
     res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
 
     console.log('Fetching notices...');
+    console.log('Request origin:', req.headers.origin);
+    console.log('Request method:', req.method);
 
     // Use mock data if in mock environment
     if (process.env.NODE_ENV === 'mock' || (process.env.MONGODB_URI && process.env.MONGODB_URI.includes('localhost'))) {
       // Sort mock notices by createdAt in descending order
       const sortedNotices = [...mockNotices].sort((a, b) => b.createdAt - a.createdAt);
+      console.log('Returning mock notices data');
       return res.json(sortedNotices);
     }
 
     // Otherwise use MongoDB
+    console.log('Fetching notices from MongoDB...');
     const notices = await Notice.find().sort({ createdAt: -1 }).populate('postedBy', 'name role');
+    console.log('Successfully fetched notices from MongoDB');
     res.json(notices);
   } catch (error) {
     console.error('Error fetching notices:', error);

@@ -119,11 +119,14 @@ app.options('/api/custom-buttons', (req, res) => {
   res.status(204).send();
 });
 
+// Special handling for notices route - this is the most problematic one
 app.options('/api/notices', (req, res) => {
   console.log('Special handling for OPTIONS request to /api/notices');
-  res.header('Access-Control-Allow-Origin', '*');
+  // Allow the specific origin that's having issues
+  res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.status(204).send();
 });
 
@@ -135,7 +138,9 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/teacher-profile', teacherProfileRoutes);
 app.use('/api/teacher-dashboard', teacherDashboardRoutes);
 app.use('/api/courses', courseRoutes);
-app.use('/api/notices', noticeRoutes);
+// Apply special CORS middleware for notices route
+const noticesCorsMiddleware = require('./middleware/notices-cors');
+app.use('/api/notices', noticesCorsMiddleware, noticeRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/study-materials', studyMaterialRoutes);
 app.use('/api/documents', documentRoutes);
@@ -177,9 +182,20 @@ app.get('/api/test-cors', (req, res) => {
 // Handle OPTIONS requests for all routes
 app.options('*', (req, res) => {
   console.log('Catch-all OPTIONS handler for:', req.path);
-  res.header('Access-Control-Allow-Origin', '*');
+  console.log('Request origin:', req.headers.origin);
+
+  // Special handling for notices endpoint
+  if (req.path.includes('/api/notices')) {
+    console.log('Special handling for notices in catch-all OPTIONS handler');
+    res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
+  } else {
+    // For all other routes
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.status(204).send();
 });
 
