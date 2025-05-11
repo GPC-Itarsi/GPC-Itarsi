@@ -100,30 +100,96 @@ const contactInfoRoutes = require('./routes/contact-info');
 const adminRoutes = require('./routes/admin');
 const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
-const uploadTestRoutes = require('./routes/upload-test');
 
 // Special handling for problematic routes
 app.options('/api/contact-info', (req, res) => {
   console.log('Special handling for OPTIONS request to /api/contact-info');
-  res.header('Access-Control-Allow-Origin', '*');
+
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+
+  // List of allowed origins
+  const allowedOrigins = [
+    'https://gpc-itarsi-9cl7.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175'
+  ];
+
+  // Check if the request origin is in our list of allowed origins
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log(`Contact Info OPTIONS - Allowing specific origin: ${origin}`);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log(`Contact Info OPTIONS - Using wildcard origin`);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.status(204).send();
 });
 
 app.options('/api/custom-buttons', (req, res) => {
   console.log('Special handling for OPTIONS request to /api/custom-buttons');
-  res.header('Access-Control-Allow-Origin', '*');
+
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+
+  // List of allowed origins
+  const allowedOrigins = [
+    'https://gpc-itarsi-9cl7.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175'
+  ];
+
+  // Check if the request origin is in our list of allowed origins
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log(`Custom Buttons OPTIONS - Allowing specific origin: ${origin}`);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log(`Custom Buttons OPTIONS - Using wildcard origin`);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.status(204).send();
 });
 
 // Special handling for notices route - this is the most problematic one
 app.options('/api/notices', (req, res) => {
   console.log('Special handling for OPTIONS request to /api/notices');
-  // Allow the specific origin that's having issues
-  res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
+
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+
+  // List of allowed origins
+  const allowedOrigins = [
+    'https://gpc-itarsi-9cl7.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175'
+  ];
+
+  // Check if the request origin is in our list of allowed origins
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log(`Notices OPTIONS - Allowing specific origin: ${origin}`);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+    console.log(`Notices OPTIONS - Using wildcard origin`);
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -154,29 +220,10 @@ app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/admission-details', admissionDetailsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/developer', developerRoutes);
-app.use('/api/upload-test', uploadTestRoutes);
 
 // Root route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to GPC Itarsi MongoDB Backend API' });
-});
-
-// Test CORS route
-app.get('/api/test-cors', (req, res) => {
-  // Log all request headers for debugging
-  console.log('Test CORS route - All headers:', req.headers);
-
-  res.json({
-    message: 'CORS is working!',
-    origin: req.headers.origin || 'No origin header',
-    headers: {
-      'access-control-allow-origin': res.getHeader('Access-Control-Allow-Origin'),
-      'access-control-allow-methods': res.getHeader('Access-Control-Allow-Methods'),
-      'access-control-allow-headers': res.getHeader('Access-Control-Allow-Headers'),
-      'access-control-allow-credentials': res.getHeader('Access-Control-Allow-Credentials')
-    },
-    time: new Date().toISOString()
-  });
 });
 
 // Handle OPTIONS requests for all routes
@@ -184,13 +231,26 @@ app.options('*', (req, res) => {
   console.log('Catch-all OPTIONS handler for:', req.path);
   console.log('Request origin:', req.headers.origin);
 
-  // Special handling for notices endpoint
-  if (req.path.includes('/api/notices')) {
-    console.log('Special handling for notices in catch-all OPTIONS handler');
-    res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
+  // Get the origin from the request headers
+  const origin = req.headers.origin;
+
+  // List of allowed origins
+  const allowedOrigins = [
+    'https://gpc-itarsi-9cl7.onrender.com',
+    'https://gpc-itarsi-developer.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175'
+  ];
+
+  // Check if the request origin is in our list of allowed origins
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    console.log(`Catch-all OPTIONS - Allowing specific origin: ${origin}`);
   } else {
-    // For all other routes
     res.header('Access-Control-Allow-Origin', '*');
+    console.log(`Catch-all OPTIONS - Using wildcard origin`);
   }
 
   res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');

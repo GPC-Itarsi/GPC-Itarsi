@@ -43,8 +43,28 @@ const mockNotices = [
 // Get all notices
 router.get('/', async (req, res) => {
   try {
-    // Set CORS headers explicitly for this route - use specific origin
-    res.header('Access-Control-Allow-Origin', 'https://gpc-itarsi-9cl7.onrender.com');
+    // Set CORS headers explicitly for this route
+    const origin = req.headers.origin;
+
+    // List of allowed origins
+    const allowedOrigins = [
+      'https://gpc-itarsi-9cl7.onrender.com',
+      'https://gpc-itarsi-developer.onrender.com',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:5175'
+    ];
+
+    // Check if the request origin is in our list of allowed origins
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      console.log(`Notices GET - Allowing specific origin: ${origin}`);
+    } else {
+      res.header('Access-Control-Allow-Origin', '*');
+      console.log(`Notices GET - Using wildcard origin`);
+    }
+
     res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');
