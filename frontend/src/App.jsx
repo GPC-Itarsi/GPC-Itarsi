@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense, lazy } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 
@@ -8,95 +8,108 @@ import { NotificationProvider } from './context/NotificationContext'
 import { CalendarProvider } from './context/CalendarContext'
 // Grade feature has been removed
 
-// Public Pages
-import Home from './pages/Home'
-import Courses from './pages/Courses'
-import Faculty from './pages/Faculty'
-import Gallery from './pages/Gallery'
-import About from './pages/About'
-import Login from './pages/Login'
-import Downloads from './pages/Downloads'
-import Admission from './pages/Admission'
-
-// Private Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import TeacherDashboard from './pages/teacher/Dashboard'
-import StudentDashboard from './pages/student/Dashboard'
-// Developer Dashboard is now in a separate application
-
-// Shared Pages
-import NotificationsPage from './pages/shared/NotificationsPage'
-import CalendarPage from './pages/shared/CalendarPage'
-
-// Components
+// Components that are used on every page - load eagerly
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import ProtectedRoute from './components/ProtectedRoute'
-import ChatbotWidget from './components/ChatbotWidget'
+
+// Lazy load all pages for better code splitting
+// Public Pages
+const Home = lazy(() => import('./pages/Home'))
+const Courses = lazy(() => import('./pages/Courses'))
+const Faculty = lazy(() => import('./pages/Faculty'))
+const Gallery = lazy(() => import('./pages/Gallery'))
+const About = lazy(() => import('./pages/About'))
+const Login = lazy(() => import('./pages/Login'))
+const Downloads = lazy(() => import('./pages/Downloads'))
+const Admission = lazy(() => import('./pages/Admission'))
+
+// Private Pages
+const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'))
+const TeacherDashboard = lazy(() => import('./pages/teacher/Dashboard'))
+const StudentDashboard = lazy(() => import('./pages/student/Dashboard'))
+// Developer Dashboard is now in a separate application
+
+// Shared Pages
+const NotificationsPage = lazy(() => import('./pages/shared/NotificationsPage'))
+const CalendarPage = lazy(() => import('./pages/shared/CalendarPage'))
+
+// Lazy load non-critical components
+const ChatbotWidget = lazy(() => import('./components/ChatbotWidget'))
 
 function App() {
+  // Loading fallback component
+  const LoadingFallback = () => (
+    <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+      <p className="ml-2">Loading...</p>
+    </div>
+  );
+
   return (
     <AuthProvider>
       <NotificationProvider>
         <CalendarProvider>
-          {/* Grade feature has been removed */}
-            <Router future={{ v7_relativeSplatPath: true }}>
-              <div className="min-h-screen flex flex-col">
-                <Navbar />
-                <main className="flex-grow">
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/courses" element={<Courses />} />
-                  <Route path="/faculty" element={<Faculty />} />
-                  <Route path="/gallery" element={<Gallery />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/downloads" element={<Downloads />} />
-                  <Route path="/admission" element={<Admission />} />
-                  <Route path="/login" element={<Login />} />
+          <Router future={{ v7_relativeSplatPath: true }}>
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-grow">
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/courses" element={<Courses />} />
+                    <Route path="/faculty" element={<Faculty />} />
+                    <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/downloads" element={<Downloads />} />
+                    <Route path="/admission" element={<Admission />} />
+                    <Route path="/login" element={<Login />} />
 
-                  {/* Admin route - no authentication required */}
-                  <Route path="/admin/*" element={<AdminDashboard />} />
+                    {/* Admin route - no authentication required */}
+                    <Route path="/admin/*" element={<AdminDashboard />} />
 
-                  <Route path="/teacher/*" element={
-                    <ProtectedRoute allowedRoles={['teacher']}>
-                      <TeacherDashboard />
-                    </ProtectedRoute>
-                  } />
+                    <Route path="/teacher/*" element={
+                      <ProtectedRoute allowedRoles={['teacher']}>
+                        <TeacherDashboard />
+                      </ProtectedRoute>
+                    } />
 
-                  <Route path="/student/*" element={
-                    <ProtectedRoute allowedRoles={['student']}>
-                      <StudentDashboard />
-                    </ProtectedRoute>
-                  } />
+                    <Route path="/student/*" element={
+                      <ProtectedRoute allowedRoles={['student']}>
+                        <StudentDashboard />
+                      </ProtectedRoute>
+                    } />
 
-                  {/* Developer routes are now handled by a separate application */}
-                  <Route path="/developer/*" element={
-                    <Navigate to="http://localhost:5175" replace />
-                  } />
+                    {/* Developer routes are now handled by a separate application */}
+                    <Route path="/developer/*" element={
+                      <Navigate to="http://localhost:5175" replace />
+                    } />
 
-                  {/* Shared Protected Routes */}
-                  <Route path="/notifications" element={
-                    <ProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'developer']}>
-                      <NotificationsPage />
-                    </ProtectedRoute>
-                  } />
+                    {/* Shared Protected Routes */}
+                    <Route path="/notifications" element={
+                      <ProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'developer']}>
+                        <NotificationsPage />
+                      </ProtectedRoute>
+                    } />
 
-                  <Route path="/calendar" element={
-                    <ProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'developer']}>
-                      <CalendarPage />
-                    </ProtectedRoute>
-                  } />
+                    <Route path="/calendar" element={
+                      <ProtectedRoute allowedRoles={['admin', 'teacher', 'student', 'developer']}>
+                        <CalendarPage />
+                      </ProtectedRoute>
+                    } />
 
-                  {/* Catch all route */}
-                  <Route path="*" element={<Navigate to="/" />} />
-                </Routes>
+                    {/* Catch all route */}
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                </Suspense>
               </main>
               <Footer />
-              <ChatbotWidget />
-              </div>
-            </Router>
-          {/* End of removed Grade feature */}
+              <Suspense fallback={null}>
+                <ChatbotWidget />
+              </Suspense>
+            </div>
+          </Router>
         </CalendarProvider>
       </NotificationProvider>
     </AuthProvider>

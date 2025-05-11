@@ -10,6 +10,22 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          // UI libraries
+          ui: ['react-toastify', 'gsap'],
+          // Utility libraries
+          utils: ['axios', 'date-fns'],
+        },
+        // Increase the chunk size warning limit to 600kb
+        chunkSizeWarningLimit: 600,
+      }
+    },
+    // Enable code splitting
+    cssCodeSplit: true,
   },
   server: {
     port: 3000,
