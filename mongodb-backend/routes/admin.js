@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Course = require('../models/Course');
+const Document = require('../models/Document');
 const { authenticateToken, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload'); // Local file upload
 const { cloudinaryUpload, cloudinary } = require('../middleware/cloudinaryUpload'); // Cloudinary upload
+const compressAndUpload = require('../middleware/compressAndUpload'); // Compression and upload
 const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
@@ -1275,6 +1277,104 @@ router.delete('/files/:directory/:public_id', authenticateToken, authorize(['adm
   } catch (error) {
     console.error('Error deleting file from Cloudinary:', error);
     res.status(500).json({ message: 'Failed to delete file', error: error.message });
+  }
+});
+
+// Upload document (admin only)
+router.post('/documents', authenticateToken, authorize(['admin']), compressAndUpload('file'), async (req, res) => {
+  try {
+    console.log('Document upload request received from admin:', req.user.username);
+    console.log('Request body:', req.body);
+    console.log('File received:', req.file ? 'Yes' : 'No');
+
+    const { title, description, type, category, driveUrl } = req.body;
+
+    // Validate request
+    if (type !== 'drive_link' && !req.file) {
+      console.error('Document upload failed: No file uploaded');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    if (!title || !type) {
+      console.error('Document upload failed: Missing required fields');
+      return res.status(400).json({ message: 'Title and type are required' });
+    }
+
+    if (type === 'drive_link' && !driveUrl) {
+      console.error('Document upload failed: Drive URL is required for drive_link type');
+      return res.status(400).json({ message: 'Drive URL is required for drive_link type' });
+    }
+
+    // Create new document
+    const document = new Document({
+      title,
+      description: description || '',
+      type,
+      category: category || 'other',
+      file: req.file ? req.file.path : undefined,
+      driveUrl: driveUrl || undefined,
+      uploadedBy: req.user.id
+    });
+
+    // Save document
+    await document.save();
+    console.log('Document saved successfully:', document._id);
+
+    res.status(201).json({
+      message: 'Document uploaded successfully',
+      document: {
+        _id: document._id,
+        title: document.title,
+        description: document.description,
+        type: document.type,
+        category: document.category,
+        file: document.file,
+        driveUrl: document.driveUrl,
+        createdAt: document.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    res.status(500).json({ message: 'Failed to upload document', error: error.message });
+  }
+});
+
+// Delete document (admin only)
+router.delete('/documents/:id', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    // If document has a file, delete it from Cloudinary
+    if (document.file && document.file.includes('cloudinary')) {
+      try {
+        // Extract public_id from Cloudinary URL
+        const urlParts = document.file.split('/');
+        const filenameWithExtension = urlParts[urlParts.length - 1];
+        const filename = filenameWithExtension.split('.')[0];
+        const folderPath = urlParts[urlParts.length - 2];
+        const publicId = `${folderPath}/${filename}`;
+
+        console.log('Attempting to delete file from Cloudinary:', publicId);
+        await cloudinary.uploader.destroy(publicId);
+        console.log('File deleted from Cloudinary successfully');
+      } catch (cloudinaryError) {
+        console.error('Error deleting file from Cloudinary:', cloudinaryError);
+        // Continue with document deletion even if Cloudinary deletion fails
+      }
+    }
+
+    // Delete document from database
+    await Document.findByIdAndDelete(req.params.id);
+    console.log('Document deleted successfully:', req.params.id);
+
+    res.json({ message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ message: 'Failed to delete document', error: error.message });
   }
 });
 

@@ -11,13 +11,13 @@ const DocumentSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['file', 'drive_link'],
+    enum: ['form', 'application', 'newsletter', 'drive_link', 'file'],
     required: true
   },
   category: {
     type: String,
-    enum: ['form', 'syllabus', 'timetable', 'result', 'notice', 'other'],
-    default: 'other'
+    enum: ['general', 'admission', 'examination', 'scholarship', 'academic', 'administrative', 'form', 'syllabus', 'timetable', 'result', 'notice', 'other'],
+    default: 'general'
   },
   file: {
     type: String
@@ -41,8 +41,8 @@ const DocumentSchema = new mongoose.Schema({
 
 // Validate that either file or driveUrl is provided based on type
 DocumentSchema.pre('validate', function(next) {
-  if (this.type === 'file' && !this.file) {
-    this.invalidate('file', 'File is required for type "file"');
+  if (['file', 'form', 'application', 'newsletter'].includes(this.type) && !this.file) {
+    this.invalidate('file', `File is required for type "${this.type}"`);
   } else if (this.type === 'drive_link' && !this.driveUrl) {
     this.invalidate('driveUrl', 'Drive URL is required for type "drive_link"');
   }
