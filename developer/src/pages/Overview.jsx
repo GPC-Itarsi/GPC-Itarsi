@@ -13,7 +13,9 @@ const Overview = () => {
     const fetchProfile = async () => {
       try {
         // Fetch profile data from backend without authentication
+        console.log('Overview - Fetching profile from:', `${config.apiUrl}/api/developer/profile-public`);
         const response = await axios.get(`${config.apiUrl}/api/developer/profile-public`);
+        console.log('Overview - Profile data received:', response.data);
 
         if (response.data) {
           setProfileData({
@@ -26,7 +28,9 @@ const Overview = () => {
           }
         }
       } catch (err) {
-        console.error('Error fetching profile:', err);
+        console.error('Overview - Error fetching profile:', err);
+        console.error('Overview - Error details:', err.response ? err.response.data : 'No response data');
+        console.error('Overview - API URL used:', config.apiUrl);
         // Keep default values if API fails
       }
     };

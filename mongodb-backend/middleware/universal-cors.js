@@ -22,6 +22,11 @@ module.exports = function(req, res, next) {
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
+    'http://localhost:5176',
+    'http://developer.anmol.onrender.com',
+    'https://developer.anmol.onrender.com',
+    'http://anmol.onrender.com/developer',
+    'https://anmol.onrender.com/developer',
     // Add any other origins that might be accessing the API
     'https://gpc-itarsi.onrender.com'
   ];

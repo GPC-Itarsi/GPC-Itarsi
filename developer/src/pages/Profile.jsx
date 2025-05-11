@@ -31,7 +31,9 @@ const Profile = () => {
 
         // Fetch profile data from backend without authentication
         try {
+          console.log('Fetching profile from:', `${config.apiUrl}/api/developer/profile-public`);
           const response = await axios.get(`${config.apiUrl}/api/developer/profile-public`);
+          console.log('Profile data received:', response.data);
 
           setProfileData({
             name: response.data.name || 'Developer',
@@ -53,7 +55,10 @@ const Profile = () => {
             setPreviewImage('https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200');
           }
         } catch (err) {
-          console.error('Error fetching profile from API, using default data:', err);
+          console.error('Error fetching profile from API:', err);
+          console.error('Error details:', err.response ? err.response.data : 'No response data');
+          console.error('API URL used:', config.apiUrl);
+
           // Use default data if API fails
           setProfileData({
             name: 'Developer',
@@ -69,6 +74,9 @@ const Profile = () => {
             }
           });
           setPreviewImage('https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200');
+
+          // Set a more user-friendly error message
+          setError('Could not load profile data from the server. Using default profile information instead.');
         }
 
         setLoading(false);
@@ -121,7 +129,17 @@ const Profile = () => {
 
       // Update profile data without authentication
       try {
-        await axios.put(
+        console.log('Updating profile data at:', `${config.apiUrl}/api/developer/profile-public`);
+        console.log('Profile data being sent:', {
+          name: profileData.name,
+          title: profileData.title,
+          bio: profileData.bio,
+          education: profileData.education,
+          experience: profileData.experience,
+          socialLinks: JSON.stringify(profileData.socialLinks)
+        });
+
+        const response = await axios.put(
           `${config.apiUrl}/api/developer/profile-public`,
           {
             name: profileData.name,
@@ -133,12 +151,15 @@ const Profile = () => {
           }
         );
 
+        console.log('Profile update response:', response.data);
+
         // Update profile picture if a new one was selected
         if (fileInputRef.current.files[0]) {
+          console.log('Uploading profile picture');
           const formData = new FormData();
           formData.append('profilePicture', fileInputRef.current.files[0]);
 
-          await axios.put(
+          const pictureResponse = await axios.put(
             `${config.apiUrl}/api/developer/profile-picture-public`,
             formData,
             {
@@ -147,12 +168,20 @@ const Profile = () => {
               }
             }
           );
+
+          console.log('Profile picture update response:', pictureResponse.data);
         }
 
         setSuccess('Profile updated successfully!');
       } catch (err) {
         console.error('Error updating profile with API:', err);
-        setError('Failed to update profile. Please try again later.');
+        console.error('Error details:', err.response ? err.response.data : 'No response data');
+        console.error('API URL used:', config.apiUrl);
+
+        setError('Failed to update profile. Please try again later. Error: ' +
+                (err.response && err.response.data && err.response.data.message
+                  ? err.response.data.message
+                  : err.message || 'Unknown error'));
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);

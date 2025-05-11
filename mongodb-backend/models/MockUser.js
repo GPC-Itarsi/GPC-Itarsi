@@ -138,6 +138,27 @@ const mockUsers = [
     attendance: 75,
     createdAt: new Date(),
     updatedAt: new Date()
+  },
+  {
+    _id: '60d0fe4f5311236168a109d3',
+    username: 'developer',
+    password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM8K', // developer123
+    name: 'Anmol Malviya',
+    role: 'developer',
+    email: 'developer@gpcitarsi.edu.in',
+    profilePicture: 'default-profile.jpg',
+    title: 'Web Developer',
+    bio: 'I am a web developer specializing in React and Node.js.',
+    education: 'Computer Science',
+    experience: '5 years',
+    socialLinks: {
+      github: 'https://github.com/developer',
+      portfolio: 'https://developer.com',
+      instagram: 'https://instagram.com/developer',
+      email: 'developer@example.com'
+    },
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ];
 
@@ -219,6 +240,9 @@ class MockUser {
     }
     if (candidatePassword === '1234' && userPassword.includes('AMM9K')) {
       return true; // Allow '1234' for operator admin
+    }
+    if (candidatePassword === 'developer123' && userPassword.includes('AMM8K')) {
+      return true; // Allow 'developer123' for developer
     }
 
     // For other cases, use bcrypt
