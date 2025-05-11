@@ -63,7 +63,7 @@ const compressAndUpload = (field) => {
           message: 'File upload error',
           error: err.message || 'Unknown upload error',
           code: err.code || 'UNKNOWN_ERROR',
-          details: 'Please ensure you are uploading a supported file type (images, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT)'
+          details: 'Please ensure you are uploading a supported file format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT'
         });
       }
 

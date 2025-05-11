@@ -142,6 +142,16 @@ const StudyMaterials = () => {
       return;
     }
 
+    // Validate file type
+    const fileName = formData.file.name;
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    const allowedExtensions = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar'];
+
+    if (!allowedExtensions.includes(fileExtension)) {
+      setError(`File type .${fileExtension} is not supported. Please upload a file with one of these extensions: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, JPG, PNG, GIF, ZIP, RAR`);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -156,16 +166,33 @@ const StudyMaterials = () => {
       formDataToSend.append('class', formData.class);
       formDataToSend.append('file', formData.file);
 
-      await axios.post(
-        `${config.apiUrl}/api/study-materials/upload-cloudinary`,
-        formDataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
+      // Try the upload-simple endpoint first, which is more reliable for study materials
+      try {
+        await axios.post(
+          `${config.apiUrl}/api/study-materials/upload-simple`,
+          formDataToSend,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
           }
-        }
-      );
+        );
+      } catch (uploadError) {
+        console.error('Error with simple upload, trying cloudinary upload:', uploadError);
+
+        // If simple upload fails, try the regular cloudinary upload
+        await axios.post(
+          `${config.apiUrl}/api/study-materials/upload-cloudinary`,
+          formDataToSend,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+      }
 
       // Reset form and close modal
       setFormData({
@@ -182,7 +209,8 @@ const StudyMaterials = () => {
       fetchStudyMaterials();
     } catch (error) {
       console.error('Error adding study material:', error);
-      setError(error.response?.data?.message || 'Failed to add study material');
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || error.response?.data?.details || 'Failed to add study material';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -495,13 +523,14 @@ const StudyMaterials = () => {
                                     type="file"
                                     className="sr-only"
                                     onChange={handleFileChange}
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.csv,.jpg,.jpeg,.png,.gif,.zip,.rar"
                                     required
                                   />
                                 </label>
                                 <p className="pl-1">or drag and drop</p>
                               </div>
                               <p className="text-xs text-gray-500">
-                                PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX up to 50MB
+                                Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, JPG, PNG, GIF, ZIP, RAR (up to 50MB)
                               </p>
                               {formData.file && (
                                 <p className="text-sm text-primary-600 mt-2">

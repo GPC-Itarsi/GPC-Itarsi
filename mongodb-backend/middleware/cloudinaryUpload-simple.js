@@ -17,7 +17,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'gpc-itarsi/study-materials',
     resource_type: 'auto',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar'],
     public_id: (req, file) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       return file.fieldname + '-' + uniqueSuffix;
@@ -37,9 +37,9 @@ const upload = multer({
 const handleUpload = (fieldName) => {
   return (req, res, next) => {
     console.log(`Starting simple upload for field: ${fieldName}`);
-    
+
     const uploadSingle = upload.single(fieldName);
-    
+
     uploadSingle(req, res, (err) => {
       if (err) {
         console.error('Upload error:', err);
@@ -48,7 +48,7 @@ const handleUpload = (fieldName) => {
           error: err.message || 'Unknown error'
         });
       }
-      
+
       console.log('File uploaded successfully:', req.file ? req.file.path : 'No file');
       next();
     });

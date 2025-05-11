@@ -70,7 +70,7 @@ const storage = new CloudinaryStorage({
 
     const params = {
       folder: getFolder(req),
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'raw'],
+      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar', 'raw'],
       public_id: publicId,
       resource_type: 'auto', // 'auto' will detect if it's an image or raw file
       transformation: [
@@ -94,7 +94,7 @@ const fileFilter = (req, file, cb) => {
   console.log('File extension:', fileExtension);
 
   // List of allowed extensions
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt'];
+  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar'];
 
   // Accept based on extension as a fallback if mimetype check fails
   const isAllowedExtension = allowedExtensions.includes(fileExtension);
@@ -119,6 +119,12 @@ const fileFilter = (req, file, cb) => {
     // For study materials, accept the file if it has a valid extension, regardless of mimetype
     if (isAllowedExtension) {
       console.log('File accepted for study materials based on extension:', fileExtension);
+      return cb(null, true);
+    }
+
+    // For study materials, also accept application/octet-stream with any extension
+    if (file.mimetype === 'application/octet-stream') {
+      console.log('Accepting application/octet-stream for study materials:', file.originalname);
       return cb(null, true);
     }
   }
