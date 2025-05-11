@@ -81,6 +81,7 @@ const Teachers = () => {
 
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
       const token = localStorage.getItem('token');
 
       // Convert subjects string to array
@@ -88,7 +89,16 @@ const Teachers = () => {
         ? formData.subjects.split(',').map(subject => subject.trim())
         : [];
 
-      await axios.post(
+      // Validate username
+      if (!formData.username) {
+        setError('Username is required');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Sending request to add teacher with username:', formData.username);
+
+      const response = await axios.post(
         `${config.apiUrl}/api/admin/add-teacher`,
         {
           name: formData.name,
@@ -107,6 +117,8 @@ const Teachers = () => {
         }
       );
 
+      console.log('Teacher added successfully:', response.data);
+
       // Reset form and close modal
       setFormData({
         name: '',
@@ -124,7 +136,30 @@ const Teachers = () => {
       fetchTeachers();
     } catch (error) {
       console.error('Error adding teacher:', error);
-      setError(error.response?.data?.message || 'Failed to add teacher');
+
+      // Handle specific error cases
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (status === 400 && data.message === 'Username already exists') {
+          setError('This username is already taken. Please choose a different username.');
+        } else if (status === 400 && data.message.includes('required')) {
+          setError(data.message);
+        } else if (status === 401) {
+          setError('Authentication error. Please log in again.');
+        } else if (status === 403) {
+          setError('You do not have permission to add teachers.');
+        } else {
+          setError(data.message || 'Failed to add teacher');
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your internet connection.');
+      } else {
+        // Something happened in setting up the request
+        setError('Error setting up request: ' + error.message);
+      }
+
       setLoading(false);
     }
   };
@@ -134,6 +169,7 @@ const Teachers = () => {
 
     try {
       setLoading(true);
+      setError(null); // Clear any previous errors
       const token = localStorage.getItem('token');
 
       // Convert subjects string to array
@@ -141,7 +177,9 @@ const Teachers = () => {
         ? formData.subjects.split(',').map(subject => subject.trim())
         : [];
 
-      await axios.put(
+      console.log('Sending request to update teacher with ID:', selectedTeacher._id);
+
+      const response = await axios.put(
         `${config.apiUrl}/api/admin/update-teacher/${selectedTeacher._id}`,
         {
           name: formData.name,
@@ -158,13 +196,18 @@ const Teachers = () => {
         }
       );
 
+      console.log('Teacher updated successfully:', response.data);
+
       // Reset form and close modal
       setFormData({
         name: '',
         department: '',
         subjects: '',
         username: '',
-        password: ''
+        password: '',
+        qualification: '',
+        experience: '',
+        designation: ''
       });
       setSelectedTeacher(null);
       setShowEditModal(false);
@@ -173,7 +216,30 @@ const Teachers = () => {
       fetchTeachers();
     } catch (error) {
       console.error('Error updating teacher:', error);
-      setError(error.response?.data?.message || 'Failed to update teacher');
+
+      // Handle specific error cases
+      if (error.response) {
+        const { status, data } = error.response;
+
+        if (status === 400 && data.message.includes('required')) {
+          setError(data.message);
+        } else if (status === 401) {
+          setError('Authentication error. Please log in again.');
+        } else if (status === 403) {
+          setError('You do not have permission to update teachers.');
+        } else if (status === 404) {
+          setError('Teacher not found. They may have been deleted.');
+        } else {
+          setError(data.message || 'Failed to update teacher');
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your internet connection.');
+      } else {
+        // Something happened in setting up the request
+        setError('Error setting up request: ' + error.message);
+      }
+
       setLoading(false);
     }
   };
@@ -249,7 +315,17 @@ const Teachers = () => {
       {/* Error Message */}
       {error && (
         <div className="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-          {error}
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+          <button
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+            onClick={() => setError(null)}
+          >
+            <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <title>Close</title>
+              <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+          </button>
         </div>
       )}
 
@@ -349,6 +425,14 @@ const Teachers = () => {
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">Add New Teacher</h3>
+
+                      {/* Form Error Message */}
+                      {error && (
+                        <div className="mt-2 bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
+                          <strong>Error:</strong> {error}
+                        </div>
+                      )}
+
                       <div className="mt-4 space-y-4">
                         <div className="form-group">
                           <label htmlFor="name" className="form-label">
@@ -507,6 +591,14 @@ const Teachers = () => {
                   <div className="sm:flex sm:items-start">
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                       <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Teacher</h3>
+
+                      {/* Form Error Message */}
+                      {error && (
+                        <div className="mt-2 bg-red-100 border border-red-400 text-red-700 px-3 py-2 rounded text-sm">
+                          <strong>Error:</strong> {error}
+                        </div>
+                      )}
+
                       <div className="mt-4 space-y-4">
                         <div className="form-group">
                           <label htmlFor="name" className="form-label">
