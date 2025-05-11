@@ -18,7 +18,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'gpc-itarsi/study-materials',
     resource_type: 'auto',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar'],
+    // Remove allowed_formats restriction to allow any file type
     public_id: (req, file) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
       return file.fieldname + '-' + uniqueSuffix;
@@ -35,30 +35,42 @@ const fileFilter = (req, file, cb) => {
   const fileExtension = file.originalname.split('.').pop().toLowerCase();
   console.log('File extension:', fileExtension);
 
-  // List of allowed extensions
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar'];
+  // List of allowed extensions - expanded to include more formats
+  const allowedExtensions = [
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp',
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'txt', 'rtf', 'csv', 'zip', 'rar', '7z', 'tar', 'gz',
+    'mp3', 'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv',
+    'html', 'htm', 'css', 'js', 'json', 'xml'
+  ];
 
   // Accept based on extension
   const isAllowedExtension = allowedExtensions.includes(fileExtension);
 
   // Accept images, documents, and PDFs based on mimetype
-  const isAllowedMimetype = file.mimetype.startsWith('image/') ||
-      file.mimetype === 'application/pdf' ||
-      file.mimetype === 'application/msword' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.mimetype === 'application/vnd.ms-excel' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      file.mimetype === 'application/vnd.ms-powerpoint' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-      file.mimetype === 'text/plain' ||
+  const isAllowedMimetype =
+      file.mimetype.startsWith('image/') ||
+      file.mimetype.startsWith('application/') ||
+      file.mimetype.startsWith('text/') ||
+      file.mimetype.startsWith('audio/') ||
+      file.mimetype.startsWith('video/') ||
       file.mimetype === 'application/octet-stream'; // Accept binary files
+
+  // Special handling for study materials route
+  if (req.originalUrl.includes('/study-material') || req.originalUrl.includes('/upload-study-material')) {
+    console.log('Study materials route detected - accepting all files');
+    // For study materials, accept all files
+    return cb(null, true);
+  }
 
   if (isAllowedMimetype || isAllowedExtension) {
     console.log('File type accepted for simple Cloudinary upload:', file.originalname);
     cb(null, true);
   } else {
     console.error('Unsupported file type rejected for simple Cloudinary upload:', file.mimetype, 'for file:', file.originalname);
-    cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed file types are: images, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, ZIP, RAR.`), false);
+    console.error('File extension check result:', isAllowedExtension ? 'Allowed' : 'Not allowed');
+    console.error('Mimetype check result:', isAllowedMimetype ? 'Allowed' : 'Not allowed');
+    cb(new Error(`Unsupported file type: ${file.mimetype}. Allowed file types are: images, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, ZIP, RAR, and more.`), false);
   }
 };
 
@@ -90,6 +102,15 @@ const handleUpload = (fieldName) => {
     uploadSingle(req, res, (err) => {
       if (err) {
         console.error('Cloudinary simple upload error:', err);
+        console.error('Error details:', JSON.stringify(err, null, 2));
+
+        // Log the file information if available
+        if (req.file) {
+          console.log('File information during error:');
+          console.log('- Original name:', req.file.originalname);
+          console.log('- Mimetype:', req.file.mimetype);
+          console.log('- Size:', req.file.size);
+        }
 
         // Handle file size limit error
         if (err.code === 'LIMIT_FILE_SIZE') {
@@ -98,6 +119,23 @@ const handleUpload = (fieldName) => {
             error: 'LIMIT_FILE_SIZE',
             details: 'Please upload a smaller file (maximum 50MB)'
           });
+        }
+
+        // Handle Cloudinary specific errors
+        if (err.http_code) {
+          console.error('Cloudinary API error:', err);
+
+          // If it's a file format error, try to continue with local upload
+          if (err.message && (err.message.includes('format') || err.message.includes('not allowed'))) {
+            console.log('Cloudinary format error - trying local fallback');
+          } else {
+            // For other Cloudinary errors, return the error
+            return res.status(400).json({
+              message: 'Cloudinary upload failed',
+              error: err.message || 'Cloudinary error',
+              details: 'There was a problem with the cloud storage service. Please try again later.'
+            });
+          }
         }
 
         // Handle file type error
@@ -114,6 +152,7 @@ const handleUpload = (fieldName) => {
         localUploadSingle(req, res, (localErr) => {
           if (localErr) {
             console.error('Local upload error:', localErr);
+            console.error('Local error details:', JSON.stringify(localErr, null, 2));
 
             // Now return error after both methods failed
             if (localErr.code === 'LIMIT_FILE_SIZE') {
@@ -128,7 +167,7 @@ const handleUpload = (fieldName) => {
               return res.status(400).json({
                 message: 'Unsupported file format',
                 error: 'UNSUPPORTED_FILE_TYPE',
-                details: 'Please ensure you are uploading a supported file format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, JPG, PNG, GIF, ZIP, RAR'
+                details: 'Please ensure you are uploading a supported file format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, JPG, PNG, GIF, ZIP, RAR, and more.'
               });
             }
 

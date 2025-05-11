@@ -70,12 +70,13 @@ const storage = new CloudinaryStorage({
 
     const params = {
       folder: getFolder(req),
-      allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar', 'raw'],
+      // Remove allowed_formats restriction to allow any file type
       public_id: publicId,
       resource_type: 'auto', // 'auto' will detect if it's an image or raw file
-      transformation: [
+      // Only apply transformations to images
+      transformation: file.mimetype.startsWith('image/') ? [
         { width: 500, height: 500, crop: 'limit' }
-      ]
+      ] : []
     };
 
     console.log('Cloudinary upload parameters:', JSON.stringify(params, null, 2));
@@ -93,40 +94,35 @@ const fileFilter = (req, file, cb) => {
   const fileExtension = file.originalname.split('.').pop().toLowerCase();
   console.log('File extension:', fileExtension);
 
-  // List of allowed extensions
-  const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf', 'csv', 'zip', 'rar'];
+  // List of allowed extensions - expanded to include more formats
+  const allowedExtensions = [
+    'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp',
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'txt', 'rtf', 'csv', 'zip', 'rar', '7z', 'tar', 'gz',
+    'mp3', 'mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv',
+    'html', 'htm', 'css', 'js', 'json', 'xml'
+  ];
 
   // Accept based on extension as a fallback if mimetype check fails
   const isAllowedExtension = allowedExtensions.includes(fileExtension);
 
   // Accept images, documents, and PDFs based on mimetype
-  const isAllowedMimetype = file.mimetype.startsWith('image/') ||
-      file.mimetype === 'application/pdf' ||
-      file.mimetype === 'application/msword' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.mimetype === 'application/vnd.ms-excel' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      file.mimetype === 'application/vnd.ms-powerpoint' ||
-      file.mimetype === 'application/vnd.openxmlformats-officedocument.presentationml.presentation' ||
-      file.mimetype === 'text/plain' ||
+  const isAllowedMimetype =
+      file.mimetype.startsWith('image/') ||
+      file.mimetype.startsWith('application/') ||
+      file.mimetype.startsWith('text/') ||
+      file.mimetype.startsWith('audio/') ||
+      file.mimetype.startsWith('video/') ||
       file.mimetype === 'application/octet-stream'; // Accept binary files
 
   // Special handling for study materials route
   if (req.originalUrl.includes('/study-material') || req.originalUrl.includes('/upload-study-material')) {
     // Be more permissive for study materials
-    console.log('Study materials route detected - using more permissive file validation');
+    console.log('Study materials route detected - accepting all files');
 
-    // For study materials, accept the file if it has a valid extension, regardless of mimetype
-    if (isAllowedExtension) {
-      console.log('File accepted for study materials based on extension:', fileExtension);
-      return cb(null, true);
-    }
-
-    // For study materials, also accept application/octet-stream with any extension
-    if (file.mimetype === 'application/octet-stream') {
-      console.log('Accepting application/octet-stream for study materials:', file.originalname);
-      return cb(null, true);
-    }
+    // For study materials, accept all files regardless of type
+    console.log('File accepted for study materials:', file.originalname);
+    return cb(null, true);
   }
 
   if (isAllowedMimetype || isAllowedExtension) {
