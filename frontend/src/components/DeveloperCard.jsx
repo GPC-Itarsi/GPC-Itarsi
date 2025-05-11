@@ -4,7 +4,7 @@ import axios from 'axios';
 import config from '../config';
 import { getProfileImageUrl } from '../utils/imageUtils';
 
-const DeveloperCard = ({ isOpen, onClose }) => {
+const DeveloperCard = ({ isOpen, onClose, developerData }) => {
   const modalRef = useRef(null);
   const cardRef = useRef(null);
   const imageRef = useRef(null);
@@ -15,28 +15,44 @@ const DeveloperCard = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch developer data
+  // Use passed developer data or fetch if not provided
   useEffect(() => {
     if (isOpen) {
-      const fetchDeveloperData = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          const response = await axios.get(`${config.apiUrl}/api/developer/s`);
-          if (response.data && response.data.length > 0) {
-            setDeveloper(response.data[0]); // Assuming the first developer is the one we want to display
+      if (developerData) {
+        setDeveloper(developerData);
+        setLoading(false);
+      } else {
+        const fetchDeveloperData = async () => {
+          try {
+            setLoading(true);
+            setError(null);
+            const response = await axios.get(`${config.apiUrl}/api/developer/profile-public`);
+            if (response.data) {
+              setDeveloper(response.data);
+            }
+          } catch (err) {
+            console.error('Error fetching developer data:', err);
+            setError('Failed to load developer information');
+            // Set default developer data
+            setDeveloper({
+              name: 'Anmol Malviya',
+              title: 'Web Developer',
+              profilePicture: null,
+              bio: 'Full-stack web developer specializing in React and Node.js',
+              socialLinks: {
+                github: 'https://github.com/developer',
+                email: 'anmolmalviya4328@gmail.com'
+              }
+            });
+          } finally {
+            setLoading(false);
           }
-        } catch (err) {
-          console.error('Error fetching developer data:', err);
-          setError('Failed to load developer information');
-        } finally {
-          setLoading(false);
-        }
-      };
+        };
 
-      fetchDeveloperData();
+        fetchDeveloperData();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, developerData]);
 
   // Animation for opening the card
   useEffect(() => {

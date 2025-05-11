@@ -10,6 +10,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showDeveloperCard, setShowDeveloperCard] = useState(false);
+  const [developer, setDeveloper] = useState(null);
   const [contactInfo, setContactInfo] = useState({
     address: 'Sankheda Road, Near Canal, Lane 4 Bypass Road, Itarsi, District Narmadapuram',
     phone: '+91 8964035180',
@@ -34,7 +35,30 @@ const Footer = () => {
       }
     };
 
+    // Fetch developer information
+    const fetchDeveloperData = async () => {
+      try {
+        const response = await axios.get(`${config.apiUrl}/api/developer/profile-public`);
+        if (response.data) {
+          setDeveloper(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching developer information:', error);
+        // Set default developer data
+        setDeveloper({
+          name: 'Anmol Malviya',
+          title: 'Web Developer',
+          profilePicture: null,
+          socialLinks: {
+            github: 'https://github.com/developer',
+            email: 'anmolmalviya4328@gmail.com'
+          }
+        });
+      }
+    };
+
     fetchContactInfo();
+    fetchDeveloperData();
 
     // Handle scroll for back to top button
     const handleScroll = () => {
@@ -186,10 +210,13 @@ const Footer = () => {
                   <div className="relative z-10 flex items-center">
                     <div className="w-8 h-8 rounded overflow-hidden mr-2 border border-primary-400 shadow-inner group-hover:border-accent-300 transition-all duration-300 bg-primary-900/50 p-0.5">
                       <img
-                        src={getProfileImageUrl('IMG_20250302_114931_795.png')}
-                        alt="Anmol Malviya"
+                        src={getProfileImageUrl(developer?.profilePicture)}
+                        alt={developer?.name || "Developer"}
                         className="w-full h-full object-cover rounded group-hover:scale-110 transition-transform duration-500"
-                        onError={handleImageError}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(developer?.name || 'Developer')}&background=0D8ABC&color=fff&size=200`;
+                        }}
                       />
                     </div>
                     <div>
@@ -197,7 +224,7 @@ const Footer = () => {
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 text-accent-400" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
                         </svg>
-                        Developer: <span className="font-bold group-hover:text-accent-300 transition-colors duration-300 ml-1">Anmol Malviya</span>
+                        Developer: <span className="font-bold group-hover:text-accent-300 transition-colors duration-300 ml-1">{developer?.name || "Anmol Malviya"}</span>
                       </span>
                     </div>
                   </div>
@@ -216,7 +243,11 @@ const Footer = () => {
       </div>
       {/* Back to Top Button */}
       {/* Developer Card Modal */}
-      <DeveloperCard isOpen={showDeveloperCard} onClose={() => setShowDeveloperCard(false)} />
+      <DeveloperCard
+        isOpen={showDeveloperCard}
+        onClose={() => setShowDeveloperCard(false)}
+        developerData={developer}
+      />
 
       {/* Back to Top Button */}
       {showBackToTop && (

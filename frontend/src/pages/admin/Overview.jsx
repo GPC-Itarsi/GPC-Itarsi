@@ -4,6 +4,7 @@ import config from '../../config';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import sanitizeHtml from '../../utils/sanitizeHtml';
+import AdminDeveloperCard from '../../components/AdminDeveloperCard';
 
 const Overview = () => {
   const { user } = useAuth();
@@ -407,6 +408,17 @@ const Overview = () => {
                   )}
                 </ul>
               </div>
+            </div>
+          </div>
+
+          {/* Developer Card */}
+          <div className="mt-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+              <h2 className="text-lg font-medium text-gray-900">Developer Portal</h2>
+              <p className="text-sm text-gray-500">Website development and maintenance</p>
+            </div>
+            <div className="mt-4">
+              <AdminDeveloperCard />
             </div>
           </div>
 
