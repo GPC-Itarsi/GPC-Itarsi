@@ -578,7 +578,7 @@ router.get('/attendance/stats', authenticateToken, authorize(['admin']), async (
       totalClasses: classes.length,
       averageAttendance,
       lowAttendanceCount,
-      classesThisMonth: 20, // Mock value
+      classesThisMonth: 0, // Set to 0 after attendance reset
       attendanceByClass,
       recentAttendance,
       lowAttendanceStudents,

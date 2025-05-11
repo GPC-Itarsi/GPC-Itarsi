@@ -9,7 +9,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const AttendanceStats = () => {
   const [stats, setStats] = useState({
-    overall: { total: 20, present: 0, absent: 0, percentage: 0 },
+    overall: { total: 0, present: 0, absent: 0, percentage: 0 },
     byBranch: {},
     byClass: {},
     recentTrends: []
@@ -130,19 +130,19 @@ const AttendanceStats = () => {
       setError(error.response?.data?.message || 'Failed to load attendance statistics');
       setLoading(false);
 
-      // Set dummy data with zero attendance
+      // Set dummy data with zero attendance and zero total classes
       setStats({
-        overall: { total: 20, present: 0, absent: 0, percentage: 0 },
+        overall: { total: 0, present: 0, absent: 0, percentage: 0 },
         byBranch: {
-          CS: { total: 30, present: 0, absent: 0, percentage: 0 },
-          ME: { total: 25, present: 0, absent: 0, percentage: 0 },
-          ET: { total: 25, present: 0, absent: 0, percentage: 0 },
-          EE: { total: 20, present: 0, absent: 0, percentage: 0 }
+          CS: { total: 0, present: 0, absent: 0, percentage: 0 },
+          ME: { total: 0, present: 0, absent: 0, percentage: 0 },
+          ET: { total: 0, present: 0, absent: 0, percentage: 0 },
+          EE: { total: 0, present: 0, absent: 0, percentage: 0 }
         },
         byClass: {
-          'First Year': { total: 40, present: 0, absent: 0, percentage: 0 },
-          'Second Year': { total: 30, present: 0, absent: 0, percentage: 0 },
-          'Third Year': { total: 30, present: 0, absent: 0, percentage: 0 }
+          'First Year': { total: 0, present: 0, absent: 0, percentage: 0 },
+          'Second Year': { total: 0, present: 0, absent: 0, percentage: 0 },
+          'Third Year': { total: 0, present: 0, absent: 0, percentage: 0 }
         },
         recentTrends: [
           { date: '2023-01-01', percentage: 0 },
