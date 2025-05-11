@@ -50,7 +50,12 @@ const Profile = () => {
           });
 
           if (response.data.profilePicture) {
-            setPreviewImage(`${config.apiUrl}/uploads/${response.data.profilePicture}`);
+            // Check if the profile picture is a Cloudinary URL or a local file
+            if (response.data.profilePicture.includes('cloudinary') || response.data.profilePicture.startsWith('http')) {
+              setPreviewImage(response.data.profilePicture);
+            } else {
+              setPreviewImage(`${config.apiUrl}/uploads/${response.data.profilePicture}`);
+            }
           } else {
             setPreviewImage('https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200');
           }
@@ -58,6 +63,12 @@ const Profile = () => {
           console.error('Error fetching profile from API:', err);
           console.error('Error details:', err.response ? err.response.data : 'No response data');
           console.error('API URL used:', config.apiUrl);
+
+          // Check if the error is "Developer not found"
+          const isDeveloperNotFound =
+            err.response &&
+            err.response.data &&
+            err.response.data.message === "Developer not found";
 
           // Use default data if API fails
           setProfileData({
@@ -76,7 +87,11 @@ const Profile = () => {
           setPreviewImage('https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200');
 
           // Set a more user-friendly error message
-          setError('Could not load profile data from the server. Using default profile information instead.');
+          if (isDeveloperNotFound) {
+            setError('Could not load profile data from the server: Developer not found. Using default profile information instead. You can save this profile to create a developer user.');
+          } else {
+            setError('Could not load profile data from the server. Using default profile information instead.');
+          }
         }
 
         setLoading(false);
@@ -170,18 +185,45 @@ const Profile = () => {
           );
 
           console.log('Profile picture update response:', pictureResponse.data);
+
+          // Update preview image with the new image URL if available
+          if (pictureResponse.data.url) {
+            setPreviewImage(pictureResponse.data.url);
+          } else if (pictureResponse.data.path) {
+            setPreviewImage(pictureResponse.data.path);
+          } else if (pictureResponse.data.filename) {
+            setPreviewImage(`${config.apiUrl}/uploads/${pictureResponse.data.filename}`);
+          }
         }
 
-        setSuccess('Profile updated successfully!');
+        setSuccess('Profile updated successfully! Refresh the page to see your changes.');
+
+        // Reload the page after a short delay to show the updated profile
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } catch (err) {
         console.error('Error updating profile with API:', err);
         console.error('Error details:', err.response ? err.response.data : 'No response data');
         console.error('API URL used:', config.apiUrl);
 
-        setError('Failed to update profile. Please try again later. Error: ' +
-                (err.response && err.response.data && err.response.data.message
-                  ? err.response.data.message
-                  : err.message || 'Unknown error'));
+        // Check if this might be a first-time save
+        const isFirstTimeSave =
+          err.response &&
+          err.response.status === 404 &&
+          err.response.data &&
+          err.response.data.message === "Developer not found";
+
+        if (isFirstTimeSave) {
+          setError('This appears to be the first time you are saving a developer profile. ' +
+                  'The backend needs to create a new developer user. Please try again, and if the issue persists, ' +
+                  'contact the administrator to ensure the backend is properly configured.');
+        } else {
+          setError('Failed to update profile. Please try again later. Error: ' +
+                  (err.response && err.response.data && err.response.data.message
+                    ? err.response.data.message
+                    : err.message || 'Unknown error'));
+        }
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);

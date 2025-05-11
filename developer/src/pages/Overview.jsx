@@ -24,13 +24,28 @@ const Overview = () => {
           });
 
           if (response.data.profilePicture) {
-            setPreviewImage(`${config.apiUrl}/uploads/${response.data.profilePicture}`);
+            // Check if the profile picture is a Cloudinary URL or a local file
+            if (response.data.profilePicture.includes('cloudinary') || response.data.profilePicture.startsWith('http')) {
+              setPreviewImage(response.data.profilePicture);
+            } else {
+              setPreviewImage(`${config.apiUrl}/uploads/${response.data.profilePicture}`);
+            }
           }
         }
       } catch (err) {
         console.error('Overview - Error fetching profile:', err);
         console.error('Overview - Error details:', err.response ? err.response.data : 'No response data');
         console.error('Overview - API URL used:', config.apiUrl);
+
+        // Check if the error is "Developer not found"
+        const isDeveloperNotFound =
+          err.response &&
+          err.response.data &&
+          err.response.data.message === "Developer not found";
+
+        if (isDeveloperNotFound) {
+          console.log('Developer not found. This is expected if you have not yet created a developer profile.');
+        }
         // Keep default values if API fails
       }
     };

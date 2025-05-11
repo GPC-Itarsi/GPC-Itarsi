@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import useMobileSidebar from '../../../frontend/src/hooks/useMobileSidebar';
-import { createSwipeHandler } from '../../../frontend/src/utils/touchUtils';
-import collegeLogo from '../../../frontend/src/assets/college-logo.png';
+import useMobileSidebar from '../hooks/useMobileSidebar';
+import { createSwipeHandler } from '../utils/touchUtils';
+// Import college logo from assets
+import collegeLogo from '../assets/college-logo.png';
 
 // Developer Components
 import Profile from './Profile';

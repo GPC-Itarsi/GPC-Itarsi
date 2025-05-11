@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const { authenticateToken, authorize } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { cloudinaryUpload, cloudinary, handleCloudinaryUpload } = require('../middleware/cloudinaryUpload');
 const fs = require('fs');
 const path = require('path');
 
@@ -26,10 +27,39 @@ router.get('/profile', authenticateToken, authorize(['developer']), async (req, 
 router.get('/profile-public', async (req, res) => {
   try {
     // Find a user with developer role
-    const developer = await User.findOne({ role: 'developer' }).select('-password');
+    let developer = await User.findOne({ role: 'developer' }).select('-password');
 
+    // If no developer exists, create one with default values
     if (!developer) {
-      return res.status(404).json({ message: 'Developer not found' });
+      console.log('No developer found. Creating a new developer user with default values...');
+
+      // Create a new developer user with default values
+      const newDeveloper = new User({
+        username: 'developer',
+        password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM8K', // developer123
+        name: 'Developer',
+        role: 'developer',
+        email: 'developer@gpcitarsi.edu.in',
+        profilePicture: 'default-profile.jpg',
+        title: 'Web Developer',
+        bio: 'I am a web developer specializing in React and Node.js.',
+        education: 'Computer Science',
+        experience: '5 years',
+        socialLinks: {
+          github: 'https://github.com/developer',
+          portfolio: 'https://developer.com',
+          instagram: 'https://instagram.com/developer',
+          email: 'developer@example.com'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      developer = await newDeveloper.save();
+      console.log('New developer user created successfully with ID:', developer._id);
+
+      // Return the newly created developer without password
+      developer = await User.findById(developer._id).select('-password');
     }
 
     res.json(developer);
@@ -93,14 +123,47 @@ router.put('/profile-public', async (req, res) => {
       }
     }
 
-    // Find and update developer user
-    const developer = await User.findOne({ role: 'developer' });
+    // Find developer user
+    let developer = await User.findOne({ role: 'developer' });
 
+    // If no developer exists, create one
     if (!developer) {
-      return res.status(404).json({ message: 'Developer not found' });
+      console.log('No developer found. Creating a new developer user...');
+
+      // Create a new developer user
+      developer = new User({
+        username: 'developer',
+        password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM8K', // developer123
+        name: name || 'Developer',
+        role: 'developer',
+        email: 'developer@gpcitarsi.edu.in',
+        profilePicture: 'default-profile.jpg',
+        title: title || 'Web Developer',
+        bio: bio || 'I am a web developer specializing in React and Node.js.',
+        education: education || 'Computer Science',
+        experience: experience || '5 years',
+        socialLinks: socialLinks ?
+          (typeof socialLinks === 'string' ? JSON.parse(socialLinks) : socialLinks) :
+          {
+            github: 'https://github.com/developer',
+            portfolio: 'https://developer.com',
+            instagram: 'https://instagram.com/developer',
+            email: 'developer@example.com'
+          },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      await developer.save();
+      console.log('New developer user created successfully');
+
+      return res.status(201).json({
+        message: 'Developer profile created successfully',
+        user: developer
+      });
     }
 
-    // Update user
+    // Update existing user
     const user = await User.findByIdAndUpdate(
       developer._id,
       { $set: profileFields },
@@ -147,32 +210,84 @@ router.put('/profile-picture', authenticateToken, authorize(['developer']), uplo
 });
 
 // Update profile picture (public - no authentication)
-router.put('/profile-picture-public', upload.single('profilePicture'), async (req, res) => {
+router.put('/profile-picture-public', handleCloudinaryUpload('profilePicture'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
     // Find developer user
-    const user = await User.findOne({ role: 'developer' });
+    let user = await User.findOne({ role: 'developer' });
 
+    // If no developer exists, create one
     if (!user) {
-      return res.status(404).json({ message: 'Developer not found' });
+      console.log('No developer found when updating profile picture. Creating a new developer user...');
+
+      // Create a new developer user
+      user = new User({
+        username: 'developer',
+        password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM8K', // developer123
+        name: 'Developer',
+        role: 'developer',
+        email: 'developer@gpcitarsi.edu.in',
+        title: 'Web Developer',
+        bio: 'I am a web developer specializing in React and Node.js.',
+        education: 'Computer Science',
+        experience: '5 years',
+        socialLinks: {
+          github: 'https://github.com/developer',
+          portfolio: 'https://developer.com',
+          instagram: 'https://instagram.com/developer',
+          email: 'developer@example.com'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+
+      await user.save();
+      console.log('New developer user created successfully for profile picture update with ID:', user._id);
     }
 
-    // Delete old profile picture if exists
-    if (user.profilePicture) {
+    // Delete old profile picture from Cloudinary if exists
+    if (user.profilePicture && user.profilePicture.includes('cloudinary')) {
+      try {
+        // Extract public_id from Cloudinary URL
+        const publicId = user.profilePicture.split('/').pop().split('.')[0];
+        if (publicId) {
+          await cloudinary.uploader.destroy(publicId);
+          console.log('Deleted old profile picture from Cloudinary:', publicId);
+        }
+      } catch (cloudinaryError) {
+        console.error('Error deleting old profile picture from Cloudinary:', cloudinaryError);
+      }
+    }
+    // Also try to delete from local storage if it exists
+    else if (user.profilePicture) {
       const oldPicturePath = path.join(__dirname, '..', 'uploads', user.profilePicture);
       if (fs.existsSync(oldPicturePath)) {
         fs.unlinkSync(oldPicturePath);
+        console.log('Deleted old profile picture from local storage:', oldPicturePath);
       }
     }
 
     // Update user with new profile picture
-    user.profilePicture = req.file.filename;
+    // Check if the file was uploaded to Cloudinary or local storage
+    if (req.file.path && req.file.path.includes('cloudinary')) {
+      // For Cloudinary uploads, store the secure URL
+      user.profilePicture = req.file.path;
+    } else {
+      // For local uploads, store the filename
+      user.profilePicture = req.file.filename;
+    }
+
     await user.save();
 
-    res.json({ message: 'Profile picture updated successfully', filename: req.file.filename });
+    res.json({
+      message: 'Profile picture updated successfully',
+      filename: req.file.filename,
+      path: req.file.path || null,
+      url: req.file.path || `/uploads/${req.file.filename}`
+    });
   } catch (error) {
     console.error('Error updating public profile picture:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
