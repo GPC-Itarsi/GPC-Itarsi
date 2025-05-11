@@ -43,7 +43,9 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
     }
 
     // Generate a unique email for the teacher based on username
-    const email = `${teacherUsername}@gpc-itarsi.edu.in`;
+    // Sanitize username for email (remove any characters that might not be valid in an email)
+    const sanitizedUsername = teacherUsername.replace(/[^a-zA-Z0-9._-]/g, '');
+    const email = `${sanitizedUsername}@gpc-itarsi.edu.in`;
 
     // Check if email already exists
     try {
@@ -158,7 +160,9 @@ router.put('/update-teacher/:id', authenticateToken, authorize(['admin']), async
       }
 
       // Generate a new email based on the new username
-      const newEmail = `${req.body.username}@gpc-itarsi.edu.in`;
+      // Sanitize username for email (remove any characters that might not be valid in an email)
+      const sanitizedUsername = req.body.username.replace(/[^a-zA-Z0-9._-]/g, '');
+      const newEmail = `${sanitizedUsername}@gpc-itarsi.edu.in`;
 
       // Check if the new email already exists
       const existingEmail = await User.findOne({ email: newEmail });
@@ -261,7 +265,9 @@ router.post('/add-student', authenticateToken, authorize(['admin']), async (req,
     }
 
     // Generate a unique email for the student based on roll number
-    const email = `${rollNumber.toLowerCase()}@gpc-itarsi.edu.in`;
+    // Sanitize roll number for email (remove any characters that might not be valid in an email)
+    const sanitizedRollNumber = rollNumber.toLowerCase().replace(/[^a-zA-Z0-9._-]/g, '');
+    const email = `${sanitizedRollNumber}@gpc-itarsi.edu.in`;
 
     // Check if email already exists
     const existingEmail = await User.findOne({ email });
@@ -322,7 +328,9 @@ router.put('/update-student/:id', authenticateToken, authorize(['admin']), async
       }
 
       // Generate a new email based on the new roll number
-      const newEmail = `${req.body.rollNumber.toLowerCase()}@gpc-itarsi.edu.in`;
+      // Sanitize roll number for email (remove any characters that might not be valid in an email)
+      const sanitizedRollNumber = req.body.rollNumber.toLowerCase().replace(/[^a-zA-Z0-9._-]/g, '');
+      const newEmail = `${sanitizedRollNumber}@gpc-itarsi.edu.in`;
 
       // Check if the new email already exists
       const existingEmail = await User.findOne({ email: newEmail });

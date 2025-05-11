@@ -70,10 +70,21 @@ const Teachers = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+
+    // For username field, sanitize input to allow only valid characters
+    if (name === 'username') {
+      // Allow only letters, numbers, dots, underscores, and hyphens
+      const sanitizedValue = value.replace(/[^a-zA-Z0-9._-]/g, '');
+      setFormData({
+        ...formData,
+        [name]: sanitizedValue
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleAddTeacher = async (e) => {
@@ -92,6 +103,14 @@ const Teachers = () => {
       // Validate username
       if (!formData.username) {
         setError('Username is required');
+        setLoading(false);
+        return;
+      }
+
+      // Validate username format
+      const usernameRegex = /^[a-zA-Z0-9._-]+$/;
+      if (!usernameRegex.test(formData.username)) {
+        setError('Username can only contain letters, numbers, dots, underscores, and hyphens');
         setLoading(false);
         return;
       }
@@ -506,10 +525,13 @@ const Teachers = () => {
                             id="username"
                             required
                             className="form-input"
-                            placeholder="Enter login username"
+                            placeholder="Enter login username (letters, numbers, dots, underscores only)"
                             value={formData.username}
                             onChange={handleInputChange}
                           />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Use only letters, numbers, dots, underscores, and hyphens for username.
+                          </p>
                         </div>
                         <div className="form-group">
                           <label htmlFor="password" className="form-label">

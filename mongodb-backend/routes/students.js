@@ -122,7 +122,9 @@ router.post('/', authenticateToken, authorize(['admin']), async (req, res) => {
     }
 
     // Generate a unique email for the student based on roll number
-    const email = `${rollNumber.toLowerCase()}@gpcitarsi.edu.in`;
+    // Sanitize roll number for email (remove any characters that might not be valid in an email)
+    const sanitizedRollNumber = rollNumber.toLowerCase().replace(/[^a-zA-Z0-9._-]/g, '');
+    const email = `${sanitizedRollNumber}@gpcitarsi.edu.in`;
 
     // Check if email already exists
     const existingEmail = await User.findOne({ email });
@@ -183,7 +185,9 @@ router.put('/:id', authenticateToken, authorize(['admin']), async (req, res) => 
       }
 
       // Generate a new email based on the new roll number
-      const newEmail = `${req.body.rollNumber.toLowerCase()}@gpcitarsi.edu.in`;
+      // Sanitize roll number for email (remove any characters that might not be valid in an email)
+      const sanitizedRollNumber = req.body.rollNumber.toLowerCase().replace(/[^a-zA-Z0-9._-]/g, '');
+      const newEmail = `${sanitizedRollNumber}@gpcitarsi.edu.in`;
 
       // Check if the new email already exists
       const existingEmail = await User.findOne({ email: newEmail });

@@ -24,7 +24,7 @@ const UserSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/, 'Please provide a valid email address'],
+    match: [/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please provide a valid email address'],
     sparse: true
   },
   phone: {
