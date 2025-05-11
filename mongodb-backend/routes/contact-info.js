@@ -43,14 +43,18 @@ router.get('/', async (req, res) => {
     // Set CORS headers explicitly for this route
     const origin = req.headers.origin;
 
-    // List of allowed origins
+    // List of allowed origins - make sure to include ALL possible frontend origins
     const allowedOrigins = [
       'https://gpc-itarsi-9cl7.onrender.com',
       'https://gpc-itarsi-developer.onrender.com',
+      'https://gpc-itarsi-backend-1wu5.onrender.com',
+      'https://gpc-itarsi-backend-8dod.onrender.com',
       'http://localhost:3000',
       'http://localhost:5173',
       'http://localhost:5174',
-      'http://localhost:5175'
+      'http://localhost:5175',
+      // Add any other origins that might be accessing the API
+      'https://gpc-itarsi.onrender.com'
     ];
 
     // Check if the request origin is in our list of allowed origins

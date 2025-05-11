@@ -108,7 +108,7 @@ app.options('/api/contact-info', (req, res) => {
   // Get the origin from the request headers
   const origin = req.headers.origin;
 
-  // List of allowed origins
+  // List of allowed origins - make sure to include ALL possible frontend origins
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
@@ -117,7 +117,9 @@ app.options('/api/contact-info', (req, res) => {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175'
+    'http://localhost:5175',
+    // Add any other origins that might be accessing the API
+    'https://gpc-itarsi.onrender.com'
   ];
 
   // Check if the request origin is in our list of allowed origins
@@ -141,7 +143,7 @@ app.options('/api/custom-buttons', (req, res) => {
   // Get the origin from the request headers
   const origin = req.headers.origin;
 
-  // List of allowed origins
+  // List of allowed origins - make sure to include ALL possible frontend origins
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
@@ -150,7 +152,9 @@ app.options('/api/custom-buttons', (req, res) => {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175'
+    'http://localhost:5175',
+    // Add any other origins that might be accessing the API
+    'https://gpc-itarsi.onrender.com'
   ];
 
   // Check if the request origin is in our list of allowed origins
@@ -175,7 +179,7 @@ app.options('/api/notices', (req, res) => {
   // Get the origin from the request headers
   const origin = req.headers.origin;
 
-  // List of allowed origins
+  // List of allowed origins - make sure to include ALL possible frontend origins
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
@@ -184,7 +188,9 @@ app.options('/api/notices', (req, res) => {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175'
+    'http://localhost:5175',
+    // Add any other origins that might be accessing the API
+    'https://gpc-itarsi.onrender.com'
   ];
 
   // Check if the request origin is in our list of allowed origins
@@ -240,7 +246,7 @@ app.options('*', (req, res) => {
   // Get the origin from the request headers
   const origin = req.headers.origin;
 
-  // List of allowed origins
+  // List of allowed origins - make sure to include ALL possible frontend origins
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
@@ -249,7 +255,9 @@ app.options('*', (req, res) => {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175'
+    'http://localhost:5175',
+    // Add any other origins that might be accessing the API
+    'https://gpc-itarsi.onrender.com'
   ];
 
   // Check if the request origin is in our list of allowed origins

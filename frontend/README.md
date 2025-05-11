@@ -125,8 +125,8 @@ Use the following credentials to log in:
 ## Deployment
 
 The website is currently deployed on Render:
-- Frontend: https://gpc-itarsi-5coi.onrender.com
-- Backend: https://gpc-itarsi-backend-1wu5.onrender.com
+- Frontend: https://gpc-itarsi-9cl7.onrender.com
+- Backend: https://gpc-itarsi-backend-8dod.onrender.com
 
 ### Deployment on Render using Blueprint
 
@@ -150,7 +150,7 @@ This project includes a `render.yaml` file that allows for easy deployment using
    - Build Command: `npm run build`
    - Publish Directory: `dist`
 5. Add the environment variable:
-   - `VITE_API_URL`: URL of your deployed backend (https://gpc-itarsi-backend-1wu5.onrender.com)
+   - `VITE_API_URL`: URL of your deployed backend (https://gpc-itarsi-backend-8dod.onrender.com)
 
 #### Backend Deployment
 
@@ -164,8 +164,8 @@ This project includes a `render.yaml` file that allows for easy deployment using
    - `PORT`: Leave empty (Render will provide this)
    - `JWT_SECRET`: Your secret key for JWT tokens
    - `NODE_ENV`: `production`
-   - `FRONTEND_URL`: URL of your deployed frontend (https://gpc-itarsi-5coi.onrender.com)
-   - `BACKEND_URL`: URL of your deployed backend (https://gpc-itarsi-backend-1wu5.onrender.com)
+   - `FRONTEND_URL`: URL of your deployed frontend (https://gpc-itarsi-9cl7.onrender.com)
+   - `BACKEND_URL`: URL of your deployed backend (https://gpc-itarsi-backend-8dod.onrender.com)
 5. Add disk storage:
    - Create two disk resources named "data" and "uploads" with 1GB each
    - Mount paths:

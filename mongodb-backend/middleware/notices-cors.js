@@ -14,7 +14,7 @@ module.exports = function(req, res, next) {
   // Get the origin from the request headers
   const origin = req.headers.origin;
 
-  // List of allowed origins
+  // List of allowed origins - make sure to include ALL possible frontend origins
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
@@ -23,18 +23,26 @@ module.exports = function(req, res, next) {
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:5175'
+    'http://localhost:5175',
+    // Add any other origins that might be accessing the API
+    'https://gpc-itarsi.onrender.com'
   ];
 
-  // Check if the request origin is in our list of allowed origins
-  if (origin && allowedOrigins.includes(origin)) {
-    // Set the specific origin instead of wildcard '*'
-    res.header('Access-Control-Allow-Origin', origin);
-    console.log(`Notices CORS Middleware - Allowing specific origin: ${origin}`);
+  // Always set Access-Control-Allow-Origin header
+  if (origin) {
+    // If the origin is in our allowed list, set it specifically
+    if (allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      console.log(`Notices CORS Middleware - Allowing specific origin: ${origin}`);
+    } else {
+      // For unknown origins, use wildcard (less secure but more permissive)
+      res.header('Access-Control-Allow-Origin', '*');
+      console.log(`Notices CORS Middleware - Using wildcard origin for: ${origin}`);
+    }
   } else {
-    // For security, we'll still allow the request but with a wildcard origin
+    // No origin in the request, use wildcard
     res.header('Access-Control-Allow-Origin', '*');
-    console.log(`Notices CORS Middleware - Using wildcard origin`);
+    console.log(`Notices CORS Middleware - No origin in request, using wildcard`);
   }
 
   // Set other CORS headers
