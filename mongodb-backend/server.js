@@ -112,6 +112,8 @@ app.options('/api/contact-info', (req, res) => {
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
+    'https://gpc-itarsi-backend-1wu5.onrender.com',
+    'https://gpc-itarsi-backend-8dod.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
@@ -143,6 +145,8 @@ app.options('/api/custom-buttons', (req, res) => {
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
+    'https://gpc-itarsi-backend-1wu5.onrender.com',
+    'https://gpc-itarsi-backend-8dod.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
@@ -175,6 +179,8 @@ app.options('/api/notices', (req, res) => {
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
+    'https://gpc-itarsi-backend-1wu5.onrender.com',
+    'https://gpc-itarsi-backend-8dod.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
@@ -238,6 +244,8 @@ app.options('*', (req, res) => {
   const allowedOrigins = [
     'https://gpc-itarsi-9cl7.onrender.com',
     'https://gpc-itarsi-developer.onrender.com',
+    'https://gpc-itarsi-backend-1wu5.onrender.com',
+    'https://gpc-itarsi-backend-8dod.onrender.com',
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
