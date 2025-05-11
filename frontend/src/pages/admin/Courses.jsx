@@ -104,7 +104,13 @@ const Courses = () => {
       fees: course.fees.toString(),
       image: null
     });
-    setPreviewUrl(course.image ? `${config.apiUrl}/uploads/courses/${course.image}` : '');
+    setPreviewUrl(
+      course.image && course.image.includes('cloudinary.com')
+        ? course.image
+        : course.image
+          ? `${config.apiUrl}/uploads/courses/${course.image}`
+          : ''
+    );
     setShowEditModal(true);
   };
 
@@ -147,7 +153,7 @@ const Courses = () => {
       }
 
       await axios.post(
-        `${config.apiUrl}/api/admin/add-course`,
+        `${config.apiUrl}/api/courses`,
         formDataToSend,
         {
           headers: {
@@ -193,7 +199,7 @@ const Courses = () => {
       }
 
       await axios.put(
-        `${config.apiUrl}/api/admin/update-course/${selectedCourse._id}`,
+        `${config.apiUrl}/api/courses/${selectedCourse._id}`,
         formDataToSend,
         {
           headers: {
@@ -224,7 +230,7 @@ const Courses = () => {
 
       const token = localStorage.getItem('token');
 
-      await axios.delete(`${config.apiUrl}/api/admin/delete-course/${selectedCourse._id}`, {
+      await axios.delete(`${config.apiUrl}/api/courses/${selectedCourse._id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -319,7 +325,12 @@ const Courses = () => {
                         <div className="flex-shrink-0 h-10 w-10">
                           <img
                             className="h-10 w-10 rounded-full object-cover"
-                            src={course.image ? `${config.apiUrl}/uploads/courses/${course.image}` : '/images/placeholder.svg'}
+                            src={course.image && course.image.includes('cloudinary.com')
+                              ? course.image
+                              : course.image
+                                ? `${config.apiUrl}/uploads/courses/${course.image}`
+                                : '/images/placeholder.svg'
+                            }
                             alt={course.title}
                             onError={(e) => {
                               console.error('Image failed to load:', e.target.src);

@@ -70,7 +70,12 @@ const Courses = () => {
                 <div className="h-48 w-full overflow-hidden">
                   <img
                     className="w-full h-full object-cover"
-                    src={course.image ? `${config.apiUrl}/uploads/courses/${course.image}` : 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'}
+                    src={course.image && course.image.includes('cloudinary.com')
+                      ? course.image
+                      : course.image
+                        ? `${config.apiUrl}/uploads/courses/${course.image}`
+                        : 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80'
+                    }
                     alt={course.title}
                     onError={(e) => {
                       console.error('Image failed to load:', e.target.src);
@@ -131,7 +136,10 @@ const Courses = () => {
                           <div className="mb-4 rounded-lg overflow-hidden">
                             <img
                               className="w-full h-48 object-cover"
-                              src={`${config.apiUrl}/uploads/courses/${selectedCourse.image}`}
+                              src={selectedCourse.image && selectedCourse.image.includes('cloudinary.com')
+                                ? selectedCourse.image
+                                : `${config.apiUrl}/uploads/courses/${selectedCourse.image}`
+                              }
                               alt={selectedCourse.title}
                               onError={(e) => {
                                 console.error('Image failed to load:', e.target.src);
