@@ -13,6 +13,8 @@ const path = require('path');
 router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     console.log('Received request to add teacher:', req.body);
+    console.log('User making request:', req.user ? `ID: ${req.user.id}, Role: ${req.user.role}` : 'No user in request');
+
     const { name, department, subjects, username, password, qualification, experience, designation } = req.body;
 
     if (!name || !department) {
@@ -24,15 +26,24 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
     const teacherUsername = username || name.toLowerCase().replace(/\s+/g, '.');
     console.log('Using username:', teacherUsername);
 
-    // Check if username already exists
-    const existingTeacher = await User.findOne({ username: teacherUsername });
-    if (existingTeacher) {
-      console.log('Username already exists:', teacherUsername);
-      return res.status(400).json({ message: 'Username already exists' });
+    try {
+      // Check if username already exists
+      const existingTeacher = await User.findOne({ username: teacherUsername });
+      if (existingTeacher) {
+        console.log('Username already exists:', teacherUsername);
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+    } catch (findError) {
+      console.error('Error checking for existing username:', findError);
+      return res.status(500).json({
+        message: 'Database error while checking username',
+        error: findError.message,
+        stack: process.env.NODE_ENV === 'production' ? null : findError.stack
+      });
     }
 
-    // Create new teacher
-    const teacher = new User({
+    // Create new teacher object
+    const teacherData = {
       username: teacherUsername,
       password: password || '1234', // Default password if not provided
       name,
@@ -42,18 +53,66 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
       qualification,
       experience,
       designation
-    });
+    };
 
-    await teacher.save();
+    console.log('Creating new teacher with data:', { ...teacherData, password: '[HIDDEN]' });
 
-    // Return teacher without password
-    const teacherResponse = teacher.toObject();
-    delete teacherResponse.password;
+    try {
+      // Create new teacher
+      const teacher = new User(teacherData);
 
-    res.status(201).json(teacherResponse);
+      // Save the teacher to the database
+      await teacher.save();
+      console.log('Teacher saved successfully with ID:', teacher._id);
+
+      // Return teacher without password
+      const teacherResponse = teacher.toObject();
+      delete teacherResponse.password;
+
+      res.status(201).json(teacherResponse);
+    } catch (saveError) {
+      console.error('Error saving teacher to database:', saveError);
+      console.error('Error details:', saveError.stack);
+
+      // Check for validation errors
+      if (saveError.name === 'ValidationError') {
+        const validationErrors = {};
+
+        // Extract validation error messages
+        for (const field in saveError.errors) {
+          validationErrors[field] = saveError.errors[field].message;
+        }
+
+        return res.status(400).json({
+          message: 'Validation error',
+          validationErrors,
+          error: saveError.message
+        });
+      }
+
+      // Check for duplicate key error
+      if (saveError.code === 11000) {
+        return res.status(400).json({
+          message: 'Duplicate key error',
+          error: 'A teacher with this username already exists',
+          field: Object.keys(saveError.keyPattern)[0]
+        });
+      }
+
+      return res.status(500).json({
+        message: 'Failed to save teacher to database',
+        error: saveError.message,
+        stack: process.env.NODE_ENV === 'production' ? null : saveError.stack
+      });
+    }
   } catch (error) {
     console.error('Error adding teacher:', error);
-    res.status(500).json({ message: 'Failed to add teacher', error: error.message });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({
+      message: 'Failed to add teacher',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack
+    });
   }
 });
 
