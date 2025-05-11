@@ -143,6 +143,14 @@ const Teachers = () => {
 
         if (status === 400 && data.message === 'Username already exists') {
           setError('This username is already taken. Please choose a different username.');
+        } else if (status === 400 && data.message === 'Duplicate key error') {
+          if (data.field === 'email') {
+            setError('A teacher with this email already exists. Please choose a different username.');
+          } else if (data.field === 'username') {
+            setError('This username is already taken. Please choose a different username.');
+          } else {
+            setError(data.error || 'A teacher with these details already exists.');
+          }
         } else if (status === 400 && data.message.includes('required')) {
           setError(data.message);
         } else if (status === 401) {
@@ -221,7 +229,17 @@ const Teachers = () => {
       if (error.response) {
         const { status, data } = error.response;
 
-        if (status === 400 && data.message.includes('required')) {
+        if (status === 400 && data.message === 'Username already exists') {
+          setError('This username is already taken. Please choose a different username.');
+        } else if (status === 400 && data.message === 'Duplicate key error') {
+          if (data.field === 'email') {
+            setError('A teacher with this email already exists. Please choose a different username.');
+          } else if (data.field === 'username') {
+            setError('This username is already taken. Please choose a different username.');
+          } else {
+            setError(data.error || 'A teacher with these details already exists.');
+          }
+        } else if (status === 400 && data.message.includes('required')) {
           setError(data.message);
         } else if (status === 401) {
           setError('Authentication error. Please log in again.');

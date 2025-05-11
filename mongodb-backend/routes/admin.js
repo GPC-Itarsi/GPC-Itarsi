@@ -42,6 +42,29 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
       });
     }
 
+    // Generate a unique email for the teacher based on username
+    const email = `${teacherUsername}@gpcitarsi.edu.in`;
+
+    // Check if email already exists
+    try {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) {
+        console.log('Email already exists:', email);
+        return res.status(400).json({
+          message: 'Duplicate key error',
+          error: 'A teacher with this email already exists',
+          field: 'email'
+        });
+      }
+    } catch (emailError) {
+      console.error('Error checking for existing email:', emailError);
+      return res.status(500).json({
+        message: 'Database error while checking email',
+        error: emailError.message,
+        stack: process.env.NODE_ENV === 'production' ? null : emailError.stack
+      });
+    }
+
     // Create new teacher object
     const teacherData = {
       username: teacherUsername,
@@ -52,7 +75,8 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
       subjects: subjects || [],
       qualification,
       experience,
-      designation
+      designation,
+      email // Add email field
     };
 
     console.log('Creating new teacher with data:', { ...teacherData, password: '[HIDDEN]' });
@@ -125,6 +149,31 @@ router.put('/update-teacher/:id', authenticateToken, authorize(['admin']), async
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
+    // Check if username is being updated
+    if (req.body.username && req.body.username !== teacher.username) {
+      // Check if new username already exists
+      const existingUsername = await User.findOne({ username: req.body.username });
+      if (existingUsername && existingUsername._id.toString() !== req.params.id) {
+        return res.status(400).json({ message: 'Username already exists' });
+      }
+
+      // Generate a new email based on the new username
+      const newEmail = `${req.body.username}@gpcitarsi.edu.in`;
+
+      // Check if the new email already exists
+      const existingEmail = await User.findOne({ email: newEmail });
+      if (existingEmail && existingEmail._id.toString() !== req.params.id) {
+        return res.status(400).json({
+          message: 'Duplicate key error',
+          error: 'A teacher with this email already exists',
+          field: 'email'
+        });
+      }
+
+      teacher.username = req.body.username;
+      teacher.email = newEmail;
+    }
+
     // Update fields
     const fieldsToUpdate = ['name', 'department', 'subjects', 'qualification', 'experience', 'designation'];
 
@@ -134,8 +183,32 @@ router.put('/update-teacher/:id', authenticateToken, authorize(['admin']), async
       }
     });
 
+    // Update password if provided
+    if (req.body.password) {
+      teacher.password = req.body.password;
+    }
+
     teacher.updatedAt = Date.now();
-    await teacher.save();
+
+    try {
+      await teacher.save();
+    } catch (saveError) {
+      console.error('Error saving teacher updates:', saveError);
+
+      // Check for duplicate key error
+      if (saveError.code === 11000) {
+        return res.status(400).json({
+          message: 'Duplicate key error',
+          error: 'A teacher with this username or email already exists',
+          field: Object.keys(saveError.keyPattern)[0]
+        });
+      }
+
+      return res.status(500).json({
+        message: 'Failed to save teacher updates',
+        error: saveError.message
+      });
+    }
 
     // Return teacher without password
     const teacherResponse = teacher.toObject();
