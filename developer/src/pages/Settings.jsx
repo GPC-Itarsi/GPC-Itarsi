@@ -44,7 +44,7 @@ const Settings = () => {
         } catch (err) {
           console.error('Error fetching settings from API:', err);
           console.error('Error details:', err.response ? err.response.data : 'No response data');
-          
+
           // Keep default values if API fails
           setError('Could not load settings from the server. Using default settings instead.');
         }
@@ -99,11 +99,11 @@ const Settings = () => {
 
       // Update settings data
       try {
-        console.log('Updating settings at:', `${config.apiUrl}/api/settings`);
+        console.log('Updating settings at:', `${config.apiUrl}/api/settings/public`);
         console.log('Settings data being sent:', settings);
 
         const response = await axios.put(
-          `${config.apiUrl}/api/settings`,
+          `${config.apiUrl}/api/settings/public`,
           settings
         );
 
@@ -112,8 +112,8 @@ const Settings = () => {
       } catch (err) {
         console.error('Error updating settings with API:', err);
         console.error('Error details:', err.response ? err.response.data : 'No response data');
-        
-        setError('Failed to update settings. This feature is not yet implemented on the backend.');
+
+        setError('Failed to update settings. Please try again later.');
       }
     } catch (err) {
       console.error('Error in handleSubmit:', err);

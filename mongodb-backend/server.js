@@ -100,6 +100,7 @@ const contactInfoRoutes = require('./routes/contact-info');
 const adminRoutes = require('./routes/admin');
 const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
+const settingsRoutes = require('./routes/settings');
 
 // Special handling for problematic routes
 app.options('/api/contact-info', (req, res) => {
@@ -247,6 +248,7 @@ app.use('/api/contact-info', contactInfoRoutes);
 app.use('/api/admission-details', admissionDetailsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/developer', developerRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Root route
 app.get('/', (req, res) => {
