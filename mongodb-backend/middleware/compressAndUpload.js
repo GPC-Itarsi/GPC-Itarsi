@@ -29,9 +29,30 @@ const compressAndUpload = (field) => {
         console.error('Error in initial upload:', err);
         console.error('Error details:', JSON.stringify(err, null, 2));
 
+        // Log Cloudinary configuration for debugging
+        console.log('Cloudinary configuration during error:');
+        console.log('- Cloud name:', process.env.CLOUDINARY_CLOUD_NAME ? process.env.CLOUDINARY_CLOUD_NAME : 'Not set');
+        console.log('- API key configured:', process.env.CLOUDINARY_API_KEY ? 'Yes (hidden)' : 'No');
+        console.log('- API secret configured:', process.env.CLOUDINARY_API_SECRET ? 'Yes (hidden)' : 'No');
+        console.log('- CLOUDINARY_URL:', process.env.CLOUDINARY_URL ? 'Set (hidden)' : 'Not set');
+
         // Handle file size limit error
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ message: 'File too large. Maximum size is 50MB.' });
+          return res.status(400).json({
+            message: 'File too large. Maximum size is 50MB.',
+            error: 'LIMIT_FILE_SIZE',
+            details: 'Please upload a smaller file (maximum 50MB)'
+          });
+        }
+
+        // Handle Cloudinary specific errors
+        if (err.http_code) {
+          console.error('Cloudinary API error:', err);
+          return res.status(400).json({
+            message: 'Cloudinary upload failed',
+            error: err.message || 'Cloudinary error',
+            details: 'There was a problem with the cloud storage service. Please try again later.'
+          });
         }
 
         // Special handling for study materials route - be more permissive
@@ -63,7 +84,7 @@ const compressAndUpload = (field) => {
           message: 'File upload error',
           error: err.message || 'Unknown upload error',
           code: err.code || 'UNKNOWN_ERROR',
-          details: 'Please ensure you are uploading a supported file format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT'
+          details: 'Please ensure you are uploading a supported file format: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, RTF, CSV, JPG, PNG, GIF, ZIP, RAR'
         });
       }
 

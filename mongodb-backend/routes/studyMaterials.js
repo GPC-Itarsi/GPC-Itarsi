@@ -61,7 +61,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // Upload study material (admin and teacher access) - REDIRECTS TO CLOUDINARY
-router.post('/upload', authenticateToken, authorize(['admin', 'teacher']), compressAndUpload('file'), async (req, res) => {
+router.post('/upload', authenticateToken, authorize(['admin', 'teacher']), (req, res, next) => {
+  console.log('Starting study material upload with compression');
+  // Add request ID for tracking
+  req.uploadId = Date.now().toString();
+  console.log(`Upload ID: ${req.uploadId}`);
+
+  // Call the compressAndUpload middleware
+  const uploadMiddleware = compressAndUpload('file');
+  uploadMiddleware(req, res, next);
+}, async (req, res) => {
   try {
     console.log('Processing study material upload request');
     console.log('Request body:', req.body);
@@ -142,9 +151,30 @@ router.post('/upload', authenticateToken, authorize(['admin', 'teacher']), compr
     res.status(201).json(material);
   } catch (error) {
     console.error('Error uploading study material to Cloudinary:', error);
+
+    // Log detailed error information
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      uploadId: req.uploadId || 'No upload ID'
+    });
+
+    // Check if it's a Cloudinary error
+    if (error.http_code) {
+      return res.status(400).json({
+        message: 'Cloudinary upload failed',
+        error: error.message || 'Cloudinary error',
+        details: 'There was a problem with the cloud storage service. Please try again later.'
+      });
+    }
+
     res.status(500).json({
       message: 'Failed to upload study material',
-      error: error.message || 'Unknown server error'
+      error: error.message || 'Unknown server error',
+      details: 'There was a problem processing your upload. Please try again with a different file or contact support.',
+      uploadId: req.uploadId || 'No upload ID'
     });
   }
 });
@@ -240,7 +270,16 @@ router.put('/:id', authenticateToken, compressAndUpload('file'), async (req, res
 });
 
 // Upload study material with Cloudinary (admin and teacher access)
-router.post('/upload-cloudinary', authenticateToken, authorize(['admin', 'teacher']), compressAndUpload('file'), async (req, res) => {
+router.post('/upload-cloudinary', authenticateToken, authorize(['admin', 'teacher']), (req, res, next) => {
+  console.log('Starting study material upload with Cloudinary');
+  // Add request ID for tracking
+  req.uploadId = Date.now().toString();
+  console.log(`Upload ID: ${req.uploadId}`);
+
+  // Call the compressAndUpload middleware
+  const uploadMiddleware = compressAndUpload('file');
+  uploadMiddleware(req, res, next);
+}, async (req, res) => {
   try {
     console.log('Processing study material upload request');
     console.log('Request body:', req.body);
@@ -332,9 +371,30 @@ router.post('/upload-cloudinary', authenticateToken, authorize(['admin', 'teache
     res.status(201).json(material);
   } catch (error) {
     console.error('Error uploading study material to Cloudinary:', error);
+
+    // Log detailed error information
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      uploadId: req.uploadId || 'No upload ID'
+    });
+
+    // Check if it's a Cloudinary error
+    if (error.http_code) {
+      return res.status(400).json({
+        message: 'Cloudinary upload failed',
+        error: error.message || 'Cloudinary error',
+        details: 'There was a problem with the cloud storage service. Please try again later.'
+      });
+    }
+
     res.status(500).json({
       message: 'Failed to upload study material',
-      error: error.message || 'Unknown server error'
+      error: error.message || 'Unknown server error',
+      details: 'There was a problem processing your upload. Please try again with a different file or contact support.',
+      uploadId: req.uploadId || 'No upload ID'
     });
   }
 });
@@ -395,7 +455,11 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 });
 
 // Upload study material with simple Cloudinary middleware (admin and teacher access)
-router.post('/upload-simple', authenticateToken, authorize(['admin', 'teacher']), simpleUpload.single('file'), async (req, res) => {
+router.post('/upload-simple', authenticateToken, authorize(['admin', 'teacher']), (req, res, next) => {
+  // Custom middleware to handle the upload with better error handling
+  const handleSimpleUpload = simpleUpload.handleUpload('file');
+  handleSimpleUpload(req, res, next);
+}, async (req, res) => {
   try {
     console.log('Processing study material upload with simple middleware');
     console.log('Request body:', req.body);
@@ -469,9 +533,28 @@ router.post('/upload-simple', authenticateToken, authorize(['admin', 'teacher'])
     res.status(201).json(material);
   } catch (error) {
     console.error('Error uploading study material with simple middleware:', error);
+
+    // Log detailed error information
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code
+    });
+
+    // Check if it's a Cloudinary error
+    if (error.http_code) {
+      return res.status(400).json({
+        message: 'Cloudinary upload failed',
+        error: error.message || 'Cloudinary error',
+        details: 'There was a problem with the cloud storage service. Please try again later.'
+      });
+    }
+
     res.status(500).json({
       message: 'Failed to upload study material',
-      error: error.message || 'Unknown server error'
+      error: error.message || 'Unknown server error',
+      details: 'There was a problem processing your upload. Please try again with a different file or contact support.'
     });
   }
 });
