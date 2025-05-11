@@ -86,30 +86,32 @@ router.post('/upload', authenticateToken, authorize(['admin', 'teacher']), compr
     console.log('File mimetype:', req.file.mimetype);
 
     // Validate file type by both extension and mimetype
-    const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
+    const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'rtf', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar'];
 
     if (!validExtensions.includes(fileExtension)) {
       console.error(`Invalid file extension: ${fileExtension}`);
       return res.status(400).json({
         message: 'File upload error',
         error: `Invalid file extension: ${fileExtension}`,
-        details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, jpg, jpeg, png, gif'
+        details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, rtf, csv, jpg, jpeg, png, gif, zip, rar'
       });
     }
 
     // Set file type based on extension
     if (['pdf'].includes(fileExtension)) {
       fileType = 'pdf';
-    } else if (['doc', 'docx'].includes(fileExtension)) {
+    } else if (['doc', 'docx', 'rtf'].includes(fileExtension)) {
       fileType = 'doc';
     } else if (['ppt', 'pptx'].includes(fileExtension)) {
       fileType = 'ppt';
-    } else if (['xls', 'xlsx'].includes(fileExtension)) {
+    } else if (['xls', 'xlsx', 'csv'].includes(fileExtension)) {
       fileType = 'xls';
     } else if (['txt'].includes(fileExtension)) {
       fileType = 'txt';
     } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
       fileType = 'image';
+    } else if (['zip', 'rar'].includes(fileExtension)) {
+      fileType = 'archive';
     }
 
     console.log('Cloudinary upload successful:', req.file);
@@ -194,29 +196,31 @@ router.put('/:id', authenticateToken, compressAndUpload('file'), async (req, res
       console.log('File mimetype for update:', req.file.mimetype);
 
       // Validate file type by extension
-      const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
+      const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'rtf', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar'];
 
       if (!validExtensions.includes(fileExtension)) {
         console.error(`Invalid file extension for update: ${fileExtension}`);
         return res.status(400).json({
           message: 'File upload error',
           error: `Invalid file extension: ${fileExtension}`,
-          details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, jpg, jpeg, png, gif'
+          details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, rtf, csv, jpg, jpeg, png, gif, zip, rar'
         });
       }
 
       if (['pdf'].includes(fileExtension)) {
         material.fileType = 'pdf';
-      } else if (['doc', 'docx'].includes(fileExtension)) {
+      } else if (['doc', 'docx', 'rtf'].includes(fileExtension)) {
         material.fileType = 'doc';
       } else if (['ppt', 'pptx'].includes(fileExtension)) {
         material.fileType = 'ppt';
-      } else if (['xls', 'xlsx'].includes(fileExtension)) {
+      } else if (['xls', 'xlsx', 'csv'].includes(fileExtension)) {
         material.fileType = 'xls';
       } else if (['txt'].includes(fileExtension)) {
         material.fileType = 'txt';
       } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
         material.fileType = 'image';
+      } else if (['zip', 'rar'].includes(fileExtension)) {
+        material.fileType = 'archive';
       } else {
         material.fileType = 'other';
       }
@@ -272,30 +276,32 @@ router.post('/upload-cloudinary', authenticateToken, authorize(['admin', 'teache
     console.log('File mimetype:', req.file.mimetype);
 
     // Validate file type by both extension and mimetype
-    const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png', 'gif'];
+    const validExtensions = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt', 'rtf', 'csv', 'jpg', 'jpeg', 'png', 'gif', 'zip', 'rar'];
 
     if (!validExtensions.includes(fileExtension)) {
       console.error(`Invalid file extension: ${fileExtension}`);
       return res.status(400).json({
         message: 'File upload error',
         error: `Invalid file extension: ${fileExtension}`,
-        details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, jpg, jpeg, png, gif'
+        details: 'Please upload a file with one of these extensions: pdf, doc, docx, ppt, pptx, xls, xlsx, txt, rtf, csv, jpg, jpeg, png, gif, zip, rar'
       });
     }
 
     // Set file type based on extension
     if (['pdf'].includes(fileExtension)) {
       fileType = 'pdf';
-    } else if (['doc', 'docx'].includes(fileExtension)) {
+    } else if (['doc', 'docx', 'rtf'].includes(fileExtension)) {
       fileType = 'doc';
     } else if (['ppt', 'pptx'].includes(fileExtension)) {
       fileType = 'ppt';
-    } else if (['xls', 'xlsx'].includes(fileExtension)) {
+    } else if (['xls', 'xlsx', 'csv'].includes(fileExtension)) {
       fileType = 'xls';
     } else if (['txt'].includes(fileExtension)) {
       fileType = 'txt';
     } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
       fileType = 'image';
+    } else if (['zip', 'rar'].includes(fileExtension)) {
+      fileType = 'archive';
     }
 
     console.log('Cloudinary upload successful:', req.file);
@@ -427,16 +433,18 @@ router.post('/upload-simple', authenticateToken, authorize(['admin', 'teacher'])
     // Set file type based on extension
     if (['pdf'].includes(fileExtension)) {
       fileType = 'pdf';
-    } else if (['doc', 'docx'].includes(fileExtension)) {
+    } else if (['doc', 'docx', 'rtf'].includes(fileExtension)) {
       fileType = 'doc';
     } else if (['ppt', 'pptx'].includes(fileExtension)) {
       fileType = 'ppt';
-    } else if (['xls', 'xlsx'].includes(fileExtension)) {
+    } else if (['xls', 'xlsx', 'csv'].includes(fileExtension)) {
       fileType = 'xls';
     } else if (['txt'].includes(fileExtension)) {
       fileType = 'txt';
     } else if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
       fileType = 'image';
+    } else if (['zip', 'rar'].includes(fileExtension)) {
+      fileType = 'archive';
     }
 
     console.log('Simple Cloudinary upload successful:', req.file);
