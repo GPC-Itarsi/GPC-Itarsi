@@ -51,8 +51,13 @@ const Footer = () => {
           name: 'Anmol Malviya',
           title: 'Web Developer',
           profilePicture: null,
+          bio: 'I am a web developer specializing in React and Node.js.',
           socialLinks: {
-            github: 'https://github.com/developer',
+            github: 'https://github.com/anmolmalviya',
+            portfolio: 'https://anmolmalviya.com',
+            instagram: 'https://instagram.com/anmolmalviya',
+            linkedin: 'https://linkedin.com/in/anmolmalviya',
+            twitter: 'https://twitter.com/anmolmalviya',
             email: 'anmolmalviya4328@gmail.com'
           }
         };
