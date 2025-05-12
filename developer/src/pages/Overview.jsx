@@ -42,6 +42,11 @@ const Overview = () => {
     }
   }, []);
 
+  // Log stats whenever they change
+  useEffect(() => {
+    console.log('Stats updated:', stats);
+  }, [stats]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -87,20 +92,119 @@ const Overview = () => {
 
         // Fetch statistics data
         try {
-          // This is a placeholder - in a real implementation, you would fetch actual stats
-          // const statsResponse = await axios.get(`${config.apiUrl}/api/stats`);
-          // setStats(statsResponse.data);
+          console.log('Fetching real statistics data from API...');
 
-          // For now, we'll use mock data
+          // Try to fetch overview data first, which might contain stats
+          try {
+            const overviewResponse = await axios.get(`${config.apiUrl}/api/overview`);
+            if (overviewResponse.data && overviewResponse.data.stats) {
+              console.log('Found stats in overview data:', overviewResponse.data.stats);
+
+              // Map the overview stats to our format
+              const overviewStats = {
+                users: overviewResponse.data.stats.students + overviewResponse.data.stats.teachers || 0,
+                courses: overviewResponse.data.stats.courses || 0,
+                notices: 0, // Will try to fetch this separately
+                galleries: 0  // Will try to fetch this separately
+              };
+
+              // Update with overview stats first
+              setStats(prevStats => ({
+                ...prevStats,
+                users: overviewStats.users,
+                courses: overviewStats.courses
+              }));
+
+              console.log('Updated stats with overview data');
+            }
+          } catch (overviewErr) {
+            console.log('Could not fetch overview stats:', overviewErr.message);
+          }
+
+          // Fetch notices count (public endpoint)
+          try {
+            const noticesResponse = await axios.get(`${config.apiUrl}/api/notices`);
+            const noticesCount = noticesResponse.data.length;
+            console.log('Notices count:', noticesCount);
+
+            // Update just the notices count
+            setStats(prevStats => ({
+              ...prevStats,
+              notices: noticesCount
+            }));
+          } catch (noticesErr) {
+            console.log('Could not fetch notices count:', noticesErr.message);
+          }
+
+          // Fetch gallery items count (public endpoint)
+          try {
+            const galleryResponse = await axios.get(`${config.apiUrl}/api/gallery`);
+            const galleryCount = galleryResponse.data.length;
+            console.log('Gallery count:', galleryCount);
+
+            // Update just the gallery count
+            setStats(prevStats => ({
+              ...prevStats,
+              galleries: galleryCount
+            }));
+          } catch (galleryErr) {
+            console.log('Could not fetch gallery count:', galleryErr.message);
+          }
+
+          // Try to fetch users and courses as a fallback
+          try {
+            // These endpoints might require authentication
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+            // Try to fetch users count
+            try {
+              const usersResponse = await axios.get(`${config.apiUrl}/api/users`, { headers });
+              const usersCount = usersResponse.data.length;
+              console.log('Users count from /api/users:', usersCount);
+
+              // Update just the users count
+              setStats(prevStats => ({
+                ...prevStats,
+                users: usersCount || prevStats.users
+              }));
+            } catch (usersErr) {
+              console.log('Could not fetch users count from /api/users:', usersErr.message);
+            }
+
+            // Try to fetch courses count
+            try {
+              const coursesResponse = await axios.get(`${config.apiUrl}/api/courses`, { headers });
+              const coursesCount = coursesResponse.data.length;
+              console.log('Courses count from /api/courses:', coursesCount);
+
+              // Update just the courses count
+              setStats(prevStats => ({
+                ...prevStats,
+                courses: coursesCount || prevStats.courses
+              }));
+            } catch (coursesErr) {
+              console.log('Could not fetch courses count from /api/courses:', coursesErr.message);
+            }
+          } catch (authErr) {
+            console.log('Error with authenticated requests:', authErr.message);
+          }
+
+          // We can't log the final stats here because of React's state batching
+          // The stats state might not be updated yet
+          console.log('Statistics data fetching completed');
+        } catch (err) {
+          console.error('Error fetching statistics:', err);
+          console.error('Error details:', err.response ? err.response.data : 'No response data');
+
+          // Keep default values if API fails
+          console.log('Using fallback mock data for statistics');
           setStats({
             users: 125,
             courses: 15,
             notices: 42,
             galleries: 8
           });
-        } catch (err) {
-          console.error('Error fetching statistics:', err);
-          // Keep default values if API fails
         }
 
         setLoading(false);
