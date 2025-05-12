@@ -11,12 +11,13 @@ const DashboardCard = ({
   noPadding = false,
   actions = null,
   isLoading = false,
-  futuristic = true
+  futuristic = true,
+  noHoverEffect = false
 }) => {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    if (futuristic && cardRef.current) {
+    if (futuristic && cardRef.current && !noHoverEffect) {
       const card = cardRef.current;
 
       const handleMouseMove = (e) => {
@@ -52,7 +53,7 @@ const DashboardCard = ({
         card.removeEventListener('mouseleave', handleMouseLeave);
       };
     }
-  }, [futuristic]);
+  }, [futuristic, noHoverEffect]);
 
   const cardClass = futuristic
     ? `student-card ${className}`
@@ -96,7 +97,8 @@ DashboardCard.propTypes = {
   noPadding: PropTypes.bool,
   actions: PropTypes.node,
   isLoading: PropTypes.bool,
-  futuristic: PropTypes.bool
+  futuristic: PropTypes.bool,
+  noHoverEffect: PropTypes.bool
 };
 
 export default DashboardCard;

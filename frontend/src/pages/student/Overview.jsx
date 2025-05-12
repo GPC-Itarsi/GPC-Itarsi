@@ -217,10 +217,11 @@ const Overview = () => {
             className="mb-6"
             headerClassName="bg-primary-50 text-primary-800"
             futuristic={true}
+            noHoverEffect={true}
             actions={
               <Link
                 to="/student/profile"
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200"
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-primary-600"
               >
                 View Profile
               </Link>
@@ -364,6 +365,7 @@ const Overview = () => {
             className="mb-6"
             headerClassName="bg-primary-50 text-primary-800"
             futuristic={true}
+            noHoverEffect={true}
             actions={
               <a
                 href="/"
@@ -418,6 +420,7 @@ const Overview = () => {
             className="mb-6"
             headerClassName="bg-primary-50 text-primary-800"
             futuristic={true}
+            noHoverEffect={true}
             actions={
               <Link
                 to="/student/study-materials"
