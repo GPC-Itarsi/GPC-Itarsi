@@ -38,14 +38,16 @@ const Footer = () => {
     // Fetch developer information
     const fetchDeveloperData = async () => {
       try {
+        console.log('Fetching developer profile from:', `${config.apiUrl}/api/developer/profile-public`);
         const response = await axios.get(`${config.apiUrl}/api/developer/profile-public`);
         if (response.data) {
+          console.log('Developer data received:', response.data);
           setDeveloper(response.data);
         }
       } catch (error) {
         console.error('Error fetching developer information:', error);
         // Set default developer data
-        setDeveloper({
+        const defaultDeveloper = {
           name: 'Anmol Malviya',
           title: 'Web Developer',
           profilePicture: null,
@@ -53,7 +55,9 @@ const Footer = () => {
             github: 'https://github.com/developer',
             email: 'anmolmalviya4328@gmail.com'
           }
-        });
+        };
+        console.log('Using default developer data:', defaultDeveloper);
+        setDeveloper(defaultDeveloper);
       }
     };
 
@@ -214,6 +218,7 @@ const Footer = () => {
                         alt={developer?.name || "Developer"}
                         className="w-full h-full object-cover rounded group-hover:scale-110 transition-transform duration-500"
                         onError={(e) => {
+                          console.log('Footer developer image error, using fallback');
                           e.target.onerror = null;
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(developer?.name || 'Developer')}&background=0D8ABC&color=fff&size=200`;
                         }}

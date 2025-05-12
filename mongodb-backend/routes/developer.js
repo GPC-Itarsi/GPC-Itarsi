@@ -26,6 +26,7 @@ router.get('/profile', authenticateToken, authorize(['developer']), async (req, 
 // Get developer profile (public - no authentication)
 router.get('/profile-public', async (req, res) => {
   try {
+    console.log('Fetching public developer profile');
     // Find a user with developer role
     let developer = await User.findOne({ role: 'developer' }).select('-password');
 
@@ -37,19 +38,19 @@ router.get('/profile-public', async (req, res) => {
       const newDeveloper = new User({
         username: 'developer',
         password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM8K', // developer123
-        name: 'Developer',
+        name: 'Anmol Malviya',
         role: 'developer',
-        email: 'developer@gpcitarsi.edu.in',
+        email: 'anmolmalviya4328@gmail.com',
         profilePicture: 'default-profile.jpg',
         title: 'Web Developer',
         bio: 'I am a web developer specializing in React and Node.js.',
         education: 'Computer Science',
         experience: '5 years',
         socialLinks: {
-          github: 'https://github.com/developer',
-          portfolio: 'https://developer.com',
-          instagram: 'https://instagram.com/developer',
-          email: 'developer@example.com'
+          github: 'https://github.com/anmolmalviya',
+          portfolio: 'https://anmolmalviya.com',
+          instagram: 'https://instagram.com/anmolmalviya',
+          email: 'anmolmalviya4328@gmail.com'
         },
         createdAt: new Date(),
         updatedAt: new Date()
@@ -62,6 +63,7 @@ router.get('/profile-public', async (req, res) => {
       developer = await User.findById(developer._id).select('-password');
     }
 
+    console.log('Returning developer profile:', developer);
     res.json(developer);
   } catch (error) {
     console.error('Error fetching public developer profile:', error);

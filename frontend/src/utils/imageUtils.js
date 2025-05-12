@@ -39,7 +39,7 @@ export const getProfileImageUrl = (profilePicture) => {
     // Special case for the default developer profile image
     if (profilePicture === 'IMG_20250302_114931_795.png') {
       console.log('Using special case for developer profile image');
-      return `/images/placeholder.svg`;
+      return `${config.apiUrl}/uploads/profiles/${profilePicture}`;
     }
 
     // Check if the profilePicture is the default image
