@@ -220,18 +220,16 @@ const Home = () => {
               <div className="space-y-4">
                 <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-white leading-tight tracking-tight">
                   <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-200 pb-2">
-                    {collegeData.title.split(',')[0]}
+                    Government
+                  </span>
+                  <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-200 pb-2">
+                    Polytechnic
                   </span>
                   <span className="block">
-                    {collegeData.title.includes(',') ?
-                      <span>
-                        College <span className="text-accent-400 relative inline-block">
-                          {collegeData.title.split(',')[1]?.trim() || 'Itarsi'}
-                          <span className="absolute -bottom-2 left-0 w-full h-1 bg-accent-500/50 rounded-full"></span>
-                        </span>
-                      </span> :
-                      'College'
-                    }
+                    College <span className="text-accent-400 relative inline-block">
+                      Itarsi
+                      <span className="absolute -bottom-2 left-0 w-full h-1 bg-accent-500/50 rounded-full"></span>
+                    </span>
                   </span>
                 </h1>
                 <div className="w-20 h-1.5 bg-gradient-to-r from-primary-400 to-accent-400 rounded-full mt-2"></div>
