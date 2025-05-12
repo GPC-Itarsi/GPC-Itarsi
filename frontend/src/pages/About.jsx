@@ -4,6 +4,8 @@ import { TextReveal } from '../components/animations';
 import './about.css';
 import config from '../config';
 import { getProfileImageUrl, handleImageError } from '../utils/imageUtils';
+import CourseDetailsModal from '../components/CourseDetailsModal';
+import { getDepartmentImageUrl } from '../utils/departmentImageUtils';
 
 const About = () => {
   const [loading, setLoading] = useState(true);
@@ -11,6 +13,8 @@ const About = () => {
   const [overviewData, setOverviewData] = useState(null);
   const [principalMessage, setPrincipalMessage] = useState(null);
   const [contactInfo, setContactInfo] = useState(null);
+  const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,6 +56,21 @@ const About = () => {
 
     fetchData();
   }, []);
+
+  // Function to handle opening the department details modal
+  const handleOpenDepartmentModal = (department) => {
+    setSelectedDepartment(department);
+    setIsModalOpen(true);
+  };
+
+  // Function to handle closing the department details modal
+  const handleCloseDepartmentModal = () => {
+    setIsModalOpen(false);
+    // Reset the selected department after a short delay to allow for closing animation
+    setTimeout(() => {
+      setSelectedDepartment(null);
+    }, 300);
+  };
 
   if (loading) {
     return (
@@ -468,178 +487,271 @@ const About = () => {
           <div className="mt-16">
             <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
               {/* Computer Science */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-blue-100">
-                <div className="h-3 bg-blue-500"></div>
-                <div className="p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-blue-500 rounded-full p-3 shadow-md">
-                      <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
+              <div
+                className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-blue-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                onClick={() => handleOpenDepartmentModal({
+                  name: 'Computer Science',
+                  icon: <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>,
+                  description: "The Computer Science department offers a comprehensive diploma program covering programming, database management, networking, and software development.",
+                  subjects: [
+                    'Programming & Data Structures',
+                    'Database Management Systems',
+                    'Computer Networks',
+                    'Web & Mobile Application Development',
+                    'Artificial Intelligence & Machine Learning'
+                  ]
+                })}
+              >
+                {/* Department Image */}
+                <div className="relative h-36 overflow-hidden">
+                  <img
+                    src={getDepartmentImageUrl('Computer Science')}
+                    alt="Computer Science Department"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = getDepartmentImageUrl('fallback');
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0">
+                    <div className="h-3 bg-blue-500 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 animate-pulse opacity-75"></div>
                     </div>
-                    <h3 className="ml-4 text-xl leading-6 font-bold text-gray-900">Computer Science</h3>
                   </div>
-                  <div className="mt-6 text-gray-600">
-                    <p className="text-base">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full p-2 shadow-md">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-2 text-lg leading-6 font-bold text-white">Computer Science</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="text-gray-600">
+                    <p className="text-sm">
                       The Computer Science department offers a comprehensive diploma program covering programming, database management, networking, and software development.
                     </p>
-                    <div className="mt-6 bg-blue-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-700 mb-2">Key Subjects</h4>
-                      <ul className="space-y-2">
-                        {[
-                          'Programming & Data Structures',
-                          'Database Management Systems',
-                          'Computer Networks',
-                          'Web & Mobile Application Development',
-                          'Artificial Intelligence & Machine Learning'
-                        ].map((item, index) => (
-                          <li key={index} className="flex items-start">
-                            <svg className="h-5 w-5 text-blue-500 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mt-6 text-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                        Code: CS
-                      </span>
-                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Code: CS
+                    </span>
+                    <span className="text-blue-600 text-sm font-medium flex items-center">
+                      View Details
+                      <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Mechanical Engineering */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-yellow-100">
-                <div className="h-3 bg-yellow-500"></div>
-                <div className="p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-yellow-500 rounded-full p-3 shadow-md">
-                      <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
+              <div
+                className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-yellow-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                onClick={() => handleOpenDepartmentModal({
+                  name: 'Mechanical Engineering',
+                  icon: <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>,
+                  description: "The Mechanical Engineering department focuses on design, manufacturing, and maintenance of mechanical systems and equipment.",
+                  subjects: [
+                    'Engineering Mechanics & Strength of Materials',
+                    'Thermodynamics & Heat Transfer',
+                    'Manufacturing Processes',
+                    'Machine Design',
+                    'Industrial Engineering & Management'
+                  ]
+                })}
+              >
+                {/* Department Image */}
+                <div className="relative h-36 overflow-hidden">
+                  <img
+                    src={getDepartmentImageUrl('Mechanical Engineering')}
+                    alt="Mechanical Engineering Department"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = getDepartmentImageUrl('fallback');
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0">
+                    <div className="h-3 bg-yellow-500 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-600 animate-pulse opacity-75"></div>
                     </div>
-                    <h3 className="ml-4 text-xl leading-6 font-bold text-gray-900">Mechanical Engineering</h3>
                   </div>
-                  <div className="mt-6 text-gray-600">
-                    <p className="text-base">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full p-2 shadow-md">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-2 text-lg leading-6 font-bold text-white">Mechanical Engineering</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="text-gray-600">
+                    <p className="text-sm">
                       The Mechanical Engineering department focuses on design, manufacturing, and maintenance of mechanical systems and equipment.
                     </p>
-                    <div className="mt-6 bg-yellow-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-yellow-700 mb-2">Key Subjects</h4>
-                      <ul className="space-y-2">
-                        {[
-                          'Engineering Mechanics & Strength of Materials',
-                          'Thermodynamics & Heat Transfer',
-                          'Manufacturing Processes',
-                          'Machine Design',
-                          'Industrial Engineering & Management'
-                        ].map((item, index) => (
-                          <li key={index} className="flex items-start">
-                            <svg className="h-5 w-5 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mt-6 text-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                        Code: ME
-                      </span>
-                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                      Code: ME
+                    </span>
+                    <span className="text-yellow-600 text-sm font-medium flex items-center">
+                      View Details
+                      <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Electronics & Telecommunication */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-green-100">
-                <div className="h-3 bg-green-500"></div>
-                <div className="p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-green-500 rounded-full p-3 shadow-md">
-                      <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-                      </svg>
+              <div
+                className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-green-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                onClick={() => handleOpenDepartmentModal({
+                  name: 'Electronics & Telecom',
+                  icon: <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                  </svg>,
+                  description: "The Electronics & Telecommunication department covers electronic circuits, communication systems, signal processing, and embedded systems.",
+                  subjects: [
+                    'Electronic Devices & Circuits',
+                    'Digital Electronics & Microprocessors',
+                    'Communication Systems',
+                    'Signal Processing',
+                    'Embedded Systems & IoT'
+                  ]
+                })}
+              >
+                {/* Department Image */}
+                <div className="relative h-36 overflow-hidden">
+                  <img
+                    src={getDepartmentImageUrl('Electronics & Telecom')}
+                    alt="Electronics & Telecom Department"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = getDepartmentImageUrl('fallback');
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0">
+                    <div className="h-3 bg-green-500 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-green-600 animate-pulse opacity-75"></div>
                     </div>
-                    <h3 className="ml-4 text-xl leading-6 font-bold text-gray-900">Electronics & Telecom</h3>
                   </div>
-                  <div className="mt-6 text-gray-600">
-                    <p className="text-base">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 bg-gradient-to-br from-green-500 to-green-600 rounded-full p-2 shadow-md">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-2 text-lg leading-6 font-bold text-white">Electronics & Telecom</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="text-gray-600">
+                    <p className="text-sm">
                       The Electronics & Telecommunication department covers electronic circuits, communication systems, signal processing, and embedded systems.
                     </p>
-                    <div className="mt-6 bg-green-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-green-700 mb-2">Key Subjects</h4>
-                      <ul className="space-y-2">
-                        {[
-                          'Electronic Devices & Circuits',
-                          'Digital Electronics & Microprocessors',
-                          'Communication Systems',
-                          'Signal Processing',
-                          'Embedded Systems & IoT'
-                        ].map((item, index) => (
-                          <li key={index} className="flex items-start">
-                            <svg className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mt-6 text-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                        Code: ET
-                      </span>
-                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      Code: ET
+                    </span>
+                    <span className="text-green-600 text-sm font-medium flex items-center">
+                      View Details
+                      <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Electrical Engineering */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-red-100">
-                <div className="h-3 bg-red-500"></div>
-                <div className="p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0 bg-red-500 rounded-full p-3 shadow-md">
-                      <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+              <div
+                className="bg-white overflow-hidden shadow-lg rounded-xl department-card border border-red-100 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                onClick={() => handleOpenDepartmentModal({
+                  name: 'Electrical Engineering',
+                  icon: <svg className="h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>,
+                  description: "The Electrical Engineering department focuses on power systems, electrical machines, control systems, and power electronics.",
+                  subjects: [
+                    'Electrical Machines & Power Systems',
+                    'Power Electronics & Drives',
+                    'Control Systems',
+                    'Electrical Measurements & Instrumentation',
+                    'Renewable Energy Systems'
+                  ]
+                })}
+              >
+                {/* Department Image */}
+                <div className="relative h-36 overflow-hidden">
+                  <img
+                    src={getDepartmentImageUrl('Electrical Engineering')}
+                    alt="Electrical Engineering Department"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = getDepartmentImageUrl('fallback');
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0">
+                    <div className="h-3 bg-red-500 relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-400 to-red-600 animate-pulse opacity-75"></div>
                     </div>
-                    <h3 className="ml-4 text-xl leading-6 font-bold text-gray-900">Electrical Engineering</h3>
                   </div>
-                  <div className="mt-6 text-gray-600">
-                    <p className="text-base">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 bg-gradient-to-br from-red-500 to-red-600 rounded-full p-2 shadow-md">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-2 text-lg leading-6 font-bold text-white">Electrical Engineering</h3>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="text-gray-600">
+                    <p className="text-sm">
                       The Electrical Engineering department focuses on power systems, electrical machines, control systems, and power electronics.
                     </p>
-                    <div className="mt-6 bg-red-50 rounded-lg p-4">
-                      <h4 className="font-semibold text-red-700 mb-2">Key Subjects</h4>
-                      <ul className="space-y-2">
-                        {[
-                          'Electrical Machines & Power Systems',
-                          'Power Electronics & Drives',
-                          'Control Systems',
-                          'Electrical Measurements & Instrumentation',
-                          'Renewable Energy Systems'
-                        ].map((item, index) => (
-                          <li key={index} className="flex items-start">
-                            <svg className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mt-6 text-center">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                        Code: EE
-                      </span>
-                    </div>
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                      Code: EE
+                    </span>
+                    <span className="text-red-600 text-sm font-medium flex items-center">
+                      View Details
+                      <svg className="ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -649,22 +761,23 @@ const About = () => {
       </div>
 
       {/* Facilities Section */}
-      <div id="facilities" className="py-20 bg-white relative overflow-hidden">
+      <div id="facilities" className="py-20 bg-gradient-to-b from-gray-50 to-gray-100 relative overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)',
-            backgroundSize: '40px 40px'
+            backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px), radial-gradient(#7c3aed 1px, transparent 1px)',
+            backgroundSize: '40px 40px, 30px 30px',
+            backgroundPosition: '0 0, 20px 20px'
           }}></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="lg:text-center mb-16">
             <h2 className="text-base text-primary-600 font-semibold tracking-wide uppercase inline-block highlight-text">Campus Infrastructure</h2>
-            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl gradient-text">
               Our Facilities
             </p>
-            <div className="h-1 w-20 bg-primary-500 mx-auto mt-4 rounded-full"></div>
+            <div className="h-1 w-20 bg-gradient-to-r from-primary-500 to-accent-500 mx-auto mt-4 rounded-full"></div>
             <p className="mt-6 max-w-2xl text-xl text-gray-500 lg:mx-auto">
               State-of-the-art infrastructure designed to provide an optimal learning environment
             </p>
@@ -673,20 +786,28 @@ const About = () => {
           <div className="mt-16">
             <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
               {/* Main Building */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-primary-100">
+              <div className="overflow-hidden shadow-lg rounded-xl facility-card">
                 <div className="relative h-56">
                   <img
-                    src="/images/main-building.jpg"
-                    alt="Main Building"
+                    src="/images/facilities/main-building.jpg"
+                    alt="Main Building - Government Polytechnic College Itarsi"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/images/fallback-facility.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-bold text-white">Main Building</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0 h-full flex flex-col justify-end p-4">
+                    <div className="flex items-center mb-2">
+                      <div className="facility-icon">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-3 text-xl font-bold text-white">Main Building</h3>
+                    </div>
+                    <div className="w-16 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mb-2"></div>
                   </div>
                 </div>
                 <div className="p-6">
@@ -694,43 +815,57 @@ const About = () => {
                     Modern classrooms and administrative offices with cutting-edge technology and comfortable learning spaces. The main building houses lecture halls, faculty offices, and administrative departments.
                   </p>
                   <div className="mt-4 space-y-2">
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Smart Classrooms</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Smart Classrooms</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Administrative Offices</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Administrative Offices</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Seminar Halls</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Seminar Halls</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Library */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-accent-100">
+              <div className="overflow-hidden shadow-lg rounded-xl facility-card">
                 <div className="relative h-56">
                   <img
-                    src="/images/library.jpg"
-                    alt="Library"
+                    src="/images/facilities/library.jpg"
+                    alt="Library - Government Polytechnic College Itarsi"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/images/fallback-facility.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-bold text-white">Library</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0 h-full flex flex-col justify-end p-4">
+                    <div className="flex items-center mb-2">
+                      <div className="facility-icon">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-3 text-xl font-bold text-white">Library</h3>
+                    </div>
+                    <div className="w-16 h-1 bg-gradient-to-r from-accent-500 to-primary-500 rounded-full mb-2"></div>
                   </div>
                 </div>
                 <div className="p-6">
@@ -738,43 +873,57 @@ const About = () => {
                     Comprehensive collection of books, journals, and digital resources for research and self-paced learning. Our library provides a quiet environment for study and research.
                   </p>
                   <div className="mt-4 space-y-2">
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Extensive Book Collection</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-accent-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-accent-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Extensive Book Collection</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Digital Resources</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-accent-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-accent-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Digital Resources</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Reading Rooms</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-accent-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-accent-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Reading Rooms</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Laboratories */}
-              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-primary-100">
+              <div className="overflow-hidden shadow-lg rounded-xl facility-card">
                 <div className="relative h-56">
                   <img
-                    src="/images/laboratory.jpg"
-                    alt="Laboratories"
+                    src="/images/facilities/laboratories.jpg"
+                    alt="Laboratories - Government Polytechnic College Itarsi"
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = '/images/fallback-facility.jpg';
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-bold text-white">Laboratories</h3>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  <div className="absolute top-0 left-0 right-0 h-full flex flex-col justify-end p-4">
+                    <div className="flex items-center mb-2">
+                      <div className="facility-icon">
+                        <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                      </div>
+                      <h3 className="ml-3 text-xl font-bold text-white">Laboratories</h3>
+                    </div>
+                    <div className="w-16 h-1 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full mb-2"></div>
                   </div>
                 </div>
                 <div className="p-6">
@@ -782,23 +931,29 @@ const About = () => {
                     Well-equipped labs for practical learning, research, and hands-on experience with cutting-edge technology. Each department has specialized laboratories for practical training.
                   </p>
                   <div className="mt-4 space-y-2">
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Computer Labs</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Computer Labs</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Electronics & Electrical Labs</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Electronics & Electrical Labs</span>
                     </div>
-                    <div className="flex items-center">
-                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-gray-700">Mechanical Workshops</span>
+                    <div className="flex items-center facility-feature">
+                      <div className="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center">
+                        <svg className="h-4 w-4 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="ml-3 text-gray-700">Mechanical Workshops</span>
                     </div>
                   </div>
                 </div>
@@ -997,6 +1152,13 @@ const About = () => {
           </div>
         </div>
       </div>
+
+      {/* Course Details Modal */}
+      <CourseDetailsModal
+        isOpen={isModalOpen}
+        onClose={handleCloseDepartmentModal}
+        department={selectedDepartment}
+      />
     </div>
   );
 };
