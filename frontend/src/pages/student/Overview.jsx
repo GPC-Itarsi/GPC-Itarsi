@@ -335,7 +335,7 @@ const Overview = () => {
                   <h3 className="text-lg font-medium text-gray-900">Attendance Details</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-3">View your complete attendance record, including daily logs and monthly statistics.</p>
-                <div className="text-sm font-medium text-primary-600 hover:text-primary-700">View attendance →</div>
+                <div className="text-sm font-medium text-primary-600">View attendance →</div>
               </div>
             </Link>
 
@@ -350,7 +350,7 @@ const Overview = () => {
                   <h3 className="text-lg font-medium text-gray-900">Study Materials</h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-3">Access all study materials, notes, and resources for your courses.</p>
-                <div className="text-sm font-medium text-primary-600 hover:text-primary-700">Browse materials →</div>
+                <div className="text-sm font-medium text-primary-600">Browse materials →</div>
               </div>
             </Link>
           </div>
@@ -367,7 +367,7 @@ const Overview = () => {
             actions={
               <a
                 href="/"
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                className="text-sm font-medium text-primary-600"
               >
                 View all
               </a>
@@ -383,7 +383,7 @@ const Overview = () => {
             ) : (
               <div className="divide-y divide-gray-200">
                 {notices.map((notice) => (
-                  <div key={notice._id} className="p-4 hover:bg-gray-50 transition-colors duration-150">
+                  <div key={notice._id} className="p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center">
                         <h3 className="text-sm font-medium text-primary-600 truncate mr-2">
@@ -421,7 +421,7 @@ const Overview = () => {
             actions={
               <Link
                 to="/student/study-materials"
-                className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                className="text-sm font-medium text-primary-600"
               >
                 View all
               </Link>
@@ -437,7 +437,7 @@ const Overview = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {studyMaterials.map((material) => (
-                  <div key={material._id} className="bg-white border border-gray-100 rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-200">
+                  <div key={material._id} className="bg-white border border-gray-100 rounded-lg shadow-sm p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-sm font-medium text-primary-600 truncate">{material.title}</h3>
                       <span className="px-2 py-1 inline-flex text-xs leading-4 font-semibold rounded-full bg-green-100 text-green-800">
@@ -460,7 +460,7 @@ const Overview = () => {
                       href={`${config.apiUrl}/uploads/study-materials/${material.fileUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors duration-200"
+                      className="inline-flex items-center text-sm font-medium text-primary-600"
                     >
                       <svg className="mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
