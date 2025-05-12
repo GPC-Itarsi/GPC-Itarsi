@@ -367,7 +367,7 @@ const Overview = () => {
               </h3>
             </div>
             <div className="p-6 bg-gradient-to-br from-white to-primary-50/30">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="futuristic-card p-4 bg-gradient-to-br from-primary-50 to-primary-100/30 border border-primary-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md"
@@ -407,6 +407,29 @@ const Overview = () => {
                   <div className="mt-4">
                     <Link to="/developer/settings" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
                       Manage Settings
+                      <svg className="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="futuristic-card p-4 bg-gradient-to-br from-primary-50 to-primary-100/30 border border-primary-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md"
+                         style={{boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)'}}>
+                      <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                    <div className="ml-4">
+                      <h4 className="text-lg font-medium text-gray-900">User Management</h4>
+                      <p className="text-sm text-gray-500">Manage all system users</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Link to="/developer/users" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                      Manage Users
                       <svg className="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                       </svg>
