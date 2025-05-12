@@ -157,11 +157,11 @@ const Overview = () => {
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-            // Try to fetch users count
+            // Try to fetch users count - use developer endpoint instead of users endpoint
             try {
-              const usersResponse = await axios.get(`${config.apiUrl}/api/users`, { headers });
+              const usersResponse = await axios.get(`${config.apiUrl}/api/developer/users`, { headers });
               const usersCount = usersResponse.data.length;
-              console.log('Users count from /api/users:', usersCount);
+              console.log('Users count from /api/developer/users:', usersCount);
 
               // Update just the users count
               setStats(prevStats => ({
@@ -169,7 +169,7 @@ const Overview = () => {
                 users: usersCount || prevStats.users
               }));
             } catch (usersErr) {
-              console.log('Could not fetch users count from /api/users:', usersErr.message);
+              console.log('Could not fetch users count from /api/developer/users:', usersErr.message);
             }
 
             // Try to fetch courses count
