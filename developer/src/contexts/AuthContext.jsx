@@ -14,33 +14,44 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    try {
-      console.log('Checking authentication on page load');
-      const token = localStorage.getItem('token');
+    const checkAuth = async () => {
+      try {
+        console.log('Checking authentication on page load');
+        const token = localStorage.getItem('token');
 
-      if (!token) {
-        console.log('No token found in localStorage');
-        setCurrentUser(null);
+        if (!token) {
+          console.log('No token found in localStorage');
+          setCurrentUser(null);
+          setLoading(false);
+          return;
+        }
+
+        console.log('Token found in localStorage:', token.substring(0, 20) + '...');
+
+        // Set axios default headers for all future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('Setting Authorization header with token:', `Bearer ${token.substring(0, 20)}...`);
+
+        // Fetch user profile with the token
+        await fetchUserProfile(token);
+      } catch (err) {
+        console.error('Error checking authentication:', err);
+
+        // Only clear token on authentication errors, not network errors
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          console.log('Authentication error, clearing token');
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
+          setCurrentUser(null);
+        } else {
+          console.log('Network or other error, keeping token');
+          // Keep the token but set loading to false to allow the app to proceed
+        }
         setLoading(false);
-        return;
       }
+    };
 
-      console.log('Token found in localStorage:', token.substring(0, 20) + '...');
-
-      // Set axios default headers for all future requests
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('Setting Authorization header with token:', `Bearer ${token.substring(0, 20)}...`);
-
-      // Fetch user profile with the token
-      fetchUserProfile(token);
-    } catch (err) {
-      console.error('Error checking authentication:', err);
-      // Clear token if there's an error
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      setCurrentUser(null);
-      setLoading(false);
-    }
+    checkAuth();
   }, []);
 
   const fetchUserProfile = async (token) => {
@@ -64,14 +75,22 @@ export const AuthProvider = ({ children }) => {
       console.error('Error fetching user profile:', err);
       console.error('Error details:', err.response?.data || err.message);
 
-      // Clear token if it's invalid
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      setCurrentUser(null);
-      setLoading(false);
+      // Only clear token on authentication errors, not network errors
+      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        console.log('Authentication error, clearing token');
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        setCurrentUser(null);
 
-      // Show error toast
-      toast.error('Session expired. Please login again.');
+        // Show error toast for authentication errors
+        toast.error('Session expired. Please login again.');
+      } else {
+        console.log('Network or other error, keeping token');
+        // For network errors, keep the token but set a generic error message
+        toast.error('Network error. Please check your connection and try again.');
+      }
+
+      setLoading(false);
     }
   };
 
@@ -173,6 +192,13 @@ export const AuthProvider = ({ children }) => {
         return false;
       }
 
+      // If we already have a user with this token, consider it valid
+      // This prevents unnecessary API calls that could cause loops
+      if (currentUser && currentUser._id) {
+        console.log('User already authenticated, skipping validation');
+        return true;
+      }
+
       console.log('Checking token validity:', token.substring(0, 20) + '...');
 
       // Set axios default headers
@@ -200,10 +226,13 @@ export const AuthProvider = ({ children }) => {
       console.error('Token validation error:', err);
       console.error('Error details:', err.response?.data || err.message);
 
-      // Clear invalid token
-      localStorage.removeItem('token');
-      delete axios.defaults.headers.common['Authorization'];
-      setCurrentUser(null);
+      // Don't clear the token on network errors to prevent loops
+      if (err.response) {
+        // Only clear token if we got a response from the server indicating it's invalid
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        setCurrentUser(null);
+      }
       return false;
     }
   };

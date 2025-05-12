@@ -13,6 +13,7 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const [validating, setValidating] = useState(true);
   const [tokenValid, setTokenValid] = useState(false);
+  const [validationAttempted, setValidationAttempted] = useState(false);
 
   // Check if there's a token in localStorage
   const token = localStorage.getItem('token');
@@ -24,23 +25,33 @@ const ProtectedRoute = ({ children }) => {
     currentUser: currentUser ? `${currentUser.name} (${currentUser.role})` : 'No user'
   });
 
-  // Validate token on component mount
+  // Validate token on component mount - only once
   useEffect(() => {
-    const validateToken = async () => {
-      if (token) {
-        console.log('Validating token in ProtectedRoute...');
-        const isValid = await checkTokenValidity();
-        console.log('Token validation result:', isValid);
-        setTokenValid(isValid);
-      } else {
-        console.log('No token to validate');
-        setTokenValid(false);
-      }
-      setValidating(false);
-    };
+    // Only validate if we haven't already attempted validation
+    if (!validationAttempted) {
+      const validateToken = async () => {
+        try {
+          if (token) {
+            console.log('Validating token in ProtectedRoute...');
+            const isValid = await checkTokenValidity();
+            console.log('Token validation result:', isValid);
+            setTokenValid(isValid);
+          } else {
+            console.log('No token to validate');
+            setTokenValid(false);
+          }
+        } catch (error) {
+          console.error('Error validating token:', error);
+          setTokenValid(false);
+        } finally {
+          setValidating(false);
+          setValidationAttempted(true);
+        }
+      };
 
-    validateToken();
-  }, [token, checkTokenValidity]);
+      validateToken();
+    }
+  }, [token, checkTokenValidity, validationAttempted]);
 
   if (loading || validating) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-primary-900">
@@ -52,9 +63,11 @@ const ProtectedRoute = ({ children }) => {
   // If not authenticated, no token, or invalid token, redirect to login
   if (!isAuthenticated || !token || !tokenValid) {
     console.log('Not authenticated or invalid token, redirecting to login');
-    // Clear any existing token to ensure a clean login
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
+    // Only clear token if we're sure it's invalid (after validation)
+    if (validationAttempted) {
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    }
     return <Navigate to="/developer/login" state={{ from: location }} replace />;
   }
 
