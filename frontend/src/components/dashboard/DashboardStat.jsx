@@ -1,17 +1,52 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 
-const DashboardStat = ({ 
-  title, 
-  value, 
-  icon, 
+const DashboardStat = ({
+  title,
+  value,
+  icon,
   iconBgColor = 'bg-primary-500',
   iconColor = 'text-white',
   change,
   changeType = 'neutral',
   className = '',
-  isLoading = false
+  isLoading = false,
+  futuristic = true
 }) => {
+  const statRef = useRef(null);
+  const iconRef = useRef(null);
+
+  useEffect(() => {
+    if (futuristic && statRef.current) {
+      const stat = statRef.current;
+      const iconElement = iconRef.current;
+
+      // Add pulse animation to the icon on hover
+      const handleMouseEnter = () => {
+        if (iconElement) {
+          iconElement.style.animation = 'student-pulse 1.5s infinite';
+        }
+        stat.style.transform = 'translateY(-5px)';
+        stat.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.1), 0 0 15px rgba(99, 102, 241, 0.2)';
+      };
+
+      const handleMouseLeave = () => {
+        if (iconElement) {
+          iconElement.style.animation = 'none';
+        }
+        stat.style.transform = 'translateY(0)';
+        stat.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1), 0 0 10px rgba(99, 102, 241, 0.1)';
+      };
+
+      stat.addEventListener('mouseenter', handleMouseEnter);
+      stat.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        stat.removeEventListener('mouseenter', handleMouseEnter);
+        stat.removeEventListener('mouseleave', handleMouseLeave);
+      };
+    }
+  }, [futuristic]);
   const getChangeColor = () => {
     if (changeType === 'positive') return 'text-green-600';
     if (changeType === 'negative') return 'text-red-600';
@@ -36,10 +71,18 @@ const DashboardStat = ({
     return null;
   };
 
+  const statClass = futuristic
+    ? `student-stat p-4 transition-all duration-300 ${className}`
+    : `bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg ${className}`;
+
+  const iconClass = futuristic
+    ? `flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4 student-stat-icon`
+    : `flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4`;
+
   return (
-    <div className={`bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg ${className}`}>
+    <div ref={statRef} className={statClass}>
       <div className="flex items-center">
-        <div className={`flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4`}>
+        <div ref={iconRef} className={iconClass}>
           <div className={`h-6 w-6 ${iconColor}`}>{icon}</div>
         </div>
         <div className="w-0 flex-1">
@@ -76,7 +119,8 @@ DashboardStat.propTypes = {
   change: PropTypes.string,
   changeType: PropTypes.oneOf(['positive', 'negative', 'neutral']),
   className: PropTypes.string,
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  futuristic: PropTypes.bool
 };
 
 export default DashboardStat;

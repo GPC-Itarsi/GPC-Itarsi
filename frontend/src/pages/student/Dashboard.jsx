@@ -16,6 +16,9 @@ import Profile from './Profile';
 // Dashboard Components
 import DashboardBanner from '../../components/dashboard/DashboardBanner';
 
+// Import futuristic styles
+import '../../styles/StudentDashboard.css';
+
 const Dashboard = () => {
   const { user, isStudent, loading } = useAuth();
   const navigate = useNavigate();
@@ -46,7 +49,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="h-screen flex overflow-hidden bg-neutral-100">
+    <div className="h-screen flex overflow-hidden student-dashboard">
       {/* Sidebar for mobile */}
       <div className={`md:hidden ${isSidebarOpen ? 'fixed inset-0 z-50 flex' : 'hidden'}`}>
         <div
@@ -219,7 +222,7 @@ const Dashboard = () => {
       {/* Static sidebar for desktop */}
       <div className="hidden md:flex md:flex-shrink-0">
         <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 bg-primary-900 text-white">
+          <div className="flex flex-col h-0 flex-1 student-sidebar text-white">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <span className="text-white text-xl font-bold">Student Dashboard</span>
@@ -228,11 +231,11 @@ const Dashboard = () => {
                 <Link
                   to="/student"
                   className={`${
-                    isActive('') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-800'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    isActive('') ? 'bg-primary-700 text-white active' : 'text-secondary-100 hover:bg-primary-800'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md student-nav-link`}
                 >
                   <svg
-                    className="mr-3 h-6 w-6 text-secondary-300"
+                    className="mr-3 h-6 w-6 text-secondary-300 student-nav-icon"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -250,11 +253,11 @@ const Dashboard = () => {
                 <Link
                   to="/student/attendance"
                   className={`${
-                    isActive('/attendance') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-800'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    isActive('/attendance') ? 'bg-primary-700 text-white active' : 'text-secondary-100 hover:bg-primary-800'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md student-nav-link`}
                 >
                   <svg
-                    className="mr-3 h-6 w-6 text-secondary-300"
+                    className="mr-3 h-6 w-6 text-secondary-300 student-nav-icon"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -272,11 +275,11 @@ const Dashboard = () => {
                 <Link
                   to="/student/study-materials"
                   className={`${
-                    isActive('/study-materials') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-800'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    isActive('/study-materials') ? 'bg-primary-700 text-white active' : 'text-secondary-100 hover:bg-primary-800'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md student-nav-link`}
                 >
                   <svg
-                    className="mr-3 h-6 w-6 text-secondary-300"
+                    className="mr-3 h-6 w-6 text-secondary-300 student-nav-icon"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -295,11 +298,11 @@ const Dashboard = () => {
                 <Link
                   to="/student/profile"
                   className={`${
-                    isActive('/profile') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-800'
-                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                    isActive('/profile') ? 'bg-primary-700 text-white active' : 'text-secondary-100 hover:bg-primary-800'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md student-nav-link`}
                 >
                   <svg
-                    className="mr-3 h-6 w-6 text-secondary-300"
+                    className="mr-3 h-6 w-6 text-secondary-300 student-nav-icon"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -316,10 +319,10 @@ const Dashboard = () => {
                 </Link>
                 <Link
                   to="/calendar"
-                  className="text-secondary-100 hover:bg-primary-800 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                  className="text-secondary-100 hover:bg-primary-800 group flex items-center px-2 py-2 text-sm font-medium rounded-md student-nav-link"
                 >
                   <svg
-                    className="mr-3 h-6 w-6 text-secondary-300"
+                    className="mr-3 h-6 w-6 text-secondary-300 student-nav-icon"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
                     viewBox="0 0 24 24"
@@ -341,7 +344,7 @@ const Dashboard = () => {
                 <div className="flex items-center">
                   <div>
                     <img
-                      className="inline-block h-9 w-9 rounded-full object-cover"
+                      className="inline-block h-9 w-9 rounded-full object-cover student-profile-image"
                       src={getProfileImageUrl(user?.profilePicture)}
                       alt="Profile"
                       onError={handleImageError}
@@ -385,21 +388,26 @@ const Dashboard = () => {
             <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8">
               {/* Welcome Banner */}
               <div className="mb-6 hidden md:block">
-                <DashboardBanner
-                  userName={user?.username || 'Student'}
-                  userRole="Student"
-                  subtitle={`Welcome to your dashboard. Here you can view your attendance, access study materials, and manage your profile.`}
-                  bgColor="bg-primary-800"
-                  showPattern={true}
-                  actionButton={
-                    <Link
-                      to="/student/profile"
-                      className="inline-flex items-center px-4 py-2 border border-primary-600/30 rounded-md shadow-sm text-sm font-medium text-white bg-primary-700 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
-                    >
-                      View Profile
-                    </Link>
-                  }
-                />
+                <div className="student-banner">
+                  <div className="student-banner-pattern"></div>
+                  <div className="student-banner-circle" style={{ width: '150px', height: '150px', top: '-50px', right: '-30px', opacity: '0.1' }}></div>
+                  <div className="student-banner-circle" style={{ width: '100px', height: '100px', bottom: '-30px', left: '10%', opacity: '0.1' }}></div>
+                  <DashboardBanner
+                    userName={user?.username || 'Student'}
+                    userRole="Student"
+                    subtitle={`Welcome to your dashboard. Here you can view your attendance, access study materials, and manage your profile.`}
+                    bgColor="bg-primary-800"
+                    showPattern={true}
+                    actionButton={
+                      <Link
+                        to="/student/profile"
+                        className="inline-flex items-center px-4 py-2 border border-primary-600/30 rounded-md shadow-sm text-sm font-medium text-white bg-primary-700 hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+                      >
+                        View Profile
+                      </Link>
+                    }
+                  />
+                </div>
               </div>
 
               <Routes>
