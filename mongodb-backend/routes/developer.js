@@ -319,25 +319,10 @@ router.get('/users', authenticateToken, authorize(['developer']), async (req, re
     console.log('Fetching all users with passwords for developer');
 
     // Include plainTextPassword field in the query results
-    // Use a more explicit approach to ensure we get the plainTextPassword field
+    // In MongoDB, we can't mix inclusion and exclusion in the same projection (except for _id)
+    // So we'll just exclude the password field and include everything else
     const users = await User.find({}, {
-      password: 0, // Exclude the hashed password for security
-      plainTextPassword: 1, // Explicitly include plainTextPassword
-      _id: 1,
-      username: 1,
-      name: 1,
-      role: 1,
-      email: 1,
-      profilePicture: 1,
-      department: 1,
-      subjects: 1,
-      rollNumber: 1,
-      class: 1,
-      branch: 1,
-      attendance: 1,
-      title: 1,
-      createdAt: 1,
-      updatedAt: 1
+      password: 0 // Exclude only the hashed password for security
     });
 
     console.log(`Found ${users.length} users`);
