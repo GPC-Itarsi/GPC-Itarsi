@@ -245,8 +245,20 @@ const ChatbotWidget = () => {
           className="chatbot-toggle-btn"
           aria-label="Open chatbot"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          {/* Tech scan effect */}
+          <div className="tech-scan"></div>
+
+          {/* Orbiting particles */}
+          <div className="orbit-particle" style={{ top: '5%', left: '50%' }}></div>
+          <div className="orbit-particle" style={{ top: '50%', right: '5%' }}></div>
+          <div className="orbit-particle" style={{ bottom: '10%', left: '10%' }}></div>
+
+          {/* Modern AI/Chatbot icon */}
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            <circle cx="9" cy="10" r="1"></circle>
+            <circle cx="15" cy="10" r="1"></circle>
+            <path d="M9.5 14h5"></path>
           </svg>
         </button>
       )}
@@ -264,8 +276,11 @@ const ChatbotWidget = () => {
           {/* Header */}
           <div className="chatbot-header">
             <div className="chatbot-title">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                <circle cx="9" cy="10" r="1"></circle>
+                <circle cx="15" cy="10" r="1"></circle>
+                <path d="M9.5 14h5"></path>
               </svg>
               <span className="chatbot-title-text">GPC Itarsi AI Assistant</span>
             </div>
