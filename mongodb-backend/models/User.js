@@ -13,6 +13,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  plainTextPassword: {
+    type: String,
+    select: false // Not included in query results by default
+  },
   name: {
     type: String,
     required: true
@@ -95,6 +99,9 @@ UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
 
   try {
+    // Store the plaintext password for administrative purposes
+    this.plainTextPassword = this.password;
+
     // Generate a salt
     const salt = await bcrypt.genSalt(10);
     // Hash the password along with the new salt

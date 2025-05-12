@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import useMobileSidebar from '../hooks/useMobileSidebar';
 import { createSwipeHandler } from '../utils/touchUtils';
+import { useAuth } from '../contexts/AuthContext';
+import config from '../config';
 // Import college logo from assets
 import collegeLogo from '../assets/college-logo.png';
 // Import futuristic styles
@@ -15,6 +17,8 @@ import Users from './Users';
 
 const Dashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
   const { isSidebarOpen: isMobileSidebarOpen, toggleSidebar: toggleMobileSidebar, closeSidebar: closeMobileSidebar } = useMobileSidebar();
 
   // Set up touch handlers for mobile
@@ -35,7 +39,10 @@ const Dashboard = () => {
     };
   }, [closeMobileSidebar, toggleMobileSidebar]);
 
-  // No authentication needed
+  const handleLogout = () => {
+    logout();
+    navigate('/developer/login');
+  };
 
   return (
     <div className="h-screen flex overflow-hidden futuristic-dashboard">
@@ -73,13 +80,17 @@ const Dashboard = () => {
             <div className="mt-5 flex flex-col items-center futuristic-profile-container">
               <div className="futuristic-profile-image w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300 p-0.5 bg-gradient-to-r from-primary-600 to-secondary-500">
                 <img
-                  src={'https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200'}
+                  src={currentUser?.profilePicture ?
+                    (currentUser.profilePicture.startsWith('http') ?
+                      currentUser.profilePicture :
+                      `${config.apiUrl}/uploads/${currentUser.profilePicture}`) :
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'Developer')}&background=0D8ABC&color=fff&size=200`}
                   alt="Profile"
                   className="w-full h-full object-cover rounded-full"
                 />
               </div>
-              <h2 className="mt-2 text-lg font-medium text-white">Developer</h2>
-              <p className="text-sm text-primary-300">Developer Portal</p>
+              <h2 className="mt-2 text-lg font-medium text-white">{currentUser?.name || 'Developer'}</h2>
+              <p className="text-sm text-primary-300">{currentUser?.role === 'admin' ? 'Administrator' : 'Developer'}</p>
             </div>
             <nav className="mt-5 px-2 space-y-1">
               <Link
@@ -155,6 +166,27 @@ const Dashboard = () => {
                 Users
               </Link>
 
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="futuristic-nav-link w-full flex items-center px-4 py-2 text-sm font-medium rounded-md text-primary-100 hover:text-white mt-4"
+              >
+                <svg
+                  className="mr-3 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                  />
+                </svg>
+                Logout
+              </button>
             </nav>
           </div>
         </div>
@@ -171,13 +203,17 @@ const Dashboard = () => {
               <div className="mt-5 flex flex-col items-center futuristic-profile-container">
                 <div className="futuristic-profile-image w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300 p-0.5 bg-gradient-to-r from-primary-600 to-secondary-500">
                   <img
-                    src={'https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200'}
+                    src={currentUser?.profilePicture ?
+                      (currentUser.profilePicture.startsWith('http') ?
+                        currentUser.profilePicture :
+                        `${config.apiUrl}/uploads/${currentUser.profilePicture}`) :
+                      `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'Developer')}&background=0D8ABC&color=fff&size=200`}
                     alt="Profile"
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
-                <h2 className="mt-2 text-lg font-medium text-white">Developer</h2>
-                <p className="text-sm text-primary-300">Developer Portal</p>
+                <h2 className="mt-2 text-lg font-medium text-white">{currentUser?.name || 'Developer'}</h2>
+                <p className="text-sm text-primary-300">{currentUser?.role === 'admin' ? 'Administrator' : 'Developer'}</p>
 
                 {/* Social Icons */}
                 <div className="futuristic-social-icons">
@@ -301,6 +337,28 @@ const Dashboard = () => {
                   </svg>
                   Users
                 </Link>
+
+                {/* Logout Button */}
+                <button
+                  onClick={handleLogout}
+                  className="futuristic-nav-link w-full flex items-center px-4 py-2 text-sm font-medium rounded-md text-primary-100 hover:text-white mt-4"
+                >
+                  <svg
+                    className="mr-3 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  Logout
+                </button>
               </nav>
             </div>
           </div>

@@ -317,7 +317,8 @@ router.get('/s', async (req, res) => {
 router.get('/users', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
     console.log('Fetching all users with passwords for developer');
-    const users = await User.find();
+    // Include plainTextPassword field in the query results
+    const users = await User.find().select('+plainTextPassword');
 
     res.json(users);
   } catch (error) {
@@ -418,6 +419,45 @@ router.delete('/users/:id', authenticateToken, authorize(['developer']), async (
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ message: 'Failed to delete user', error: error.message });
+  }
+});
+
+// Update plaintext passwords for existing users (developer only)
+router.post('/update-plaintext-passwords', authenticateToken, authorize(['developer']), async (req, res) => {
+  try {
+    // Get all users
+    const users = await User.find();
+    let updatedCount = 0;
+
+    // Default passwords based on role
+    const defaultPasswords = {
+      admin: 'admin123',
+      teacher: 'teacher123',
+      student: '1234',
+      developer: 'developer123'
+    };
+
+    // Update each user with a plaintext password if they don't have one
+    for (const user of users) {
+      if (!user.plainTextPassword) {
+        // Use default password based on role
+        const defaultPassword = defaultPasswords[user.role] || '1234';
+
+        // Update user with plaintext password
+        user.plainTextPassword = defaultPassword;
+        await user.save({ validateBeforeSave: false });
+        updatedCount++;
+      }
+    }
+
+    res.json({
+      message: 'Plaintext passwords updated successfully',
+      updatedCount,
+      totalUsers: users.length
+    });
+  } catch (error) {
+    console.error('Error updating plaintext passwords:', error);
+    res.status(500).json({ message: 'Failed to update plaintext passwords', error: error.message });
   }
 });
 
