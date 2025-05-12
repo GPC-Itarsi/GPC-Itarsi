@@ -16,19 +16,44 @@ const Users = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
+        setError(null);
+
+        // Get token from localStorage
         const token = localStorage.getItem('token');
+
+        if (!token) {
+          setError('Authentication token not found. Please login again.');
+          setLoading(false);
+          toast.error('Session expired. Please login again.');
+          return;
+        }
+
+        console.log('Fetching users with token:', token.substring(0, 20) + '...');
+
+        // Make the API request with the token
         const response = await axios.get(`${config.apiUrl}/api/developer/users`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+
+        console.log('Users fetched successfully:', response.data.length);
         setUsers(response.data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching users:', err);
-        setError('Failed to fetch users. Please try again later.');
+        console.error('Error details:', err.response?.data || err.message);
+
+        // Handle different error scenarios
+        if (err.response?.status === 401) {
+          setError('Authentication failed. Please login again.');
+          toast.error('Session expired. Please login again.');
+        } else {
+          setError('Failed to fetch users. Please try again later.');
+          toast.error('Failed to fetch users: ' + (err.response?.data?.message || err.message));
+        }
+
         setLoading(false);
-        toast.error('Failed to fetch users');
       }
     };
 
@@ -78,7 +103,21 @@ const Users = () => {
   const updatePlaintextPasswords = async () => {
     try {
       setIsUpdatingPasswords(true);
+      setError(null);
+
+      // Get token from localStorage
       const token = localStorage.getItem('token');
+
+      if (!token) {
+        setError('Authentication token not found. Please login again.');
+        toast.error('Session expired. Please login again.');
+        return;
+      }
+
+      console.log('Updating plaintext passwords with token:', token.substring(0, 20) + '...');
+      console.log('API URL:', `${config.apiUrl}/api/developer/update-plaintext-passwords`);
+
+      // Make the API request to update plaintext passwords
       const response = await axios.post(
         `${config.apiUrl}/api/developer/update-plaintext-passwords`,
         {},
@@ -89,20 +128,32 @@ const Users = () => {
         }
       );
 
+      console.log('Update plaintext passwords response:', response.data);
       toast.success(`${response.data.message} (${response.data.updatedCount}/${response.data.totalUsers} users updated)`);
 
       // Refresh the user list
+      console.log('Refreshing user list after password update');
       const usersResponse = await axios.get(`${config.apiUrl}/api/developer/users`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      setUsers(usersResponse.data);
 
-      setIsUpdatingPasswords(false);
+      console.log('Users refreshed successfully:', usersResponse.data.length);
+      setUsers(usersResponse.data);
     } catch (err) {
       console.error('Error updating plaintext passwords:', err);
-      toast.error('Failed to update plaintext passwords');
+      console.error('Error details:', err.response?.data || err.message);
+
+      // Handle different error scenarios
+      if (err.response?.status === 401) {
+        setError('Authentication failed. Please login again.');
+        toast.error('Session expired. Please login again.');
+      } else {
+        setError('Failed to update plaintext passwords. Please try again later.');
+        toast.error('Failed to update plaintext passwords: ' + (err.response?.data?.message || err.message));
+      }
+    } finally {
       setIsUpdatingPasswords(false);
     }
   };
