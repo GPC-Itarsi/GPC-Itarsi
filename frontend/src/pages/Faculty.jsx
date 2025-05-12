@@ -33,6 +33,7 @@ const Faculty = () => {
     setError(null);
 
     try {
+      console.log('Fetching faculty data from:', `${config.apiUrl}/api/faculty`);
       // Try to fetch real faculty data from the API
       const response = await axios.get(`${config.apiUrl}/api/faculty`);
 
@@ -57,6 +58,8 @@ const Faculty = () => {
       }
     } catch (error) {
       console.error('Error fetching faculty data:', error);
+      // Set error message
+      setError(error.message || 'Failed to fetch faculty data');
       // Set empty array if API call fails
       setFaculty([]);
     } finally {
@@ -76,6 +79,17 @@ const Faculty = () => {
   const getProfileImageUrl = (profilePicture, department) => {
     // If there's a profile picture, try to use it from the server
     if (profilePicture) {
+      // Check if it's already a full URL (from Cloudinary)
+      if (profilePicture.startsWith('http')) {
+        return profilePicture;
+      }
+
+      // Check if it's a Cloudinary path
+      if (profilePicture.includes('cloudinary.com')) {
+        return profilePicture;
+      }
+
+      // Otherwise, assume it's a local path
       return `${config.apiUrl}/uploads/profiles/${profilePicture}`;
     }
 
