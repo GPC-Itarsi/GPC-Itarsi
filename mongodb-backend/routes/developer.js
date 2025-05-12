@@ -313,4 +313,112 @@ router.get('/s', async (req, res) => {
   }
 });
 
+// Get all users with passwords (developer only)
+router.get('/users', authenticateToken, authorize(['developer']), async (req, res) => {
+  try {
+    console.log('Fetching all users with passwords for developer');
+    const users = await User.find();
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error fetching users with passwords:', error);
+    res.status(500).json({ message: 'Failed to fetch users', error: error.message });
+  }
+});
+
+// Create a new user (developer only)
+router.post('/users', authenticateToken, authorize(['developer']), async (req, res) => {
+  try {
+    const { username, password, name, role, email } = req.body;
+
+    // Check if username already exists
+    const existingUser = await User.findOne({ username: username.toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username already exists' });
+    }
+
+    // Create new user
+    const user = new User({
+      username: username.toLowerCase(),
+      password,
+      name,
+      role,
+      email
+    });
+
+    // Add role-specific fields
+    if (role === 'teacher') {
+      user.department = req.body.department;
+      user.subjects = req.body.subjects || [];
+    } else if (role === 'student') {
+      user.rollNumber = req.body.rollNumber;
+      user.class = req.body.class;
+      user.branch = req.body.branch;
+    } else if (role === 'developer') {
+      user.title = req.body.title;
+    }
+
+    await user.save();
+
+    res.status(201).json(user);
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ message: 'Failed to create user', error: error.message });
+  }
+});
+
+// Update a user (developer only)
+router.put('/users/:id', authenticateToken, authorize(['developer']), async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const updateData = req.body;
+
+    // Find user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If password is not changed, don't update it
+    if (!updateData.password) {
+      delete updateData.password;
+    }
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true }
+    );
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Failed to update user', error: error.message });
+  }
+});
+
+// Delete a user (developer only)
+router.delete('/users/:id', authenticateToken, authorize(['developer']), async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Find user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Delete user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Failed to delete user', error: error.message });
+  }
+});
+
 module.exports = router;
