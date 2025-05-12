@@ -1,8 +1,8 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { toast } from 'react-toastify';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Transition, Fragment } from '@headlessui/react';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
