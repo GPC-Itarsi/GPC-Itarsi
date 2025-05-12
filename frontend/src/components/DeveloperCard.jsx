@@ -211,7 +211,7 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
                   onError={(e) => {
                     console.log('Developer image error, using fallback');
                     e.target.onerror = null;
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(developer.name)}&background=0D8ABC&color=fff&size=200`;
+                    e.target.src = 'https://res.cloudinary.com/daf99zan2/image/upload/v1746966715/gpc-itarsi/profiles/profilePicture-1746966715084-977581870.webp';
                   }}
                 />
               </div>

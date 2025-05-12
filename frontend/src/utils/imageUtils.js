@@ -14,14 +14,15 @@ export const getProfileImageUrl = (profilePicture) => {
 
   try {
     if (!profilePicture) {
-      console.log('No profile picture provided, using default');
-      return '/images/principal-placeholder.svg';
+      console.log('No profile picture provided, using default developer image');
+      // Use the Cloudinary URL as the developer placeholder
+      return 'https://res.cloudinary.com/daf99zan2/image/upload/v1746966715/gpc-itarsi/profiles/profilePicture-1746966715084-977581870.webp';
     }
 
     // Check if the profilePicture is a valid string
     if (typeof profilePicture !== 'string') {
       console.error('Invalid profile picture format, using default:', profilePicture);
-      return '/images/principal-placeholder.svg';
+      return 'https://res.cloudinary.com/daf99zan2/image/upload/v1746966715/gpc-itarsi/profiles/profilePicture-1746966715084-977581870.webp';
     }
 
     // Check if the profilePicture is a Cloudinary URL
@@ -37,7 +38,9 @@ export const getProfileImageUrl = (profilePicture) => {
     }
 
     // Special case for the default developer profile image
-    if (profilePicture === 'IMG_20250302_114931_795.png') {
+    if (profilePicture === 'IMG_20250302_114931_795.png' ||
+        profilePicture.includes('anmol') ||
+        profilePicture.includes('developer')) {
       console.log('Using special case for developer profile image');
       return `${config.apiUrl}/uploads/profiles/${profilePicture}`;
     }
@@ -66,7 +69,7 @@ export const getProfileImageUrl = (profilePicture) => {
     }
   } catch (error) {
     console.error('Error processing profile image URL:', error);
-    return '/images/principal-placeholder.svg';
+    return 'https://res.cloudinary.com/daf99zan2/image/upload/v1746966715/gpc-itarsi/profiles/profilePicture-1746966715084-977581870.webp';
   }
 };
 
