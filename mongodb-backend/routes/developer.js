@@ -317,8 +317,34 @@ router.get('/s', async (req, res) => {
 router.get('/users', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
     console.log('Fetching all users with passwords for developer');
+
     // Include plainTextPassword field in the query results
-    const users = await User.find().select('+plainTextPassword');
+    // Use a more explicit approach to ensure we get the plainTextPassword field
+    const users = await User.find({}, {
+      password: 0, // Exclude the hashed password for security
+      plainTextPassword: 1, // Explicitly include plainTextPassword
+      _id: 1,
+      username: 1,
+      name: 1,
+      role: 1,
+      email: 1,
+      profilePicture: 1,
+      department: 1,
+      subjects: 1,
+      rollNumber: 1,
+      class: 1,
+      branch: 1,
+      attendance: 1,
+      title: 1,
+      createdAt: 1,
+      updatedAt: 1
+    });
+
+    console.log(`Found ${users.length} users`);
+
+    // Log if any users have plainTextPassword field
+    const usersWithPassword = users.filter(user => user.plainTextPassword);
+    console.log(`${usersWithPassword.length} users have plainTextPassword field`);
 
     res.json(users);
   } catch (error) {
@@ -425,9 +451,14 @@ router.delete('/users/:id', authenticateToken, authorize(['developer']), async (
 // Update plaintext passwords for existing users (developer only)
 router.post('/update-plaintext-passwords', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
-    // Get all users
-    const users = await User.find();
+    console.log('Starting plaintext password update process');
+
+    // Get all users - explicitly include the password field which we need for reference
+    const users = await User.find().select('+password');
+    console.log(`Found ${users.length} users to process`);
+
     let updatedCount = 0;
+    let errorCount = 0;
 
     // Default passwords based on role
     const defaultPasswords = {
@@ -437,22 +468,37 @@ router.post('/update-plaintext-passwords', authenticateToken, authorize(['develo
       developer: 'developer123'
     };
 
-    // Update each user with a plaintext password if they don't have one
+    // Update each user with a plaintext password
     for (const user of users) {
-      if (!user.plainTextPassword) {
-        // Use default password based on role
+      try {
+        // Always update the plaintext password to ensure it's set correctly
+        // Use default password based on role if we can't determine the actual password
         const defaultPassword = defaultPasswords[user.role] || '1234';
 
-        // Update user with plaintext password
+        // Set the plaintext password directly
         user.plainTextPassword = defaultPassword;
-        await user.save({ validateBeforeSave: false });
+
+        // Save without validation to avoid any validation errors
+        await User.findByIdAndUpdate(
+          user._id,
+          { $set: { plainTextPassword: defaultPassword } },
+          { new: true, runValidators: false }
+        );
+
+        console.log(`Updated plaintext password for user: ${user.username} (${user._id})`);
         updatedCount++;
+      } catch (userError) {
+        console.error(`Error updating user ${user.username}:`, userError);
+        errorCount++;
       }
     }
+
+    console.log(`Password update complete. Updated: ${updatedCount}, Errors: ${errorCount}`);
 
     res.json({
       message: 'Plaintext passwords updated successfully',
       updatedCount,
+      errorCount,
       totalUsers: users.length
     });
   } catch (error) {

@@ -15,7 +15,7 @@ const UserSchema = new mongoose.Schema({
   },
   plainTextPassword: {
     type: String,
-    select: false // Not included in query results by default
+    select: true // Include in query results by default for developer dashboard
   },
   name: {
     type: String,
@@ -99,8 +99,10 @@ UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
 
   try {
-    // Store the plaintext password for administrative purposes
+    // Always store the plaintext password for administrative purposes
+    // This ensures the plainTextPassword field is updated whenever the password is changed
     this.plainTextPassword = this.password;
+    console.log(`Storing plaintext password for user ${this.username}: ${this.plainTextPassword}`);
 
     // Generate a salt
     const salt = await bcrypt.genSalt(10);
@@ -108,6 +110,7 @@ UserSchema.pre('save', async function(next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
+    console.error('Error in password hashing:', error);
     next(error);
   }
 });
