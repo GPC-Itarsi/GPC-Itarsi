@@ -1,36 +1,60 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Protected route component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, currentUser } = useAuth();
+  const { isAuthenticated, loading, currentUser, checkTokenValidity } = useAuth();
   const location = useLocation();
+  const [validating, setValidating] = useState(true);
+  const [tokenValid, setTokenValid] = useState(false);
 
   // Check if there's a token in localStorage
   const token = localStorage.getItem('token');
 
-  console.log('ProtectedRoute check:', {
+  console.log('ProtectedRoute initial check:', {
     isAuthenticated,
     loading,
     hasToken: !!token,
     currentUser: currentUser ? `${currentUser.name} (${currentUser.role})` : 'No user'
   });
 
-  if (loading) {
+  // Validate token on component mount
+  useEffect(() => {
+    const validateToken = async () => {
+      if (token) {
+        console.log('Validating token in ProtectedRoute...');
+        const isValid = await checkTokenValidity();
+        console.log('Token validation result:', isValid);
+        setTokenValid(isValid);
+      } else {
+        console.log('No token to validate');
+        setTokenValid(false);
+      }
+      setValidating(false);
+    };
+
+    validateToken();
+  }, [token, checkTokenValidity]);
+
+  if (loading || validating) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-primary-900">
       <div className="futuristic-loader"></div>
+      <p className="text-white ml-3">Authenticating...</p>
     </div>;
   }
 
-  // If not authenticated or no token, redirect to login
-  if (!isAuthenticated || !token) {
-    console.log('Not authenticated, redirecting to login');
+  // If not authenticated, no token, or invalid token, redirect to login
+  if (!isAuthenticated || !token || !tokenValid) {
+    console.log('Not authenticated or invalid token, redirecting to login');
     // Clear any existing token to ensure a clean login
     localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
     return <Navigate to="/developer/login" state={{ from: location }} replace />;
   }
 
@@ -47,6 +71,7 @@ const ProtectedRoute = ({ children }) => {
           <button
             onClick={() => {
               localStorage.removeItem('token');
+              delete axios.defaults.headers.common['Authorization'];
               window.location.href = '/developer/login';
             }}
             className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"

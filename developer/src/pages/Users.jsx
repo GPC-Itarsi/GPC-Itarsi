@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { toast } from 'react-toastify';
+import { useAuth } from '../contexts/AuthContext';
 
 const Users = () => {
+  const { checkTokenValidity } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,12 +20,13 @@ const Users = () => {
         setLoading(true);
         setError(null);
 
-        // Get token from localStorage
-        const token = localStorage.getItem('token');
+        // First, validate the token
+        console.log('Validating token before fetching users...');
+        const isTokenValid = await checkTokenValidity();
 
-        if (!token) {
-          console.error('No token found in localStorage');
-          setError('Authentication token not found. Please login again.');
+        if (!isTokenValid) {
+          console.error('Token validation failed');
+          setError('Authentication token is invalid. Please login again.');
           setLoading(false);
           toast.error('Session expired. Please login again.');
 
@@ -35,11 +38,10 @@ const Users = () => {
           return;
         }
 
-        console.log('Fetching users with token:', token.substring(0, 20) + '...');
+        // Get token from localStorage (should be valid now)
+        const token = localStorage.getItem('token');
+        console.log('Token validated, fetching users with token:', token.substring(0, 20) + '...');
         console.log('API URL:', `${config.apiUrl}/api/developer/users`);
-
-        // Ensure axios has the Authorization header set
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         // Make the API request with the token
         const response = await axios.get(`${config.apiUrl}/api/developer/users`, {
@@ -61,8 +63,8 @@ const Users = () => {
         console.error('Error status:', err.response?.status);
 
         // Handle different error scenarios
-        if (err.response?.status === 401) {
-          console.error('Authentication failed (401)');
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          console.error('Authentication failed (401/403)');
           setError('Authentication failed. Please login again.');
           toast.error('Session expired. Please login again.');
 
@@ -74,6 +76,10 @@ const Users = () => {
           setTimeout(() => {
             window.location.href = '/developer/login';
           }, 2000);
+        } else if (err.response?.status === 404) {
+          console.error('API endpoint not found (404)');
+          setError('API endpoint not found. Please check server configuration.');
+          toast.error('API endpoint not found: /api/developer/users');
         } else {
           setError('Failed to fetch users. Please try again later.');
           toast.error('Failed to fetch users: ' + (err.response?.data?.message || err.message));
@@ -84,7 +90,7 @@ const Users = () => {
     };
 
     fetchUsers();
-  }, []);
+  }, [checkTokenValidity]);
 
   const filteredUsers = users.filter(user => {
     // Apply role filter
@@ -131,12 +137,13 @@ const Users = () => {
       setIsUpdatingPasswords(true);
       setError(null);
 
-      // Get token from localStorage
-      const token = localStorage.getItem('token');
+      // First, validate the token
+      console.log('Validating token before updating plaintext passwords...');
+      const isTokenValid = await checkTokenValidity();
 
-      if (!token) {
-        console.error('No token found in localStorage');
-        setError('Authentication token not found. Please login again.');
+      if (!isTokenValid) {
+        console.error('Token validation failed');
+        setError('Authentication token is invalid. Please login again.');
         setIsUpdatingPasswords(false);
         toast.error('Session expired. Please login again.');
 
@@ -148,11 +155,10 @@ const Users = () => {
         return;
       }
 
-      console.log('Updating plaintext passwords with token:', token.substring(0, 20) + '...');
+      // Get token from localStorage (should be valid now)
+      const token = localStorage.getItem('token');
+      console.log('Token validated, updating plaintext passwords with token:', token.substring(0, 20) + '...');
       console.log('API URL:', `${config.apiUrl}/api/developer/update-plaintext-passwords`);
-
-      // Ensure axios has the Authorization header set
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       // Make the API request to update plaintext passwords
       const response = await axios.post(
@@ -192,8 +198,8 @@ const Users = () => {
       console.error('Error status:', err.response?.status);
 
       // Handle different error scenarios
-      if (err.response?.status === 401) {
-        console.error('Authentication failed (401)');
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.error('Authentication failed (401/403)');
         setError('Authentication failed. Please login again.');
         toast.error('Session expired. Please login again.');
 
@@ -205,6 +211,10 @@ const Users = () => {
         setTimeout(() => {
           window.location.href = '/developer/login';
         }, 2000);
+      } else if (err.response?.status === 404) {
+        console.error('API endpoint not found (404)');
+        setError('API endpoint not found. Please check server configuration.');
+        toast.error('API endpoint not found: /api/developer/update-plaintext-passwords');
       } else {
         setError('Failed to update plaintext passwords. Please try again later.');
         toast.error('Failed to update plaintext passwords: ' + (err.response?.data?.message || err.message));

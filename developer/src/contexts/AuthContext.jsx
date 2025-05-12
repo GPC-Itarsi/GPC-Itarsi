@@ -162,12 +162,59 @@ export const AuthProvider = ({ children }) => {
     toast.info('Logged out successfully');
   };
 
+  // Function to check if token is valid and refresh auth state
+  const checkTokenValidity = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.log('No token found during validity check');
+        setCurrentUser(null);
+        return false;
+      }
+
+      console.log('Checking token validity:', token.substring(0, 20) + '...');
+
+      // Set axios default headers
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      // Make a request to verify the token
+      const response = await axios.get(`${config.apiUrl}/api/developer/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.data && response.data._id) {
+        console.log('Token is valid, user profile retrieved:', response.data.name);
+        setCurrentUser(response.data);
+        return true;
+      } else {
+        console.log('Invalid response from server during token check');
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+        setCurrentUser(null);
+        return false;
+      }
+    } catch (err) {
+      console.error('Token validation error:', err);
+      console.error('Error details:', err.response?.data || err.message);
+
+      // Clear invalid token
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setCurrentUser(null);
+      return false;
+    }
+  };
+
   const value = {
     currentUser,
     loading,
     error,
     login,
     logout,
+    checkTokenValidity,
     isAuthenticated: !!currentUser
   };
 
