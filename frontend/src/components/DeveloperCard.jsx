@@ -146,7 +146,7 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
         ref={modalRef}
         className="relative max-w-xs w-full mx-auto overflow-hidden animate-fadeIn"
       >
-        <div className="bg-blue-700 text-white rounded-lg shadow-2xl overflow-hidden">
+        <div className="bg-[#1e4fbe] text-white rounded-lg shadow-2xl overflow-hidden">
           {/* Close button */}
           <button
             onClick={onClose}
@@ -175,8 +175,8 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
                 />
               </div>
               {/* Orange badge */}
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold shadow-lg border border-white">
-                <span>JS</span>
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#ff5722] flex items-center justify-center text-white text-xs font-bold shadow-lg border border-white">
+                <span>AM</span>
               </div>
             </div>
 
@@ -186,8 +186,8 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
 
             {/* Bio section */}
             <div className="px-8 w-full">
-              <div className="bg-blue-800/50 p-4 rounded-lg mb-6">
-                <p className="text-white text-sm text-center">
+              <div className="bg-blue-800/30 p-3 rounded-lg mb-6">
+                <p className="text-white text-sm text-center leading-relaxed">
                   {developer.bio?.length > 100 ? `${developer.bio.substring(0, 100)}...` : developer.bio}
                 </p>
               </div>
@@ -197,7 +197,7 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
             <div className="px-8 w-full">
               <a
                 href={`mailto:${developer.socialLinks?.email || 'anmolmalviya4328@gmail.com'}`}
-                className="flex items-center justify-center w-full px-4 py-3 bg-orange-500 rounded-md text-white font-medium shadow-md hover:bg-orange-600 transition-all duration-300"
+                className="flex items-center justify-center w-full px-4 py-3 bg-[#ff5722] rounded-md text-white font-medium shadow-md hover:bg-orange-600 transition-all duration-300"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
