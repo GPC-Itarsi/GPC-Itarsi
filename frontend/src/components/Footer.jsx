@@ -253,6 +253,7 @@ const Footer = () => {
       </div>
       {/* Back to Top Button */}
       {/* Developer Card Modal */}
+      {console.log('Developer data being passed to DeveloperCard:', developer)}
       <DeveloperCard
         isOpen={showDeveloperCard}
         onClose={() => setShowDeveloperCard(false)}
