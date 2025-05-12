@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { Link } from 'react-router-dom';
+import './Overview.css';
+import '../styles/FuturisticDashboard.css';
 
 const Overview = () => {
   const [loading, setLoading] = useState(true);
@@ -17,6 +19,28 @@ const Overview = () => {
     notices: 0,
     galleries: 0
   });
+  const [connectedFromCard, setConnectedFromCard] = useState(false);
+  const [developerName, setDeveloperName] = useState('');
+
+  // Check for URL parameters indicating connection from Developer Card
+  useEffect(() => {
+    // Parse URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const source = urlParams.get('source');
+    const name = urlParams.get('name');
+
+    // Check if connected from Developer Card
+    if (source === 'developer_card') {
+      setConnectedFromCard(true);
+      if (name) {
+        setDeveloperName(decodeURIComponent(name));
+      }
+
+      // Remove the parameters from the URL to avoid sharing them
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -93,28 +117,46 @@ const Overview = () => {
   return (
     <div className="space-y-6">
       {loading ? (
-        <div className="bg-white shadow rounded-lg p-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="futuristic-card p-6 flex justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"
+               style={{boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)'}}></div>
         </div>
       ) : (
         <>
           {error && (
-            <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 mb-4">
+            <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 mb-4 rounded-r-md shadow-md">
               <p>{error}</p>
             </div>
           )}
 
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 bg-gradient-to-r from-primary-600 to-primary-800">
-              <h3 className="text-lg leading-6 font-medium text-white">Developer Dashboard</h3>
-              <p className="mt-1 max-w-2xl text-sm text-primary-200">
-                Welcome to your developer control panel
-              </p>
+          <div className="futuristic-card overflow-hidden">
+            <div className="futuristic-card-header px-4 py-5 sm:px-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg leading-6 font-medium text-white">Developer Dashboard</h3>
+                  <p className="mt-1 max-w-2xl text-sm text-primary-200">
+                    Welcome to your developer control panel
+                  </p>
+                </div>
+
+                {/* Connection indicator badge */}
+                {connectedFromCard ? (
+                  <div className="futuristic-badge" style={{animation: 'pulse 2s infinite'}}>
+                    <div className="connection-indicator-dot"></div>
+                    <span>Connected from Developer Card</span>
+                  </div>
+                ) : (
+                  <div className="futuristic-badge" style={{ opacity: 0.6 }}>
+                    <div className="connection-indicator-dot" style={{ backgroundColor: 'rgba(6, 182, 212, 0.5)' }}></div>
+                    <span>Developer Card Connection</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-gradient-to-br from-white to-primary-50/30">
               <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
                 <div className="flex-shrink-0">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary-100 shadow-lg">
+                  <div className="futuristic-profile-image w-24 h-24 rounded-full overflow-hidden border-4 border-primary-100 shadow-lg">
                     <img
                       src={previewImage}
                       alt="Profile"
@@ -123,44 +165,87 @@ const Overview = () => {
                   </div>
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-xl font-bold text-gray-900">{profileData.name}</h2>
+                  <h2 className="text-xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-primary-700 to-secondary-600">{profileData.name}</h2>
                   <p className="text-sm text-gray-500">{profileData.title}</p>
                   <div className="mt-2 text-sm text-gray-700">
                     <p>Use this dashboard to manage your developer profile and customize the website.</p>
                   </div>
+
+                  {/* Connection status message */}
+                  {connectedFromCard ? (
+                    <div className="mt-3 text-xs text-cyan-600 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor"
+                           style={{filter: 'drop-shadow(0 0 2px rgba(6, 182, 212, 0.5))'}}>
+                        <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      {developerName ? `Connected as ${developerName}` : 'Connected from Developer Card'}
+                    </div>
+                  ) : (
+                    <div className="mt-3 text-xs text-gray-500 flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                      Access Developer Card from the main website
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Statistics Section */}
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Website Statistics</h3>
+          <div className="futuristic-card overflow-hidden">
+            <div className="futuristic-card-header px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-white flex items-center">
+                <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Website Statistics
+              </h3>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-gradient-to-br from-white to-primary-50/30">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <div className="futuristic-stat p-4 bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-blue-600">{stats.users}</div>
+                    <div className="futuristic-stat-icon w-12 h-12 mb-3 rounded-full bg-blue-600 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </div>
+                    <div className="text-3xl font-bold text-blue-600" style={{textShadow: '0 0 10px rgba(59, 130, 246, 0.3)'}}>{stats.users}</div>
                     <div className="text-sm text-gray-500">Users</div>
                   </div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                <div className="futuristic-stat p-4 bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200/50">
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-green-600">{stats.courses}</div>
+                    <div className="futuristic-stat-icon w-12 h-12 mb-3 rounded-full bg-green-600 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                    </div>
+                    <div className="text-3xl font-bold text-green-600" style={{textShadow: '0 0 10px rgba(16, 185, 129, 0.3)'}}>{stats.courses}</div>
                     <div className="text-sm text-gray-500">Courses</div>
                   </div>
                 </div>
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                <div className="futuristic-stat p-4 bg-gradient-to-br from-yellow-50 to-yellow-100/50 border border-yellow-200/50">
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-yellow-600">{stats.notices}</div>
+                    <div className="futuristic-stat-icon w-12 h-12 mb-3 rounded-full bg-yellow-600 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                      </svg>
+                    </div>
+                    <div className="text-3xl font-bold text-yellow-600" style={{textShadow: '0 0 10px rgba(245, 158, 11, 0.3)'}}>{stats.notices}</div>
                     <div className="text-sm text-gray-500">Notices</div>
                   </div>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                <div className="futuristic-stat p-4 bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
                   <div className="flex flex-col items-center">
-                    <div className="text-3xl font-bold text-purple-600">{stats.galleries}</div>
+                    <div className="futuristic-stat-icon w-12 h-12 mb-3 rounded-full bg-purple-600 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <div className="text-3xl font-bold text-purple-600" style={{textShadow: '0 0 10px rgba(139, 92, 246, 0.3)'}}>{stats.galleries}</div>
                     <div className="text-sm text-gray-500">Galleries</div>
                   </div>
                 </div>
@@ -168,15 +253,21 @@ const Overview = () => {
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Quick Actions</h3>
+          <div className="futuristic-card overflow-hidden">
+            <div className="futuristic-card-header px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-white flex items-center">
+                <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Quick Actions
+              </h3>
             </div>
-            <div className="p-6">
+            <div className="p-6 bg-gradient-to-br from-white to-primary-50/30">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-primary-50 rounded-lg p-4 border border-primary-100 hover:shadow-md transition-shadow">
+                <div className="futuristic-card p-4 bg-gradient-to-br from-primary-50 to-primary-100/30 border border-primary-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-md bg-primary-600 flex items-center justify-center">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md"
+                         style={{boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)'}}>
                       <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -187,15 +278,19 @@ const Overview = () => {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Link to="/developer/profile" className="text-sm font-medium text-primary-600 hover:text-primary-500">
-                      Edit Profile →
+                    <Link to="/developer/profile" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                      Edit Profile
+                      <svg className="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
                     </Link>
                   </div>
                 </div>
 
-                <div className="bg-primary-50 rounded-lg p-4 border border-primary-100 hover:shadow-md transition-shadow">
+                <div className="futuristic-card p-4 bg-gradient-to-br from-primary-50 to-primary-100/30 border border-primary-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-md bg-primary-600 flex items-center justify-center">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md"
+                         style={{boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)'}}>
                       <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
@@ -206,15 +301,19 @@ const Overview = () => {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Link to="/developer/settings" className="text-sm font-medium text-primary-600 hover:text-primary-500">
-                      Manage Settings →
+                    <Link to="/developer/settings" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                      Manage Settings
+                      <svg className="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
                     </Link>
                   </div>
                 </div>
 
-                <div className="bg-primary-50 rounded-lg p-4 border border-primary-100 hover:shadow-md transition-shadow">
+                <div className="futuristic-card p-4 bg-gradient-to-br from-primary-50 to-primary-100/30 border border-primary-200/50 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
                   <div className="flex items-center">
-                    <div className="flex-shrink-0 h-10 w-10 rounded-md bg-primary-600 flex items-center justify-center">
+                    <div className="flex-shrink-0 h-12 w-12 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md"
+                         style={{boxShadow: '0 0 15px rgba(99, 102, 241, 0.3)'}}>
                       <svg className="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
@@ -225,8 +324,11 @@ const Overview = () => {
                     </div>
                   </div>
                   <div className="mt-4">
-                    <a href={`${config.apiUrl}/admin`} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-primary-600 hover:text-primary-500">
-                      Open Admin Panel →
+                    <a href={`${config.apiUrl}/admin`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 hover:from-primary-700 hover:to-secondary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300">
+                      Open Admin Panel
+                      <svg className="ml-2 -mr-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
                     </a>
                   </div>
                 </div>
@@ -234,47 +336,88 @@ const Overview = () => {
             </div>
           </div>
 
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Developer Resources</h3>
+          <div className="futuristic-card overflow-hidden">
+            <div className="futuristic-card-header px-4 py-5 sm:px-6">
+              <h3 className="text-lg leading-6 font-medium text-white flex items-center">
+                <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Developer Resources
+              </h3>
             </div>
-            <div className="p-6">
-              <ul className="divide-y divide-gray-200">
-                <li className="py-3 flex justify-between items-center">
+            <div className="p-6 bg-gradient-to-br from-white to-primary-50/30">
+              <ul className="divide-y divide-gray-200/70">
+                <li className="py-4 flex justify-between items-center hover:bg-primary-50/50 px-3 rounded-md transition-colors duration-200">
                   <div className="flex items-center">
-                    <svg className="h-5 w-5 text-primary-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <span className="text-sm text-gray-700">Developer Profile</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md mr-3"
+                         style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.2)'}}>
+                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Developer Profile</span>
                   </div>
-                  <Link to="/developer/profile" className="text-sm text-primary-600 hover:text-primary-800">Edit</Link>
+                  <Link to="/developer/profile" className="px-3 py-1.5 text-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 rounded-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">Edit</Link>
                 </li>
-                <li className="py-3 flex justify-between items-center">
+                <li className="py-4 flex justify-between items-center hover:bg-primary-50/50 px-3 rounded-md transition-colors duration-200">
                   <div className="flex items-center">
-                    <svg className="h-5 w-5 text-primary-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    <span className="text-sm text-gray-700">Website Settings</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md mr-3"
+                         style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.2)'}}>
+                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Website Settings</span>
                   </div>
-                  <Link to="/developer/settings" className="text-sm text-primary-600 hover:text-primary-800">Manage</Link>
+                  <Link to="/developer/settings" className="px-3 py-1.5 text-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 rounded-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">Manage</Link>
                 </li>
-                <li className="py-3 flex justify-between items-center">
+                <li className="py-4 flex justify-between items-center hover:bg-primary-50/50 px-3 rounded-md transition-colors duration-200">
                   <div className="flex items-center">
-                    <svg className="h-5 w-5 text-primary-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span className="text-sm text-gray-700">Documentation</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md mr-3"
+                         style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.2)'}}>
+                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Documentation</span>
                   </div>
-                  <a href="https://github.com/GPC-Itarsi/GPC-Itarsi" target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:text-primary-800">View</a>
+                  <a href="https://github.com/GPC-Itarsi/GPC-Itarsi" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 rounded-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">View</a>
                 </li>
-                <li className="py-3 flex justify-between items-center">
+                <li className="py-4 flex justify-between items-center hover:bg-primary-50/50 px-3 rounded-md transition-colors duration-200">
                   <div className="flex items-center">
-                    <svg className="h-5 w-5 text-primary-500 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
-                    </svg>
-                    <span className="text-sm text-gray-700">Admin Panel</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-600 to-secondary-500 flex items-center justify-center shadow-md mr-3"
+                         style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.2)'}}>
+                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                      </svg>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">Admin Panel</span>
                   </div>
-                  <a href={`${config.apiUrl}/admin`} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:text-primary-800">Open</a>
+                  <a href={`${config.apiUrl}/admin`} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-sm text-white bg-gradient-to-r from-primary-600 to-secondary-500 rounded-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">Open</a>
+                </li>
+
+                {/* Main Website Link */}
+                <li className="py-4 flex justify-between items-center hover:bg-primary-50/50 px-3 rounded-md transition-colors duration-200">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-md mr-3"
+                         style={{boxShadow: '0 0 10px rgba(6, 182, 212, 0.3)'}}>
+                      <svg className="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                      </svg>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Main Website</span>
+                      {connectedFromCard && (
+                        <span className="ml-2 px-2 py-0.5 text-xs bg-cyan-100 text-cyan-800 rounded-full">Connected</span>
+                      )}
+                    </div>
+                  </div>
+                  <a href={config.mainWebsiteUrl} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-sm text-white bg-gradient-to-r from-cyan-500 to-blue-500 rounded-md shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 flex items-center">
+                    <span>Open</span>
+                    {connectedFromCard && (
+                      <div className="ml-1 w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                    )}
+                  </a>
                 </li>
               </ul>
             </div>

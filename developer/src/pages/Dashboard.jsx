@@ -4,6 +4,8 @@ import useMobileSidebar from '../hooks/useMobileSidebar';
 import { createSwipeHandler } from '../utils/touchUtils';
 // Import college logo from assets
 import collegeLogo from '../assets/college-logo.png';
+// Import futuristic styles
+import '../styles/FuturisticDashboard.css';
 
 // Developer Components
 import Profile from './Profile';
@@ -35,19 +37,20 @@ const Dashboard = () => {
   // No authentication needed
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-100">
+    <div className="h-screen flex overflow-hidden futuristic-dashboard">
       {/* Mobile sidebar */}
       <div
         className={`md:hidden fixed inset-0 flex z-40 transition-opacity duration-300 ease-linear ${
           isMobileSidebarOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={closeMobileSidebar}></div>
-        <div className="relative flex-1 flex flex-col max-w-xs w-full bg-primary-800">
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-80 backdrop-blur-sm" onClick={closeMobileSidebar}></div>
+        <div className="relative flex-1 flex flex-col max-w-xs w-full futuristic-sidebar">
           <div className="absolute top-0 right-0 -mr-12 pt-2">
             <button
-              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white bg-primary-800/80 backdrop-blur-sm shadow-lg"
               onClick={closeMobileSidebar}
+              style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.3)'}}
             >
               <span className="sr-only">Close sidebar</span>
               <svg
@@ -64,14 +67,14 @@ const Dashboard = () => {
           </div>
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
-              <img className="h-12 w-auto" src={collegeLogo} alt="College Logo" />
+              <img className="h-12 w-auto filter drop-shadow-lg" src={collegeLogo} alt="College Logo" />
             </div>
-            <div className="mt-5 flex flex-col items-center">
-              <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300">
+            <div className="mt-5 flex flex-col items-center futuristic-profile-container">
+              <div className="futuristic-profile-image w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300 p-0.5 bg-gradient-to-r from-primary-600 to-secondary-500">
                 <img
                   src={'https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200'}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
                 />
               </div>
               <h2 className="mt-2 text-lg font-medium text-white">Developer</h2>
@@ -80,10 +83,10 @@ const Dashboard = () => {
             <nav className="mt-5 px-2 space-y-1">
               <Link
                 to="/developer"
-                className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                   location.pathname === '/developer'
-                    ? 'bg-primary-700 text-white'
-                    : 'text-primary-100 hover:bg-primary-700'
+                    ? 'active text-white'
+                    : 'text-primary-100 hover:text-white'
                 }`}
               >
                 <svg
@@ -104,10 +107,10 @@ const Dashboard = () => {
               </Link>
               <Link
                 to="/developer/profile"
-                className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                   location.pathname === '/developer/profile'
-                    ? 'bg-primary-700 text-white'
-                    : 'text-primary-100 hover:bg-primary-700'
+                    ? 'active text-white'
+                    : 'text-primary-100 hover:text-white'
                 }`}
               >
                 <svg
@@ -135,29 +138,48 @@ const Dashboard = () => {
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:flex-shrink-0">
         <div className="flex flex-col w-64">
-          <div className="flex flex-col h-0 flex-1 bg-primary-800">
+          <div className="flex flex-col h-0 flex-1 futuristic-sidebar">
             <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
-                <img className="h-12 w-auto" src={collegeLogo} alt="College Logo" />
+                <img className="h-12 w-auto filter drop-shadow-lg" src={collegeLogo} alt="College Logo" />
               </div>
-              <div className="mt-5 flex flex-col items-center">
-                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300">
+              <div className="mt-5 flex flex-col items-center futuristic-profile-container">
+                <div className="futuristic-profile-image w-20 h-20 rounded-full overflow-hidden border-2 border-primary-300 p-0.5 bg-gradient-to-r from-primary-600 to-secondary-500">
                   <img
                     src={'https://ui-avatars.com/api/?name=Developer&background=0D8ABC&color=fff&size=200'}
                     alt="Profile"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-full"
                   />
                 </div>
                 <h2 className="mt-2 text-lg font-medium text-white">Developer</h2>
                 <p className="text-sm text-primary-300">Developer Portal</p>
+
+                {/* Social Icons */}
+                <div className="futuristic-social-icons">
+                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="futuristic-social-icon">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                    </svg>
+                  </a>
+                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="futuristic-social-icon">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                    </svg>
+                  </a>
+                  <a href="mailto:developer@example.com" className="futuristic-social-icon">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                    </svg>
+                  </a>
+                </div>
               </div>
               <nav className="mt-5 flex-1 px-2 space-y-1">
                 <Link
                   to="/developer"
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                  className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                     location.pathname === '/developer'
-                      ? 'bg-primary-700 text-white'
-                      : 'text-primary-100 hover:bg-primary-700'
+                      ? 'active text-white'
+                      : 'text-primary-100 hover:text-white'
                   }`}
                 >
                   <svg
@@ -178,10 +200,10 @@ const Dashboard = () => {
                 </Link>
                 <Link
                   to="/developer/profile"
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                  className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                     location.pathname === '/developer/profile'
-                      ? 'bg-primary-700 text-white'
-                      : 'text-primary-100 hover:bg-primary-700'
+                      ? 'active text-white'
+                      : 'text-primary-100 hover:text-white'
                   }`}
                 >
                   <svg
@@ -202,10 +224,10 @@ const Dashboard = () => {
                 </Link>
                 <Link
                   to="/developer/settings"
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                  className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
                     location.pathname === '/developer/settings'
-                      ? 'bg-primary-700 text-white'
-                      : 'text-primary-100 hover:bg-primary-700'
+                      ? 'active text-white'
+                      : 'text-primary-100 hover:text-white'
                   }`}
                 >
                   <svg
@@ -239,8 +261,9 @@ const Dashboard = () => {
       <div className="flex flex-col w-0 flex-1 overflow-hidden">
         <div className="md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 flex items-center">
           <button
-            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+            className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-primary-600 hover:text-primary-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 bg-white/80 backdrop-blur-sm shadow-md"
             onClick={toggleMobileSidebar}
+            style={{boxShadow: '0 0 10px rgba(99, 102, 241, 0.2)'}}
           >
             <span className="sr-only">Open sidebar</span>
             <svg
@@ -255,7 +278,7 @@ const Dashboard = () => {
             </svg>
           </button>
           <div className="ml-4">
-            <h1 className="text-lg font-semibold text-primary-700">Developer Dashboard</h1>
+            <h1 className="text-lg font-semibold text-primary-700 bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-secondary-500">Developer Dashboard</h1>
           </div>
         </div>
         <main className="flex-1 relative overflow-y-auto focus:outline-none">
