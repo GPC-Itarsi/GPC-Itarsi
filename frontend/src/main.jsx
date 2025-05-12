@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import 'react-toastify/dist/ReactToastify.css'
 import './styles/toast.css' // Import custom toast styles
@@ -8,6 +8,20 @@ import App from './App.jsx'
 import axios from 'axios'
 import config from './config'
 import CustomToastContainer from './components/CustomToastContainer'
+
+// Handle redirects from 404.html
+const handleRedirect = () => {
+  const query = new URLSearchParams(window.location.search);
+  const redirectPath = query.get('redirect');
+
+  if (redirectPath) {
+    // Remove the query parameter
+    window.history.replaceState(null, null, redirectPath);
+  }
+}
+
+// Execute redirect handling
+handleRedirect();
 
 // Set default axios base URL and headers
 axios.defaults.baseURL = config.apiUrl;
