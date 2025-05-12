@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { getProfileImageUrl } from '../utils/imageUtils';
+import { useAuth } from '../context/AuthContext';
 // Add CSS animation keyframes at the component level
 import './DeveloperCard.css';
 
@@ -10,6 +11,30 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
   const [developer, setDeveloper] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isAuthenticated, isDeveloper } = useAuth();
+
+  // Function to navigate to Developer Panel
+  const navigateToDeveloperPanel = () => {
+    // The Developer Panel is a separate application
+    // If user is authenticated as a developer, pass the token as a URL parameter
+    if (isAuthenticated && isDeveloper && developer) {
+      // Create a URL with authentication information
+      const url = new URL(config.developerPanelUrl);
+
+      // Add source parameter to indicate it's coming from the Developer Card
+      url.searchParams.append('source', 'developer_card');
+
+      // Add developer name for visual connection
+      if (developer.name) {
+        url.searchParams.append('name', encodeURIComponent(developer.name));
+      }
+
+      window.open(url.toString(), '_blank');
+    } else {
+      // Just open the Developer Panel without authentication
+      window.open(`${config.developerPanelUrl}?source=developer_card`, '_blank');
+    }
+  };
 
   // Use passed developer data or fetch if not provided
   useEffect(() => {
@@ -360,7 +385,7 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
               </div>
 
               {/* Futuristic contact button */}
-              <div className="px-8 w-full">
+              <div className="px-8 w-full mb-4">
                 <a
                   href={`mailto:${developer.socialLinks?.email || 'anmolmalviya4328@gmail.com'}`}
                   className="futuristic-button flex items-center justify-center w-full px-4 py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-md text-white font-medium shadow-lg"
@@ -375,6 +400,52 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
                   </svg>
                   <span className="tracking-wider">CONTACT ME</span>
                 </a>
+              </div>
+
+              {/* Developer Panel button */}
+              <div className="px-8 w-full">
+                <button
+                  onClick={navigateToDeveloperPanel}
+                  className="futuristic-button flex items-center justify-center w-full px-4 py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-md text-white font-medium shadow-lg relative overflow-hidden group"
+                  style={{
+                    boxShadow: '0 4px 10px rgba(6, 182, 212, 0.3), 0 0 15px rgba(6, 182, 212, 0.2)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)'
+                  }}
+                >
+                  {/* Connection indicator */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"></div>
+                  <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"></div>
+
+                  {/* Animated circuit pattern */}
+                  <div className="absolute inset-0 opacity-10 pointer-events-none tech-pattern"></div>
+
+                  {/* Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+
+                  {/* Text with status indicator */}
+                  <span className="tracking-wider flex items-center">
+                    DEVELOPER PANEL
+                    <span className="ml-2 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  </span>
+
+                  {/* Hover effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/0 via-cyan-400/30 to-cyan-400/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{animation: 'shine 2s infinite'}}></div>
+                </button>
+
+                {/* Authentication status indicator */}
+                {isAuthenticated && isDeveloper ? (
+                  <div className="mt-2 text-center text-xs text-cyan-300 flex items-center justify-center">
+                    <span className="w-2 h-2 rounded-full bg-green-400 mr-1.5"></span>
+                    Authenticated as Developer
+                  </div>
+                ) : (
+                  <div className="mt-2 text-center text-xs text-cyan-300/70 flex items-center justify-center">
+                    <span className="w-2 h-2 rounded-full bg-yellow-400 mr-1.5"></span>
+                    Login required for full access
+                  </div>
+                )}
               </div>
             </div>
           </div>
