@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { showSuccessToast, showErrorToast, showWarningToast } from '../../utils/toastUtils';
 import config from '../../config';
+import chatbotFAQs from '../../components/ChatbotFAQs';
 
 const Chatbot = () => {
   const { token } = useAuth();
@@ -73,6 +74,44 @@ const Chatbot = () => {
     } catch (error) {
       console.error('Error deleting FAQ:', error);
       showErrorToast('Failed to delete FAQ');
+    }
+  };
+
+  // Import predefined FAQs
+  const importPredefinedFAQs = async () => {
+    if (!window.confirm('Are you sure you want to import predefined FAQs? This will add new entries to the database.')) {
+      return;
+    }
+
+    let addedCount = 0;
+    let errorCount = 0;
+
+    for (const faq of chatbotFAQs) {
+      try {
+        await axios.post(
+          `${config.apiUrl}/api/chatbot/faqs`,
+          {
+            question: faq.question,
+            answer: faq.answer,
+            keywords: faq.keywords,
+            category: faq.category || 'general'
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        addedCount++;
+      } catch (error) {
+        console.error(`Error adding FAQ: ${faq.question}`, error);
+        errorCount++;
+      }
+    }
+
+    if (addedCount > 0) {
+      showSuccessToast(`Successfully added ${addedCount} predefined FAQs`);
+      fetchFaqs();
+    }
+
+    if (errorCount > 0) {
+      showErrorToast(`Failed to add ${errorCount} FAQs`);
     }
   };
 
@@ -268,7 +307,15 @@ const Chatbot = () => {
 
       {/* FAQ List */}
       <div className="mt-8 bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold mb-4">Existing FAQs</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Existing FAQs</h2>
+          <button
+            onClick={importPredefinedFAQs}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          >
+            Import Predefined FAQs
+          </button>
+        </div>
 
         {loading ? (
           <p>Loading FAQs...</p>

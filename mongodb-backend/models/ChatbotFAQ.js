@@ -16,8 +16,27 @@ const ChatbotFAQSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['admission', 'academic', 'facility', 'general', 'other'],
+    enum: ['admission', 'academic', 'facility', 'general', 'other', 'courses', 'faculty', 'hostel', 'fees', 'placement', 'contact'],
     default: 'general'
+  },
+  priority: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 10
+  },
+  relatedQuestions: {
+    type: [String],
+    default: []
+  },
+  metadata: {
+    type: Map,
+    of: String,
+    default: {}
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   },
   createdAt: {
     type: Date,
@@ -27,6 +46,15 @@ const ChatbotFAQSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+// Index for faster searching
+ChatbotFAQSchema.index({ question: 'text', keywords: 'text' });
+
+// Pre-save hook to update the updatedAt field
+ChatbotFAQSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 module.exports = mongoose.model('ChatbotFAQ', ChatbotFAQSchema);
