@@ -18,26 +18,34 @@ const About = () => {
         setLoading(true);
 
         // Fetch overview, principal message, and contact info data in parallel
-        const [overviewResponse, principalResponse, contactResponse] = await Promise.all([
-          axios.get(`${config.apiUrl}/api/overview`),
-          axios.get(`${config.apiUrl}/api/overview/principal-message`).catch(() => ({ data: null })),
-          axios.get(`${config.apiUrl}/api/contact-info`).catch(() => ({ data: null }))
-        ]);
+        try {
+          const [overviewResponse, principalResponse, contactResponse] = await Promise.all([
+            axios.get(`${config.apiUrl}/api/overview`).catch(() => ({ data: null })),
+            axios.get(`${config.apiUrl}/api/overview/principal-message`).catch(() => ({ data: null })),
+            axios.get(`${config.apiUrl}/api/contact-info`).catch(() => ({ data: null }))
+          ]);
 
-        setOverviewData(overviewResponse.data);
+          if (overviewResponse.data) {
+            setOverviewData(overviewResponse.data);
+          }
 
-        if (principalResponse.data) {
-          setPrincipalMessage(principalResponse.data);
+          if (principalResponse.data) {
+            setPrincipalMessage(principalResponse.data);
+          }
+
+          if (contactResponse.data) {
+            setContactInfo(contactResponse.data);
+          }
+        } catch (apiError) {
+          console.error('API error:', apiError);
+          // Continue with default values if API fails
         }
 
-        if (contactResponse.data) {
-          setContactInfo(contactResponse.data);
-        }
-
+        // Always set loading to false, even if API calls fail
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load college information. Please try again later.');
+        console.error('Error in fetchData:', err);
+        // Don't set error, just finish loading with default values
         setLoading(false);
       }
     };
@@ -53,22 +61,8 @@ const About = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center p-8 bg-red-50 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-          <p className="text-gray-700">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // We'll continue even if there's an error, so this block is no longer needed
+  // The page will display with default values
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -645,6 +639,166 @@ const About = () => {
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                         Code: EE
                       </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Facilities Section */}
+      <div id="facilities" className="py-20 bg-white relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="lg:text-center mb-16">
+            <h2 className="text-base text-primary-600 font-semibold tracking-wide uppercase inline-block highlight-text">Campus Infrastructure</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Our Facilities
+            </p>
+            <div className="h-1 w-20 bg-primary-500 mx-auto mt-4 rounded-full"></div>
+            <p className="mt-6 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+              State-of-the-art infrastructure designed to provide an optimal learning environment
+            </p>
+          </div>
+
+          <div className="mt-16">
+            <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Main Building */}
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-primary-100">
+                <div className="relative h-56">
+                  <img
+                    src="/images/main-building.jpg"
+                    alt="Main Building"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/images/fallback-facility.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold text-white">Main Building</h3>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4">
+                    Modern classrooms and administrative offices with cutting-edge technology and comfortable learning spaces. The main building houses lecture halls, faculty offices, and administrative departments.
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Smart Classrooms</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Administrative Offices</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Seminar Halls</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Library */}
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-accent-100">
+                <div className="relative h-56">
+                  <img
+                    src="/images/library.jpg"
+                    alt="Library"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/images/fallback-facility.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold text-white">Library</h3>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4">
+                    Comprehensive collection of books, journals, and digital resources for research and self-paced learning. Our library provides a quiet environment for study and research.
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Extensive Book Collection</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Digital Resources</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-accent-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Reading Rooms</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Laboratories */}
+              <div className="bg-white overflow-hidden shadow-lg rounded-xl facility-card border border-primary-100">
+                <div className="relative h-56">
+                  <img
+                    src="/images/laboratory.jpg"
+                    alt="Laboratories"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/images/fallback-facility.jpg';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-xl font-bold text-white">Laboratories</h3>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4">
+                    Well-equipped labs for practical learning, research, and hands-on experience with cutting-edge technology. Each department has specialized laboratories for practical training.
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Computer Labs</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Electronics & Electrical Labs</span>
+                    </div>
+                    <div className="flex items-center">
+                      <svg className="h-5 w-5 text-primary-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-gray-700">Mechanical Workshops</span>
                     </div>
                   </div>
                 </div>
