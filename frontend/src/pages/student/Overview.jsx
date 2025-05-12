@@ -23,62 +23,112 @@ const Overview = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
         const token = localStorage.getItem('token');
 
         if (!token) {
-          setError('Authentication token not found');
+          setError('Authentication token not found. Please log in again.');
           setLoading(false);
           return;
         }
 
-        // Fetch student profile
-        const profileRes = await axios.get(`${config.apiUrl}/api/students/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        // Fetch student profile with better error handling
+        let profileData;
+        try {
+          console.log('Fetching student profile...');
+          const profileRes = await axios.get(`${config.apiUrl}/api/students/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
+          profileData = profileRes.data;
+          setStudentData(profileData);
+          console.log('Student profile fetched successfully:', profileData.name);
+        } catch (profileError) {
+          console.error('Error fetching student profile:', profileError);
+
+          // Handle specific authentication errors
+          if (profileError.response && (profileError.response.status === 401 || profileError.response.status === 403)) {
+            setError('Your session has expired or you do not have permission to access this page. Please log in again.');
+            setLoading(false);
+            // Optionally redirect to login page or clear token
+            // localStorage.removeItem('token');
+            return;
           }
-        });
 
-        setStudentData(profileRes.data);
+          throw profileError; // Re-throw to be caught by the outer catch block
+        }
 
-        // Fetch notices
-        const noticesRes = await axios.get(`${config.apiUrl}/api/notices`);
-        setNotices(noticesRes.data.slice(0, 5)); // Get only the latest 5 notices
+        // Fetch notices - continue even if this fails
+        try {
+          console.log('Fetching notices...');
+          const noticesRes = await axios.get(`${config.apiUrl}/api/notices`);
+          setNotices(noticesRes.data.slice(0, 5)); // Get only the latest 5 notices
+          console.log('Notices fetched successfully:', noticesRes.data.length);
+        } catch (noticesError) {
+          console.error('Error fetching notices:', noticesError);
+          // Don't set error state, just continue with empty notices
+          setNotices([]);
+        }
 
-        // Fetch study materials for student's class
-        const materialsRes = await axios.get(`${config.apiUrl}/api/study-materials`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        // Fetch study materials for student's class - continue even if this fails
+        try {
+          console.log('Fetching study materials...');
+          const materialsRes = await axios.get(`${config.apiUrl}/api/study-materials`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
 
-        // Filter study materials for student's class
-        const allMaterials = materialsRes.data.filter(material =>
-          material.class === profileRes.data.class
-        );
+          // Filter study materials for student's class
+          const allMaterials = materialsRes.data.filter(material =>
+            material.class === profileData.class
+          );
 
-        // Sort by upload date (newest first)
-        allMaterials.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
+          // Sort by upload date (newest first)
+          allMaterials.sort((a, b) => new Date(b.uploadDate) - new Date(a.uploadDate));
 
-        setStudyMaterials(allMaterials.slice(0, 5)); // Get only the latest 5 materials
+          setStudyMaterials(allMaterials.slice(0, 5)); // Get only the latest 5 materials
+          console.log('Study materials fetched successfully:', allMaterials.length);
+        } catch (materialsError) {
+          console.error('Error fetching study materials:', materialsError);
+          // Don't set error state, just continue with empty materials
+          setStudyMaterials([]);
+        }
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching overview data:', error);
+
         // Provide more detailed error information
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
           console.error('Error response data:', error.response.data);
           console.error('Error response status:', error.response.status);
-          setError(error.response.data?.message || `Server error: ${error.response.status}`);
+
+          // Handle different status codes
+          if (error.response.status === 401) {
+            setError('Your session has expired. Please log in again.');
+          } else if (error.response.status === 403) {
+            setError('You do not have permission to access this page. Please log in with the correct account.');
+          } else if (error.response.status === 404) {
+            setError('The requested resource was not found. Please contact support if this issue persists.');
+          } else if (error.response.status >= 500) {
+            setError('The server encountered an error. Please try again later or contact support.');
+          } else {
+            setError(error.response.data?.message || `Server error: ${error.response.status}`);
+          }
         } else if (error.request) {
           // The request was made but no response was received
           console.error('Error request:', error.request);
-          setError('No response received from server. Please check your connection.');
+          setError('No response received from server. Please check your internet connection and try again.');
         } else {
           // Something happened in setting up the request that triggered an Error
           console.error('Error message:', error.message);
           setError(`Error: ${error.message}`);
         }
+
         setLoading(false);
       }
     };
@@ -127,8 +177,37 @@ const Overview = () => {
           title="Error"
           className="mt-6 border-red-200 bg-red-50"
           headerClassName="bg-red-100 text-red-800 border-red-200"
+          futuristic={true}
         >
-          <div className="text-red-700">{error}</div>
+          <div className="p-4 flex flex-col items-center">
+            <svg className="h-12 w-12 text-red-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-red-700 text-center mb-4">{error}</div>
+            <div className="text-gray-600 text-sm text-center mb-6">
+              Please try refreshing the page or logging out and back in. If the problem persists, contact support.
+            </div>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Refresh Page
+              </button>
+              <Link
+                to="/login"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+              >
+                <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Log Out
+              </Link>
+            </div>
+          </div>
         </DashboardCard>
       ) : (
         <>

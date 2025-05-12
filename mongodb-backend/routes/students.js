@@ -46,6 +46,83 @@ router.get('/', authenticateToken, authorize(['admin', 'teacher']), async (req, 
   }
 });
 
+// Get attendance for a specific student (admin, teacher, and student access)
+router.get('/attendance/:studentId', authenticateToken, authorize(['admin', 'teacher', 'student']), async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // If student is accessing, they can only view their own attendance
+    if (req.user.role === 'student' && studentId !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied - students can only view their own attendance' });
+    }
+
+    // Find the student
+    const student = await UserModel.findOne({ _id: studentId, role: 'student' });
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // For now, we'll return mock attendance records
+    // In a real implementation, you would fetch actual attendance records from a database
+    const today = new Date();
+    const records = [];
+
+    // Generate some mock attendance records for the last 30 days
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+
+      // Random attendance status (present/absent)
+      const isPresent = Math.random() > 0.2; // 80% chance of being present
+
+      records.push({
+        date: date.toISOString().split('T')[0],
+        status: isPresent ? 'present' : 'absent',
+        subject: ['Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'English'][Math.floor(Math.random() * 5)]
+      });
+    }
+
+    res.json({
+      student: {
+        _id: student._id,
+        name: student.name,
+        rollNumber: student.rollNumber,
+        class: student.class,
+        branch: student.branch,
+        attendance: student.attendance || 0
+      },
+      records: records
+    });
+  } catch (error) {
+    console.error('Error fetching student attendance:', error);
+    res.status(500).json({ message: 'Failed to fetch student attendance' });
+  }
+});
+
+// Get student profile (for student to view their own profile)
+router.get('/profile', authenticateToken, authorize(['student']), async (req, res) => {
+  try {
+    const student = await UserModel.findById(req.user.id);
+
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Remove password from response
+    const studentObj = typeof student.toObject === 'function'
+      ? student.toObject()
+      : {...student};
+
+    delete studentObj.password;
+
+    res.json(studentObj);
+  } catch (error) {
+    console.error('Error fetching student profile:', error);
+    res.status(500).json({ message: 'Failed to fetch student profile' });
+  }
+});
+
 // Get student by ID
 router.get('/:id', authenticateToken, authorize(['admin', 'teacher']), async (req, res) => {
   try {
@@ -74,29 +151,6 @@ router.get('/:id', authenticateToken, authorize(['admin', 'teacher']), async (re
   } catch (error) {
     console.error('Error fetching student:', error);
     res.status(500).json({ message: 'Failed to fetch student' });
-  }
-});
-
-// Get student profile (for student to view their own profile)
-router.get('/profile', authenticateToken, authorize(['student']), async (req, res) => {
-  try {
-    const student = await UserModel.findById(req.user.id);
-
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    // Remove password from response
-    const studentObj = typeof student.toObject === 'function'
-      ? student.toObject()
-      : {...student};
-
-    delete studentObj.password;
-
-    res.json(studentObj);
-  } catch (error) {
-    console.error('Error fetching student profile:', error);
-    res.status(500).json({ message: 'Failed to fetch student profile' });
   }
 });
 
@@ -234,55 +288,6 @@ router.delete('/:id', authenticateToken, authorize(['admin']), async (req, res) 
   } catch (error) {
     console.error('Error deleting student:', error);
     res.status(500).json({ message: 'Failed to delete student' });
-  }
-});
-
-// Get attendance for a specific student (admin and teacher access)
-router.get('/attendance/:studentId', authenticateToken, authorize(['admin', 'teacher']), async (req, res) => {
-  try {
-    const { studentId } = req.params;
-
-    // Find the student
-    const student = await UserModel.findOne({ _id: studentId, role: 'student' });
-
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    // For now, we'll return mock attendance records
-    // In a real implementation, you would fetch actual attendance records from a database
-    const today = new Date();
-    const records = [];
-
-    // Generate some mock attendance records for the last 30 days
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-
-      // Random attendance status (present/absent)
-      const isPresent = Math.random() > 0.2; // 80% chance of being present
-
-      records.push({
-        date: date.toISOString().split('T')[0],
-        status: isPresent ? 'present' : 'absent',
-        subject: ['Mathematics', 'Physics', 'Chemistry', 'Computer Science', 'English'][Math.floor(Math.random() * 5)]
-      });
-    }
-
-    res.json({
-      student: {
-        _id: student._id,
-        name: student.name,
-        rollNumber: student.rollNumber,
-        class: student.class,
-        branch: student.branch,
-        attendance: student.attendance || 0
-      },
-      records: records
-    });
-  } catch (error) {
-    console.error('Error fetching student attendance:', error);
-    res.status(500).json({ message: 'Failed to fetch student attendance' });
   }
 });
 

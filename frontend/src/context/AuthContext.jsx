@@ -18,24 +18,57 @@ export const AuthProvider = ({ children }) => {
       try {
         const storedToken = localStorage.getItem('token');
 
-        if (storedToken) {
-          // Update token state
-          setToken(storedToken);
+        if (!storedToken) {
+          console.log('No token found in localStorage');
+          setLoading(false);
+          return;
+        }
 
-          // Set axios default headers
-          axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
-          console.log('Setting Authorization header with token:', storedToken.substring(0, 20) + '...');
+        console.log('Token found in localStorage:', storedToken.substring(0, 20) + '...');
 
-          // Get user data
-          const response = await axios.get(`${config.apiUrl}/api/auth/me`);
-          console.log('User data from /me endpoint:', response.data);
+        // Update token state
+        setToken(storedToken);
 
+        // Set axios default headers
+        axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+        console.log('Setting Authorization header with token:', storedToken.substring(0, 20) + '...');
+
+        // Get user data with retry mechanism
+        let retries = 2;
+        let userData = null;
+
+        while (retries > 0 && !userData) {
+          try {
+            console.log(`Attempting to fetch user data (retries left: ${retries})`);
+            const response = await axios.get(`${config.apiUrl}/api/auth/me`);
+            console.log('User data from /me endpoint:', response.data);
+
+            if (response.data && response.data.user) {
+              userData = response.data;
+            } else {
+              console.error('Invalid user data format received:', response.data);
+              throw new Error('Invalid user data format');
+            }
+          } catch (fetchError) {
+            console.error(`Error fetching user data (retries left: ${retries}):`, fetchError);
+            retries--;
+
+            if (retries === 0) {
+              throw fetchError; // Re-throw to be caught by outer catch
+            }
+
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+
+        if (userData) {
           // Set the user data with the ID
-          const userData = response.data.userData || {};
+          const userDataObj = userData.userData || {};
           const userWithId = {
-            ...response.data.user,
-            id: response.data.user._id, // Ensure ID is set correctly
-            userData: userData
+            ...userData.user,
+            id: userData.user._id, // Ensure ID is set correctly
+            userData: userDataObj
           };
 
           console.log('Setting user with ID:', userWithId);
@@ -44,8 +77,32 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Authentication error:', error);
-        localStorage.removeItem('token');
-        setToken(null);
+
+        // Provide more detailed error logging
+        if (error.response) {
+          console.error('Error response status:', error.response.status);
+          console.error('Error response data:', error.response.data);
+
+          // Only clear token for auth errors (401/403)
+          if (error.response.status === 401 || error.response.status === 403) {
+            console.log('Authentication error (401/403), clearing token');
+            localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
+            setToken(null);
+          } else {
+            console.log('Non-authentication error, keeping token');
+          }
+        } else {
+          console.error('Error with no response:', error.message);
+          // For network errors, we might want to keep the token
+          if (error.message.includes('Network Error')) {
+            console.log('Network error, keeping token');
+          } else {
+            localStorage.removeItem('token');
+            delete axios.defaults.headers.common['Authorization'];
+            setToken(null);
+          }
+        }
       } finally {
         setLoading(false);
       }
@@ -62,6 +119,15 @@ export const AuthProvider = ({ children }) => {
 
       console.log('Attempting login with:', { username, password, userType });
 
+      // Validate inputs
+      if (!username || !password) {
+        const errorMsg = 'Username and password are required';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      }
+
       // Create the login payload based on user type
       const loginPayload = {
         username,
@@ -71,10 +137,53 @@ export const AuthProvider = ({ children }) => {
 
       console.log('Sending login request with payload:', loginPayload);
 
-      const response = await axios.post(`${config.apiUrl}/api/auth/login`, loginPayload);
+      // Clear any existing token and headers before login attempt
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+
+      // Add timeout to login request
+      const response = await axios.post(`${config.apiUrl}/api/auth/login`, loginPayload, {
+        timeout: 10000 // 10 second timeout
+      });
+
+      // Validate response data
+      if (!response.data || !response.data.token || !response.data.user) {
+        const errorMsg = 'Invalid response from server. Missing token or user data.';
+        console.error(errorMsg, response.data);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      }
 
       const { token, user, userData } = response.data;
       console.log('Login response:', { token: token.substring(0, 20) + '...', user, userData });
+
+      // Validate user role based on userType
+      if (userType === 'student' && user.role !== 'student') {
+        const errorMsg = 'Access denied. Please log in with a student account.';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      } else if (userType === 'teacher' && user.role !== 'teacher') {
+        const errorMsg = 'Access denied. Please log in with a teacher account.';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      } else if (userType === 'admin' && user.role !== 'admin') {
+        const errorMsg = 'Access denied. Please log in with an admin account.';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      } else if (userType === 'developer' && user.role !== 'developer') {
+        const errorMsg = 'Access denied. Please log in with a developer account.';
+        console.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      }
 
       // Save token to localStorage
       localStorage.setItem('token', token);
@@ -101,8 +210,40 @@ export const AuthProvider = ({ children }) => {
       return userData;
     } catch (error) {
       console.error('Login error in AuthContext:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      setError('Login failed. Please check your credentials and ensure the server is running.');
+
+      // Handle different types of errors
+      if (error.response) {
+        console.error('Error response status:', error.response.status);
+        console.error('Error response data:', error.response.data);
+
+        // Handle specific status codes
+        if (error.response.status === 401) {
+          setError('Invalid username or password. Please try again.');
+        } else if (error.response.status === 403) {
+          setError('Access denied. You do not have permission to log in with these credentials.');
+        } else if (error.response.status === 404) {
+          setError('Login service not found. Please contact support.');
+        } else if (error.response.status >= 500) {
+          setError('Server error. Please try again later or contact support.');
+        } else {
+          setError(error.response.data?.message || 'Login failed. Please try again.');
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response received:', error.request);
+        setError('No response from server. Please check your internet connection and try again.');
+      } else if (error.message.includes('timeout')) {
+        // Request timed out
+        console.error('Request timeout:', error.message);
+        setError('Request timed out. Please try again later.');
+      } else if (error.message) {
+        // Error thrown from our own validation
+        setError(error.message);
+      } else {
+        // Something else happened
+        setError('Login failed. Please check your credentials and try again.');
+      }
+
       throw error;
     } finally {
       setLoading(false);
