@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { toast } from 'react-toastify';
@@ -22,13 +22,24 @@ const Users = () => {
         const token = localStorage.getItem('token');
 
         if (!token) {
+          console.error('No token found in localStorage');
           setError('Authentication token not found. Please login again.');
           setLoading(false);
           toast.error('Session expired. Please login again.');
+
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            window.location.href = '/developer/login';
+          }, 2000);
+
           return;
         }
 
         console.log('Fetching users with token:', token.substring(0, 20) + '...');
+        console.log('API URL:', `${config.apiUrl}/api/developer/users`);
+
+        // Ensure axios has the Authorization header set
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         // Make the API request with the token
         const response = await axios.get(`${config.apiUrl}/api/developer/users`, {
@@ -37,17 +48,32 @@ const Users = () => {
           }
         });
 
+        if (!response.data) {
+          throw new Error('No data received from server');
+        }
+
         console.log('Users fetched successfully:', response.data.length);
         setUsers(response.data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching users:', err);
         console.error('Error details:', err.response?.data || err.message);
+        console.error('Error status:', err.response?.status);
 
         // Handle different error scenarios
         if (err.response?.status === 401) {
+          console.error('Authentication failed (401)');
           setError('Authentication failed. Please login again.');
           toast.error('Session expired. Please login again.');
+
+          // Clear token and redirect to login
+          localStorage.removeItem('token');
+          delete axios.defaults.headers.common['Authorization'];
+
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            window.location.href = '/developer/login';
+          }, 2000);
         } else {
           setError('Failed to fetch users. Please try again later.');
           toast.error('Failed to fetch users: ' + (err.response?.data?.message || err.message));
@@ -109,13 +135,24 @@ const Users = () => {
       const token = localStorage.getItem('token');
 
       if (!token) {
+        console.error('No token found in localStorage');
         setError('Authentication token not found. Please login again.');
+        setIsUpdatingPasswords(false);
         toast.error('Session expired. Please login again.');
+
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          window.location.href = '/developer/login';
+        }, 2000);
+
         return;
       }
 
       console.log('Updating plaintext passwords with token:', token.substring(0, 20) + '...');
       console.log('API URL:', `${config.apiUrl}/api/developer/update-plaintext-passwords`);
+
+      // Ensure axios has the Authorization header set
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
       // Make the API request to update plaintext passwords
       const response = await axios.post(
@@ -128,6 +165,10 @@ const Users = () => {
         }
       );
 
+      if (!response.data) {
+        throw new Error('No data received from server');
+      }
+
       console.log('Update plaintext passwords response:', response.data);
       toast.success(`${response.data.message} (${response.data.updatedCount}/${response.data.totalUsers} users updated)`);
 
@@ -139,16 +180,31 @@ const Users = () => {
         }
       });
 
+      if (!usersResponse.data) {
+        throw new Error('No data received when refreshing users');
+      }
+
       console.log('Users refreshed successfully:', usersResponse.data.length);
       setUsers(usersResponse.data);
     } catch (err) {
       console.error('Error updating plaintext passwords:', err);
       console.error('Error details:', err.response?.data || err.message);
+      console.error('Error status:', err.response?.status);
 
       // Handle different error scenarios
       if (err.response?.status === 401) {
+        console.error('Authentication failed (401)');
         setError('Authentication failed. Please login again.');
         toast.error('Session expired. Please login again.');
+
+        // Clear token and redirect to login
+        localStorage.removeItem('token');
+        delete axios.defaults.headers.common['Authorization'];
+
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          window.location.href = '/developer/login';
+        }, 2000);
       } else {
         setError('Failed to update plaintext passwords. Please try again later.');
         toast.error('Failed to update plaintext passwords: ' + (err.response?.data?.message || err.message));

@@ -14,10 +14,31 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('token');
-    if (token) {
+    try {
+      console.log('Checking authentication on page load');
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        console.log('No token found in localStorage');
+        setCurrentUser(null);
+        setLoading(false);
+        return;
+      }
+
+      console.log('Token found in localStorage:', token.substring(0, 20) + '...');
+
+      // Set axios default headers for all future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('Setting Authorization header with token:', `Bearer ${token.substring(0, 20)}...`);
+
+      // Fetch user profile with the token
       fetchUserProfile(token);
-    } else {
+    } catch (err) {
+      console.error('Error checking authentication:', err);
+      // Clear token if there's an error
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setCurrentUser(null);
       setLoading(false);
     }
   }, []);
@@ -60,6 +81,11 @@ export const AuthProvider = ({ children }) => {
       setError(null);
 
       console.log('Attempting login with:', { username, password });
+      console.log('API URL:', `${config.apiUrl}/api/auth/login`);
+
+      // Clear any existing token and headers
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
 
       // Include userType parameter to specify developer role
       const response = await axios.post(`${config.apiUrl}/api/auth/login`, {
@@ -68,11 +94,19 @@ export const AuthProvider = ({ children }) => {
         userType: 'developer' // Explicitly set userType to developer
       });
 
+      // Check if response contains token and user
+      if (!response.data || !response.data.token || !response.data.user) {
+        console.error('Invalid login response:', response.data);
+        setError('Invalid response from server. Please try again.');
+        setLoading(false);
+        return false;
+      }
+
       const { token, user } = response.data;
 
       console.log('Login response:', {
         token: token ? `${token.substring(0, 20)}...` : 'No token',
-        user
+        user: user ? { ...user, _id: user._id } : 'No user'
       });
 
       // Check if user is a developer or admin
@@ -84,10 +118,15 @@ export const AuthProvider = ({ children }) => {
 
       // Save token to localStorage
       localStorage.setItem('token', token);
+      console.log('Token saved to localStorage:', token.substring(0, 20) + '...');
 
       // Set axios default headers for all future requests
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('Setting Authorization header with token:', `${token.substring(0, 20)}...`);
+      console.log('Setting Authorization header with token:', `Bearer ${token.substring(0, 20)}...`);
+
+      // Verify token was set correctly
+      const currentToken = localStorage.getItem('token');
+      console.log('Verifying token in localStorage:', currentToken ? currentToken.substring(0, 20) + '...' : 'No token');
 
       // Set current user
       setCurrentUser(user);
@@ -97,6 +136,11 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Login error:', err);
       console.error('Error details:', err.response?.data || err.message);
+
+      // Clear any existing token
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
       setLoading(false);
       toast.error(err.response?.data?.message || 'Login failed');
