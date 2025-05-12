@@ -18,7 +18,7 @@ const ContactInfoSchema = new mongoose.Schema({
   },
   socialMedia: {
     facebook: { type: String, default: 'https://www.facebook.com/profile.php?id=61573030583115' },
-    instagram: { type: String, default: '' },
+    instagram: { type: String, default: 'https://www.instagram.com/gpcitarsi?igsh=M3pveTRrY3J5djZt' },
     twitter: { type: String, default: '' },
     linkedin: { type: String, default: '' }
   },

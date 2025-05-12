@@ -12,7 +12,7 @@ const MockContactInfo = {
     email: 'gpc.itarsi@gmail.com',
     socialMedia: {
       facebook: 'https://www.facebook.com/profile.php?id=61573030583115',
-      instagram: '',
+      instagram: 'https://www.instagram.com/gpcitarsi?igsh=M3pveTRrY3J5djZt',
       twitter: '',
       linkedin: ''
     },
@@ -81,7 +81,7 @@ router.get('/', async (req, res) => {
         email: 'gpc.itarsi@gmail.com',
         socialMedia: {
           facebook: 'https://www.facebook.com/profile.php?id=61573030583115',
-          instagram: '',
+          instagram: 'https://www.instagram.com/gpcitarsi?igsh=M3pveTRrY3J5djZt',
           twitter: '',
           linkedin: ''
         },
