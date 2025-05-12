@@ -11,13 +11,14 @@ const DashboardStat = ({
   changeType = 'neutral',
   className = '',
   isLoading = false,
-  futuristic = true
+  futuristic = true,
+  noHoverEffect = false
 }) => {
   const statRef = useRef(null);
   const iconRef = useRef(null);
 
   useEffect(() => {
-    if (futuristic && statRef.current) {
+    if (futuristic && statRef.current && !noHoverEffect) {
       const stat = statRef.current;
       const iconElement = iconRef.current;
 
@@ -46,7 +47,7 @@ const DashboardStat = ({
         stat.removeEventListener('mouseleave', handleMouseLeave);
       };
     }
-  }, [futuristic]);
+  }, [futuristic, noHoverEffect]);
   const getChangeColor = () => {
     if (changeType === 'positive') return 'text-green-600';
     if (changeType === 'negative') return 'text-red-600';
@@ -120,7 +121,8 @@ DashboardStat.propTypes = {
   changeType: PropTypes.oneOf(['positive', 'negative', 'neutral']),
   className: PropTypes.string,
   isLoading: PropTypes.bool,
-  futuristic: PropTypes.bool
+  futuristic: PropTypes.bool,
+  noHoverEffect: PropTypes.bool
 };
 
 export default DashboardStat;

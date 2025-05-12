@@ -293,6 +293,7 @@ const Overview = () => {
               change="View details"
               changeType="neutral"
               futuristic={true}
+              noHoverEffect={true}
             />
 
             <DashboardStat
@@ -307,6 +308,7 @@ const Overview = () => {
               change="View all"
               changeType="neutral"
               futuristic={true}
+              noHoverEffect={true}
             />
 
             <DashboardStat
@@ -321,6 +323,7 @@ const Overview = () => {
               change="View all"
               changeType="neutral"
               futuristic={true}
+              noHoverEffect={true}
             />
           </div>
 

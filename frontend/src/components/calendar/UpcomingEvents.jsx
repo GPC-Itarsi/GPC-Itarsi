@@ -122,10 +122,11 @@ const UpcomingEvents = ({ limit = 5 }) => {
       title="Upcoming Events"
       className="mb-6"
       headerClassName="bg-primary-100 text-primary-800"
+      noHoverEffect={true}
       actions={
         <Link
           to="/calendar"
-          className="text-sm font-medium text-accent-600 hover:text-accent-700 transition-colors duration-200"
+          className="text-sm font-medium text-accent-600"
         >
           View Calendar
         </Link>
@@ -145,7 +146,7 @@ const UpcomingEvents = ({ limit = 5 }) => {
           {upcomingEvents.map((event) => (
             <div
               key={event._id}
-              className="p-4 hover:bg-primary-50 transition-colors duration-150 cursor-pointer"
+              className="p-4 cursor-pointer"
               onClick={() => setSelectedEvent(event)}
             >
               <div className="flex items-start">

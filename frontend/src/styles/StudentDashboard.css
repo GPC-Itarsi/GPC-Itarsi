@@ -238,8 +238,9 @@
 }
 
 .student-stat:hover {
-  box-shadow: var(--student-shadow-md);
-  transform: translateY(-2px);
+  /* Hover effects removed while maintaining futuristic design */
+  box-shadow: var(--student-shadow-sm);
+  transform: none;
 }
 
 .student-stat-icon {
