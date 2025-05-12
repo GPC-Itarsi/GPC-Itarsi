@@ -1,5 +1,5 @@
 const config = {
-  apiUrl: import.meta.env.VITE_API_URL || 'https://gpc-itarsi-backend-8dod.onrender.com',
+  apiUrl: import.meta.env.VITE_API_URL || 'https://gpc-itarsi-backend-8.onrender.com',
   defaultProfileImage: '/images/placeholder.svg',
   uploadPath: '/uploads/profiles/',
   mainWebsiteUrl: import.meta.env.VITE_MAIN_WEBSITE_URL || 'http://localhost:3000',
