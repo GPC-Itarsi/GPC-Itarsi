@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 import { toast } from 'react-toastify';
-import { Dialog, Transition } from '@headlessui/react';
+import { Dialog, Transition, Fragment } from '@headlessui/react';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -521,10 +521,10 @@ const Users = () => {
     </div>
 
     {/* Create User Modal */}
-    <Transition appear show={isCreateModalOpen} as={React.Fragment}>
+    <Transition appear show={isCreateModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => setIsCreateModalOpen(false)}>
         <Transition.Child
-          as={React.Fragment}
+          as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -538,7 +538,7 @@ const Users = () => {
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
-              as={React.Fragment}
+              as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"
@@ -741,10 +741,10 @@ const Users = () => {
     </Transition>
 
     {/* Edit User Modal */}
-    <Transition appear show={isEditModalOpen} as={React.Fragment}>
+    <Transition appear show={isEditModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => setIsEditModalOpen(false)}>
         <Transition.Child
-          as={React.Fragment}
+          as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -758,7 +758,7 @@ const Users = () => {
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
-              as={React.Fragment}
+              as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"
@@ -960,10 +960,10 @@ const Users = () => {
     </Transition>
 
     {/* Delete User Modal */}
-    <Transition appear show={isDeleteModalOpen} as={React.Fragment}>
+    <Transition appear show={isDeleteModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={() => setIsDeleteModalOpen(false)}>
         <Transition.Child
-          as={React.Fragment}
+          as={Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -977,7 +977,7 @@ const Users = () => {
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child
-              as={React.Fragment}
+              as={Fragment}
               enter="ease-out duration-300"
               enterFrom="opacity-0 scale-95"
               enterTo="opacity-100 scale-100"
