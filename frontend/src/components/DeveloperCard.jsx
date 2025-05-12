@@ -194,8 +194,8 @@ const DeveloperCard = ({ isOpen, onClose, developerData }) => {
             </div>
 
             {/* Social media icons */}
-            <div className="flex justify-center space-x-4 mb-6 px-8 w-full border-2 border-red-500 p-2">
-              {console.log('Social Links in render:', developer.socialLinks)}
+            <div className="flex justify-center space-x-4 mb-6 px-8 w-full">
+              {/* No debug border or console log in production */}
 
               {/* GitHub */}
               <a
