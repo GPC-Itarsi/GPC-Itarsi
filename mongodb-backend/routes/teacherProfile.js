@@ -5,18 +5,19 @@ const { authenticateToken, authorize } = require('../middleware/auth');
 const { cloudinaryUpload, cloudinary } = require('../middleware/cloudinaryUpload');
 const fs = require('fs');
 const path = require('path');
+const { check, validationResult } = require('express-validator');
 
 // Update teacher profile picture with Cloudinary
 router.put('/update-picture', authenticateToken, authorize(['teacher']), cloudinaryUpload.single('profilePicture'), async (req, res) => {
   try {
     console.log('Updating teacher profile picture with Cloudinary for user ID:', req.user.id);
-    
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
     const teacher = await User.findById(req.user.id);
-    
+
     if (!teacher) {
       return res.status(404).json({ message: 'Teacher not found' });
     }
@@ -50,25 +51,92 @@ router.put('/update-picture', authenticateToken, authorize(['teacher']), cloudin
     teacher.profilePicture = req.file.path;
     teacher.cloudinaryPublicId = req.file.filename;
     teacher.updatedAt = Date.now();
-    
+
     await teacher.save();
-    
+
     console.log('Teacher profile picture updated successfully with Cloudinary:', {
       profilePicture: teacher.profilePicture,
       cloudinaryPublicId: teacher.cloudinaryPublicId
     });
 
-    res.json({ 
+    res.json({
       message: 'Profile picture updated successfully',
       profilePicture: teacher.profilePicture
     });
   } catch (error) {
     console.error('Error updating teacher profile picture with Cloudinary:', error);
-    res.status(500).json({ 
-      message: 'Failed to update profile picture', 
-      error: error.message 
+    res.status(500).json({
+      message: 'Failed to update profile picture',
+      error: error.message
     });
   }
 });
+
+// Update teacher profile information
+router.put('/update',
+  authenticateToken,
+  authorize(['teacher']),
+  [
+    check('name', 'Name is required').not().isEmpty(),
+    check('email', 'Please include a valid email').optional().isEmail(),
+    check('phone', 'Please enter a valid phone number').optional(),
+    check('department', 'Department is required').not().isEmpty(),
+    check('qualification', 'Qualification is required').optional(),
+    check('experience', 'Experience is required').optional(),
+    check('subjects', 'Subjects must be an array').optional().isArray()
+  ],
+  async (req, res) => {
+    try {
+      // Check for validation errors
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+
+      console.log('Updating teacher profile for user ID:', req.user.id);
+
+      const teacher = await User.findById(req.user.id);
+
+      if (!teacher) {
+        return res.status(404).json({ message: 'Teacher not found' });
+      }
+
+      // Extract fields from request body
+      const { name, email, phone, department, qualification, experience, subjects, bio } = req.body;
+
+      // Update fields
+      if (name) teacher.name = name;
+      if (email) teacher.email = email;
+      if (phone) teacher.phone = phone;
+      if (department) teacher.department = department;
+      if (qualification) teacher.qualification = qualification;
+      if (experience) teacher.experience = experience;
+      if (bio) teacher.bio = bio;
+      if (subjects) teacher.subjects = subjects;
+
+      teacher.updatedAt = Date.now();
+
+      await teacher.save();
+
+      console.log('Teacher profile updated successfully');
+
+      // Return updated teacher without password
+      const teacherResponse = teacher.toObject();
+      delete teacherResponse.password;
+      delete teacherResponse.plainTextPassword;
+
+      res.json({
+        message: 'Profile updated successfully',
+        teacher: teacherResponse
+      });
+    } catch (error) {
+      console.error('Error updating teacher profile:', error);
+      res.status(500).json({
+        message: 'Failed to update profile',
+        error: error.message
+      });
+    }
+  }
+);
 
 module.exports = router;

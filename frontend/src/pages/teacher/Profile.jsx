@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileImageUrl, handleImageError } from '../../utils/imageUtils';
 import config from '../../config';
+import { FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -18,11 +19,32 @@ const Profile = () => {
   });
   const [profileImage, setProfileImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    department: '',
+    qualification: '',
+    experience: '',
+    subjects: [],
+    bio: ''
+  });
 
   // Set teacher data from user context if available
   useEffect(() => {
     if (user && user.userData) {
       setTeacherData(user.userData);
+      setFormData({
+        name: user.userData.name || '',
+        email: user.userData.email || '',
+        phone: user.userData.phone || '',
+        department: user.userData.department || '',
+        qualification: user.userData.qualification || '',
+        experience: user.userData.experience || '',
+        subjects: user.userData.subjects || [],
+        bio: user.userData.bio || ''
+      });
       setLoading(false);
     } else {
       fetchTeacherProfile();
@@ -47,6 +69,16 @@ const Profile = () => {
       });
 
       setTeacherData(response.data);
+      setFormData({
+        name: response.data.name || '',
+        email: response.data.email || '',
+        phone: response.data.phone || '',
+        department: response.data.department || '',
+        qualification: response.data.qualification || '',
+        experience: response.data.experience || '',
+        subjects: response.data.subjects || [],
+        bio: response.data.bio || ''
+      });
       setLoading(false);
     } catch (error) {
       console.error('Error fetching teacher profile:', error);
@@ -166,36 +198,121 @@ const Profile = () => {
     }
   };
 
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  const handleSubjectsChange = (e) => {
+    const subjectsArray = e.target.value
+      ? e.target.value.split(',').map(subject => subject.trim())
+      : [];
+
+    setFormData({
+      ...formData,
+      subjects: subjectsArray
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess('');
+
+      const token = localStorage.getItem('token');
+
+      const response = await axios.put(
+        `${config.apiUrl}/api/teacher-profile/update`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // Update user profile in context
+      updateProfile(response.data.teacher);
+
+      // Update teacher data
+      setTeacherData(response.data.teacher);
+
+      setSuccess('Profile updated successfully!');
+      setIsEditing(false);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setError(
+        error.response?.data?.message ||
+        error.response?.data?.errors?.[0]?.msg ||
+        'Failed to update profile'
+      );
+      setLoading(false);
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-900">Teacher Profile</h1>
 
       {error && (
-        <div className="mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+        <div className="mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative
+          animate-pulse shadow-lg transition-all duration-500"
+          style={{
+            boxShadow: '0 0 15px rgba(255, 0, 0, 0.3)',
+            background: 'linear-gradient(to right, rgba(254, 226, 226, 0.9), rgba(254, 202, 202, 0.9))'
+          }}
+        >
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mt-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+        <div className="mt-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative
+          shadow-lg transition-all duration-500"
+          style={{
+            boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)',
+            background: 'linear-gradient(to right, rgba(209, 250, 229, 0.9), rgba(167, 243, 208, 0.9))'
+          }}
+        >
           {success}
         </div>
       )}
 
       {loading && !teacherData ? (
         <div className="mt-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-r-2 border-green-500"
+            style={{
+              boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)',
+              background: 'radial-gradient(circle, rgba(209, 250, 229, 0.1), transparent)'
+            }}
+          ></div>
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Profile Picture */}
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+          <div className="bg-white shadow-lg overflow-hidden sm:rounded-lg transition-all duration-300 hover:shadow-xl"
+            style={{
+              background: 'linear-gradient(to bottom, #ffffff, #f9fafb)',
+              boxShadow: '0 0 15px rgba(0, 200, 0, 0.1)'
+            }}
+          >
             <div className="px-4 py-5 sm:px-6 flex flex-col items-center">
-              <div className="w-32 h-32 rounded-full overflow-hidden">
+              <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-green-100 transition-all duration-300 hover:border-green-200"
+                style={{
+                  boxShadow: '0 0 20px rgba(0, 200, 0, 0.2)'
+                }}
+              >
                 <img
                   src={previewUrl || getProfileImageUrl(user?.profilePicture)}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-all duration-500 hover:scale-105"
                   onError={handleImageError}
                 />
               </div>
@@ -206,19 +323,27 @@ const Profile = () => {
                 <label className="block text-sm font-medium text-gray-700">
                   Update Profile Picture
                 </label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-green-200 border-dashed rounded-md
+                  transition-all duration-300 hover:border-green-300 bg-gradient-to-b from-white to-green-50"
+                  style={{
+                    boxShadow: '0 0 10px rgba(0, 200, 0, 0.1)'
+                  }}
+                >
                   <div className="space-y-1 text-center">
                     {previewUrl ? (
                       <div className="mb-3">
                         <img
                           src={previewUrl}
                           alt="Preview"
-                          className="mx-auto h-32 w-32 rounded-full object-cover"
+                          className="mx-auto h-32 w-32 rounded-full object-cover border-2 border-green-200"
+                          style={{
+                            boxShadow: '0 0 15px rgba(0, 200, 0, 0.2)'
+                          }}
                         />
                       </div>
                     ) : (
                       <svg
-                        className="mx-auto h-12 w-12 text-gray-400"
+                        className="mx-auto h-12 w-12 text-green-400"
                         stroke="currentColor"
                         fill="none"
                         viewBox="0 0 48 48"
@@ -235,7 +360,9 @@ const Profile = () => {
                     <div className="flex text-sm text-gray-600">
                       <label
                         htmlFor="profile-image"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500"
+                        className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-500
+                        focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500
+                        transition-all duration-300 hover:bg-green-50 px-2 py-1"
                       >
                         <span>Upload a file</span>
                         <input
@@ -247,7 +374,7 @@ const Profile = () => {
                           onChange={handleImageChange}
                         />
                       </label>
-                      <p className="pl-1">or drag and drop</p>
+                      <p className="pl-1 py-1">or drag and drop</p>
                     </div>
                     <p className="text-xs text-gray-500">
                       PNG, JPG, GIF up to 10MB
@@ -259,7 +386,13 @@ const Profile = () => {
                   type="button"
                   onClick={handleUpdateProfilePicture}
                   disabled={!profileImage || loading}
-                  className="mt-4 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  className="mt-4 w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white
+                  bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
+                  transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                  style={{
+                    boxShadow: '0 0 15px rgba(0, 255, 0, 0.2)',
+                    textShadow: '0 0 5px rgba(255, 255, 255, 0.5)'
+                  }}
                 >
                   {loading ? 'Updating...' : 'Update Picture'}
                 </button>
@@ -268,7 +401,12 @@ const Profile = () => {
               <button
                 type="button"
                 onClick={() => setShowChangePasswordModal(true)}
-                className="mt-4 w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                className="mt-4 w-full inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md
+                text-gray-700 bg-white hover:bg-gray-50 transition-all duration-300 transform hover:scale-105
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                style={{
+                  boxShadow: '0 0 10px rgba(0, 0, 0, 0.05)'
+                }}
               >
                 Change Password
               </button>
@@ -276,53 +414,287 @@ const Profile = () => {
           </div>
 
           {/* Profile Information */}
-          <div className="lg:col-span-2 bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">Teacher Information</h3>
-              <p className="mt-1 max-w-2xl text-sm text-gray-500">Personal details and subjects.</p>
+          <div className="lg:col-span-2 bg-white shadow-lg overflow-hidden sm:rounded-lg transition-all duration-300 hover:shadow-xl"
+            style={{
+              background: 'linear-gradient(to bottom, #ffffff, #f9fafb)',
+              boxShadow: '0 0 15px rgba(0, 200, 0, 0.1)'
+            }}
+          >
+            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg leading-6 font-medium text-gray-900">Teacher Information</h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-500">Personal details and subjects.</p>
+              </div>
+              {!isEditing ? (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+                  bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
+                  transition-all duration-300 transform hover:scale-105
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  style={{
+                    boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)',
+                    textShadow: '0 0 5px rgba(255, 255, 255, 0.5)'
+                  }}
+                >
+                  <FaEdit className="mr-2 animate-pulse" /> Edit Profile
+                </button>
+              ) : (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
+                    text-gray-700 bg-white hover:bg-gray-50
+                    transition-all duration-300 transform hover:scale-105
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  >
+                    <FaTimes className="mr-2" /> Cancel
+                  </button>
+                  <button
+                    form="edit-profile-form"
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+                    bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
+                    transition-all duration-300 transform hover:scale-105
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    style={{
+                      boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)',
+                      textShadow: '0 0 5px rgba(255, 255, 255, 0.5)'
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? 'Saving...' : <><FaSave className="mr-2 animate-pulse" /> Save</>}
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="border-t border-gray-200">
-              <dl>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.name}</dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Username</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user?.username}</dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Department</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.department}</dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Role</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Teacher</dd>
-                </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Subjects</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {teacherData?.subjects && teacherData.subjects.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {teacherData.subjects.map((subject, index) => (
-                          <span key={index} className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                            {subject}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      'No subjects assigned'
-                    )}
-                  </dd>
-                </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Study Materials</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {teacherData?.studyMaterials?.length || 0} materials uploaded
-                  </dd>
-                </div>
-              </dl>
-            </div>
+
+            {!isEditing ? (
+              <div className="border-t border-gray-200">
+                <dl>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Full name</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.name}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Username</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{user?.username}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Email</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.email || 'Not provided'}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Phone</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.phone || 'Not provided'}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Department</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.department}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Qualification</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.qualification || 'Not provided'}</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Experience</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{teacherData?.experience || 'Not provided'}</dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Role</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">Teacher</dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Subjects</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      {teacherData?.subjects && teacherData.subjects.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {teacherData.subjects.map((subject, index) => (
+                            <span key={index} className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                              {subject}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        'No subjects assigned'
+                      )}
+                    </dd>
+                  </div>
+                  <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Bio</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      {teacherData?.bio || 'No bio provided'}
+                    </dd>
+                  </div>
+                  <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <dt className="text-sm font-medium text-gray-500">Study Materials</dt>
+                    <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                      {teacherData?.studyMaterials?.length || 0} materials uploaded
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+            ) : (
+              <div className="border-t border-gray-200 p-4 bg-gradient-to-b from-gray-50 to-white">
+                <form id="edit-profile-form" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div className="col-span-1 sm:col-span-2">
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        id="name"
+                        required
+                        value={formData.name}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        id="email"
+                        value={formData.email}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                        Phone
+                      </label>
+                      <input
+                        type="text"
+                        name="phone"
+                        id="phone"
+                        value={formData.phone}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                        Department *
+                      </label>
+                      <input
+                        type="text"
+                        name="department"
+                        id="department"
+                        required
+                        value={formData.department}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="qualification" className="block text-sm font-medium text-gray-700">
+                        Qualification
+                      </label>
+                      <input
+                        type="text"
+                        name="qualification"
+                        id="qualification"
+                        value={formData.qualification}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="experience" className="block text-sm font-medium text-gray-700">
+                        Experience
+                      </label>
+                      <input
+                        type="text"
+                        name="experience"
+                        id="experience"
+                        value={formData.experience}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div className="col-span-1 sm:col-span-2">
+                      <label htmlFor="subjects" className="block text-sm font-medium text-gray-700">
+                        Subjects (comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        name="subjects"
+                        id="subjects"
+                        value={formData.subjects.join(', ')}
+                        onChange={handleSubjectsChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      />
+                    </div>
+
+                    <div className="col-span-1 sm:col-span-2">
+                      <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                        Bio
+                      </label>
+                      <textarea
+                        name="bio"
+                        id="bio"
+                        rows="4"
+                        value={formData.bio}
+                        onChange={handleFormChange}
+                        className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                        border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                        transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                        style={{
+                          boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                        }}
+                      ></textarea>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -332,12 +704,18 @@ const Profile = () => {
         <div className="fixed inset-0 z-10 overflow-y-auto">
           <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
             <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="absolute inset-0 bg-gray-500 bg-opacity-75 backdrop-filter backdrop-blur-sm"></div>
             </div>
 
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full
+              animate-fadeIn"
+              style={{
+                boxShadow: '0 0 25px rgba(0, 200, 0, 0.3)',
+                background: 'linear-gradient(to bottom, #ffffff, #f9fafb)'
+              }}
+            >
               <form onSubmit={handleChangePassword}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
@@ -353,7 +731,12 @@ const Profile = () => {
                             name="currentPassword"
                             id="currentPassword"
                             required
-                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                            border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                            transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                            style={{
+                              boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                            }}
                             value={passwordData.currentPassword}
                             onChange={handlePasswordChange}
                           />
@@ -367,7 +750,12 @@ const Profile = () => {
                             name="newPassword"
                             id="newPassword"
                             required
-                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                            border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                            transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                            style={{
+                              boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                            }}
                             value={passwordData.newPassword}
                             onChange={handlePasswordChange}
                           />
@@ -381,7 +769,12 @@ const Profile = () => {
                             name="confirmPassword"
                             id="confirmPassword"
                             required
-                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-green-500 focus:border-green-500 block w-full shadow-sm sm:text-sm
+                            border-gray-300 rounded-md bg-white bg-opacity-80 backdrop-filter backdrop-blur-sm
+                            transition-all duration-300 hover:shadow-md focus:shadow-lg"
+                            style={{
+                              boxShadow: '0 0 5px rgba(0, 200, 0, 0.1)',
+                            }}
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordChange}
                           />
@@ -393,14 +786,24 @@ const Profile = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2
+                    bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
+                    text-base font-medium text-white transition-all duration-300 transform hover:scale-105
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    style={{
+                      boxShadow: '0 0 15px rgba(0, 255, 0, 0.2)',
+                      textShadow: '0 0 5px rgba(255, 255, 255, 0.5)'
+                    }}
                     disabled={loading}
                   >
                     {loading ? 'Changing...' : 'Change Password'}
                   </button>
                   <button
                     type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2
+                    bg-white text-base font-medium text-gray-700 hover:bg-gray-50
+                    transition-all duration-300 transform hover:scale-105
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                     onClick={() => {
                       setPasswordData({
                         currentPassword: '',
