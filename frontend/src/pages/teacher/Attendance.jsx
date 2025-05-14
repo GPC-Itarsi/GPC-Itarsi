@@ -21,13 +21,32 @@ const Attendance = () => {
 
   // Set teacher data from user context if available
   useEffect(() => {
-    if (user && user.userData) {
-      setTeacherData(user.userData);
+    // Log user object for debugging
+    console.log('User object in Attendance component:', user);
 
-      if (user.userData.subjects && user.userData.subjects.length > 0) {
+    if (user) {
+      // Check if subjects are directly in the user object
+      if (user.subjects && user.subjects.length > 0) {
+        console.log('Found subjects directly in user object:', user.subjects);
+        setTeacherData({
+          ...user,
+          subjects: user.subjects
+        });
+        setSelectedSubject(user.subjects[0]);
+      }
+      // Also check if subjects are in user.userData (for backward compatibility)
+      else if (user.userData && user.userData.subjects && user.userData.subjects.length > 0) {
+        console.log('Found subjects in user.userData:', user.userData.subjects);
+        setTeacherData(user.userData);
         setSelectedSubject(user.userData.subjects[0]);
       }
+      // If no subjects found in either location, fetch teacher data
+      else {
+        console.log('No subjects found in user object, fetching teacher data');
+        fetchTeacherData();
+      }
     } else {
+      console.log('No user object available, fetching teacher data');
       fetchTeacherData();
     }
 
@@ -79,14 +98,33 @@ const Attendance = () => {
         }
       });
 
+      console.log('Teacher profile data:', response.data);
+
+      // Check if we received valid data
+      if (!response.data) {
+        console.error('No data received from teacher profile endpoint');
+        setError('Failed to load teacher data');
+        setLoading(false);
+        return;
+      }
+
       setTeacherData(response.data);
 
-      if (response.data.subjects && response.data.subjects.length > 0) {
-        setSelectedSubject(response.data.subjects[0]);
+      // Check if subjects exist and log the result
+      if (response.data.subjects && Array.isArray(response.data.subjects)) {
+        console.log('Subjects found:', response.data.subjects);
+        if (response.data.subjects.length > 0) {
+          setSelectedSubject(response.data.subjects[0]);
+        } else {
+          console.warn('Teacher has no subjects assigned');
+        }
+      } else {
+        console.error('No subjects array found in teacher data');
       }
     } catch (error) {
       console.error('Error fetching teacher data:', error);
       setError(error.response?.data?.message || 'Failed to load teacher data');
+      setLoading(false);
     }
   };
 
@@ -228,11 +266,17 @@ const Attendance = () => {
                     required
                   >
                     <option value="">Select Subject</option>
-                    {teacherData?.subjects?.map((subject, index) => (
-                      <option key={index} value={subject}>
-                        {subject}
+                    {teacherData?.subjects && teacherData.subjects.length > 0 ? (
+                      teacherData.subjects.map((subject, index) => (
+                        <option key={index} value={subject}>
+                          {subject}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="no-subjects" disabled>
+                        No subjects available. Please contact administrator.
                       </option>
-                    ))}
+                    )}
                   </select>
                 </div>
 
@@ -413,10 +457,15 @@ const Attendance = () => {
           </div>
 
           <div className="mt-8 flex justify-end">
+            {!teacherData?.subjects?.length && (
+              <div className="mr-4 text-sm text-red-500 self-center">
+                No subjects available. Please contact administrator to assign subjects.
+              </div>
+            )}
             <button
               type="button"
               onClick={handleSubmitAttendance}
-              disabled={loading || filteredStudents.length === 0 || !selectedSubject}
+              disabled={loading || filteredStudents.length === 0 || !selectedSubject || !teacherData?.subjects?.length}
               className="inline-flex items-center px-4 py-2 border border-primary-500/30 text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
             >
               {loading ? 'Submitting...' : 'Submit Attendance'}
