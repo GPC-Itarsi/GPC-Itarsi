@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import 'react-toastify/dist/ReactToastify.css'
 import './styles/toast.css' // Import custom toast styles
 import './styles/custom-toast.css' // Import custom toast animations
+import './styles/notice.css' // Import notice styles for links
 import './index.css'
 import App from './App.jsx'
 import axios from 'axios'

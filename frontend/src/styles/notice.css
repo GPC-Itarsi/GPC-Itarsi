@@ -1,0 +1,55 @@
+/* Notice styling */
+
+/* Style for links within notice content */
+.notice-content a {
+  color: #1a75ff; /* Primary color */
+  text-decoration: underline;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.notice-content a:hover {
+  color: #0062f5; /* Darker shade for hover */
+  text-decoration: underline;
+}
+
+/* Style for links in dark-themed notices (like in the home page) */
+.dark-theme .notice-content a {
+  color: #4791ff; /* Lighter blue for dark backgrounds */
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.dark-theme .notice-content a:hover {
+  color: #75acff; /* Even lighter blue for hover on dark backgrounds */
+  text-decoration: underline;
+}
+
+/* Add a subtle icon to indicate external links */
+.notice-content a[target="_blank"]::after {
+  content: " ";
+  width: 1em;
+  height: 1em;
+  margin: 0 0.1em 0 0.2em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231a75ff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14'%3E%3C/path%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.dark-theme .notice-content a[target="_blank"]::after {
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234791ff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14'%3E%3C/path%3E%3C/svg%3E") no-repeat;
+  background-size: contain;
+}
+
+/* Add focus styles for accessibility */
+.notice-content a:focus {
+  outline: 2px solid #1a75ff;
+  outline-offset: 2px;
+}
+
+.dark-theme .notice-content a:focus {
+  outline: 2px solid #4791ff;
+  outline-offset: 2px;
+}
