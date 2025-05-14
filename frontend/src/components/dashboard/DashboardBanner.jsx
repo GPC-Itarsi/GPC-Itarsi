@@ -20,8 +20,8 @@ const DashboardBanner = ({
       const banner = bannerRef.current;
       const titleElement = titleRef.current;
 
-      // Add subtle glow effect to the banner
-      banner.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.1), 0 0 20px rgba(99, 102, 241, 0.3)';
+      // Add subtle glow effect to the banner (reduced elevation)
+      banner.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.08), 0 0 15px rgba(99, 102, 241, 0.2)';
 
       // Add text shadow to the title for a glowing effect
       if (titleElement) {
@@ -29,8 +29,9 @@ const DashboardBanner = ({
       }
     }
   }, [futuristic]);
+  // Use teacher-banner class if we're in the teacher dashboard
   const bannerClass = futuristic
-    ? `relative overflow-hidden rounded-lg shadow-md ${bgColor} ${className} transition-all duration-300`
+    ? `relative overflow-hidden rounded-lg shadow-md ${bgColor} ${className} transition-all duration-300 ${window.location.pathname.includes('/teacher') ? 'teacher-banner' : ''}`
     : `relative overflow-hidden rounded-lg shadow-md ${bgColor} ${className}`;
 
   return (

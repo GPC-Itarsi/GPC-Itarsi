@@ -22,13 +22,14 @@ const DashboardStat = ({
       const stat = statRef.current;
       const iconElement = iconRef.current;
 
-      // Add pulse animation to the icon on hover
+      // Add subtle hover effects without 3D transformation
       const handleMouseEnter = () => {
         if (iconElement) {
           iconElement.style.animation = 'student-pulse 1.5s infinite';
         }
-        stat.style.transform = 'translateY(-5px)';
-        stat.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.1), 0 0 15px rgba(99, 102, 241, 0.2)';
+        // Remove the translateY effect but keep enhanced shadow
+        stat.style.transform = 'translateY(0)';
+        stat.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.08), 0 0 15px rgba(99, 102, 241, 0.15)';
       };
 
       const handleMouseLeave = () => {
@@ -72,12 +73,13 @@ const DashboardStat = ({
     return null;
   };
 
+  // Use teacher-stat class if we're in the teacher dashboard, otherwise use student-stat
   const statClass = futuristic
-    ? `student-stat p-4 transition-all duration-300 ${className}`
+    ? `${window.location.pathname.includes('/teacher') ? 'teacher-stat' : 'student-stat'} p-4 transition-all duration-300 ${className}`
     : `bg-white rounded-lg shadow-md p-4 transition-all duration-300 hover:shadow-lg ${className}`;
 
   const iconClass = futuristic
-    ? `flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4 student-stat-icon`
+    ? `flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4 ${window.location.pathname.includes('/teacher') ? 'teacher-stat-icon' : 'student-stat-icon'}`
     : `flex-shrink-0 ${iconBgColor} rounded-md p-3 mr-4`;
 
   return (

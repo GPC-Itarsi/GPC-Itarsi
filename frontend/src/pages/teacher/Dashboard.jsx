@@ -17,6 +17,9 @@ import NotificationManagement from './NotificationManagement';
 // Dashboard Components
 import DashboardBanner from '../../components/dashboard/DashboardBanner';
 
+// Import Teacher Dashboard styles
+import '../../styles/TeacherDashboard.css';
+
 const Dashboard = () => {
   const { user, isTeacher, loading } = useAuth();
   const navigate = useNavigate();
