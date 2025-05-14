@@ -11,28 +11,30 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 
-// Add a new teacher (admin only)
+// Add a new teacher (admin only) - Simplified version
 router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     console.log('Received request to add teacher:', req.body);
     console.log('User making request:', req.user ? `ID: ${req.user.id}, Role: ${req.user.role}` : 'No user in request');
 
-    const { name, department, subjects, username, password, qualification, experience, designation } = req.body;
+    const { name, department, username, password, email } = req.body;
 
-    if (!name || !department) {
-      console.log('Missing required fields:', { name: !!name, department: !!department });
-      return res.status(400).json({ message: 'Name and department are required' });
+    // Validate required fields
+    if (!name || !username || !password || !department) {
+      console.log('Missing required fields:', {
+        name: !!name,
+        username: !!username,
+        password: !!password,
+        department: !!department
+      });
+      return res.status(400).json({ message: 'Name, username, password, and department are required' });
     }
-
-    // Create username if not provided
-    const teacherUsername = username || name.toLowerCase().replace(/\s+/g, '.');
-    console.log('Using username:', teacherUsername);
 
     try {
       // Check if username already exists
-      const existingTeacher = await User.findOne({ username: teacherUsername });
+      const existingTeacher = await User.findOne({ username });
       if (existingTeacher) {
-        console.log('Username already exists:', teacherUsername);
+        console.log('Username already exists:', username);
         return res.status(400).json({ message: 'Username already exists' });
       }
     } catch (findError) {
@@ -44,16 +46,20 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
       });
     }
 
-    // Generate a unique email for the teacher based on username
-    // Sanitize username for email (remove any characters that might not be valid in an email)
-    const sanitizedUsername = teacherUsername.replace(/[^a-zA-Z0-9._-]/g, '');
-    const email = `${sanitizedUsername}@gpc-itarsi.edu.in`;
+    // Handle email - either use provided email or generate one
+    let teacherEmail = email;
+    if (!teacherEmail) {
+      // Generate a unique email for the teacher based on username
+      // Sanitize username for email (remove any characters that might not be valid in an email)
+      const sanitizedUsername = username.replace(/[^a-zA-Z0-9._-]/g, '');
+      teacherEmail = `${sanitizedUsername}@gpc-itarsi.edu.in`;
+    }
 
     // Check if email already exists
     try {
-      const existingEmail = await User.findOne({ email });
+      const existingEmail = await User.findOne({ email: teacherEmail });
       if (existingEmail) {
-        console.log('Email already exists:', email);
+        console.log('Email already exists:', teacherEmail);
         return res.status(400).json({
           message: 'Duplicate key error',
           error: 'A teacher with this email already exists',
@@ -69,18 +75,16 @@ router.post('/add-teacher', authenticateToken, authorize(['admin']), async (req,
       });
     }
 
-    // Create new teacher object
+    // Create new teacher object with minimal required fields
+    // Other fields will be completed by the teacher after login
     const teacherData = {
-      username: teacherUsername,
-      password: password || '1234', // Default password if not provided
+      username,
+      password,
       name,
       role: 'teacher',
       department,
-      subjects: subjects || [],
-      qualification,
-      experience,
-      designation,
-      email // Add email field
+      email: teacherEmail,
+      profileComplete: false // Flag to indicate profile needs completion
     };
 
     console.log('Creating new teacher with data:', { ...teacherData, password: '[HIDDEN]' });

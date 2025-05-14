@@ -87,7 +87,8 @@ router.post('/login', async (req, res) => {
       class: user.class,
       branch: user.branch,
       attendance: user.attendance,
-      title: user.title
+      title: user.title,
+      profileComplete: user.profileComplete
     };
 
     // Generate JWT token
@@ -100,7 +101,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         username: user.username,
         role: user.role,
-        name: user.name
+        name: user.name,
+        profileComplete: user.profileComplete
       };
 
       // Log the payload structure (without sensitive values)
@@ -154,7 +156,8 @@ router.get('/me', authenticateToken, async (req, res) => {
         class: user.class,
         branch: user.branch,
         attendance: user.attendance,
-        title: user.title
+        title: user.title,
+        profileComplete: user.profileComplete
       }
     });
   } catch (error) {

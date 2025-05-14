@@ -45,6 +45,12 @@ const Profile = () => {
         subjects: user.userData.subjects || [],
         bio: user.userData.bio || ''
       });
+
+      // If profile is not complete, automatically enter edit mode
+      if (user.userData.profileComplete === false) {
+        setIsEditing(true);
+      }
+
       setLoading(false);
     } else {
       fetchTeacherProfile();
@@ -220,6 +226,17 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate required fields for profile completion
+    if (!formData.qualification) {
+      setError('Qualification is required to complete your profile');
+      return;
+    }
+
+    if (!formData.experience) {
+      setError('Experience is required to complete your profile');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -243,7 +260,13 @@ const Profile = () => {
       // Update teacher data
       setTeacherData(response.data.teacher);
 
-      setSuccess('Profile updated successfully!');
+      // Show appropriate success message based on profile completion
+      if (teacherData?.profileComplete === false && response.data.teacher.profileComplete === true) {
+        setSuccess('Profile completed successfully! Thank you for providing your details.');
+      } else {
+        setSuccess('Profile updated successfully!');
+      }
+
       setIsEditing(false);
       setLoading(false);
     } catch (error) {
@@ -282,6 +305,30 @@ const Profile = () => {
           }}
         >
           {success}
+        </div>
+      )}
+
+      {/* Profile Completion Notification */}
+      {teacherData && teacherData.profileComplete === false && (
+        <div className="mt-6 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded relative
+          shadow-lg transition-all duration-500 animate-pulse"
+          style={{
+            boxShadow: '0 0 15px rgba(0, 0, 255, 0.2)',
+            background: 'linear-gradient(to right, rgba(219, 234, 254, 0.9), rgba(191, 219, 254, 0.9))'
+          }}
+        >
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium">
+                Welcome! Please complete your profile by filling in your qualification, experience, and other details.
+              </p>
+            </div>
+          </div>
         </div>
       )}
 

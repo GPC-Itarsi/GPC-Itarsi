@@ -55,6 +55,22 @@ const UserSchema = new mongoose.Schema({
     type: [String],
     default: function() { return this.role === 'teacher' ? [] : undefined; }
   },
+  qualification: {
+    type: String,
+    sparse: true
+  },
+  experience: {
+    type: String,
+    sparse: true
+  },
+  designation: {
+    type: String,
+    sparse: true
+  },
+  profileComplete: {
+    type: Boolean,
+    default: false
+  },
   // Fields for student role
   rollNumber: {
     type: String,

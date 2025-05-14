@@ -114,6 +114,14 @@ router.put('/update',
       if (bio) teacher.bio = bio;
       if (subjects) teacher.subjects = subjects;
 
+      // Mark profile as complete if it was previously incomplete
+      // and required fields are now filled
+      if (teacher.profileComplete === false &&
+          name && department && qualification && experience) {
+        teacher.profileComplete = true;
+        console.log('Teacher profile marked as complete');
+      }
+
       teacher.updatedAt = Date.now();
 
       await teacher.save();
