@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import DashboardCard from '../../components/dashboard/DashboardCard';
+import sanitizeHtml from '../../utils/sanitizeHtml';
 
 const NotificationsPage = () => {
   const {
@@ -159,7 +160,9 @@ const NotificationsPage = () => {
                         <h3 className={`text-base font-medium ${!notification.isRead ? 'text-primary-600' : 'text-gray-900'}`}>
                           {notification.title}
                         </h3>
-                        <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
+                        <div className="mt-1 text-sm text-gray-600">
+                          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notification.message) }} />
+                        </div>
                         <p className="mt-1 text-xs text-gray-500">{formatDate(notification.createdAt)}</p>
                       </div>
                       <div className="flex space-x-2">

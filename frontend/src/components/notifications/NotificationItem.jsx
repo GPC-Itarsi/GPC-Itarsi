@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useNotifications } from '../../context/NotificationContext';
+import sanitizeHtml from '../../utils/sanitizeHtml';
 
 const NotificationItem = ({ notification, onClick }) => {
   const { markAsRead, deleteNotification } = useNotifications();
@@ -114,7 +115,9 @@ const NotificationItem = ({ notification, onClick }) => {
             </svg>
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
+        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notification.message) }} />
+        </p>
         <p className="text-xs text-gray-400 mt-1">{formatDate(notification.createdAt)}</p>
       </div>
     </div>
