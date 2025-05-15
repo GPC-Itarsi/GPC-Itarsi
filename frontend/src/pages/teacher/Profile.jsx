@@ -31,28 +31,9 @@ const Profile = () => {
     bio: ''
   });
 
-  // Set teacher data from user context if available
+  // Always fetch the latest teacher profile data
   useEffect(() => {
-    if (user && user.userData) {
-      setTeacherData(user.userData);
-      setFormData({
-        name: user.userData.name || '',
-        email: user.userData.email || '',
-        phone: user.userData.phone || '',
-        department: user.userData.department || '',
-        qualification: user.userData.qualification || '',
-        experience: user.userData.experience || '',
-        subjects: user.userData.subjects || [],
-        bio: user.userData.bio || ''
-      });
-
-      // If profile is not complete, automatically enter edit mode
-      if (user.userData.profileComplete === false) {
-        setIsEditing(true);
-      }
-
-      setLoading(false);
-    } else {
+    if (user) {
       fetchTeacherProfile();
     }
   }, [user]);
@@ -68,13 +49,19 @@ const Profile = () => {
         return;
       }
 
+      console.log('Fetching teacher profile data...');
       const response = await axios.get(`${config.apiUrl}/api/teachers/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
+      console.log('Teacher profile data received:', response.data);
+
+      // Update the teacher data state
       setTeacherData(response.data);
+
+      // Update the form data
       setFormData({
         name: response.data.name || '',
         email: response.data.email || '',
@@ -85,6 +72,16 @@ const Profile = () => {
         subjects: response.data.subjects || [],
         bio: response.data.bio || ''
       });
+
+      // Update the user context with the latest teacher data
+      // This ensures the data is available throughout the application
+      updateProfile(response.data);
+
+      // If profile is not complete, automatically enter edit mode
+      if (response.data.profileComplete === false) {
+        setIsEditing(true);
+      }
+
       setLoading(false);
     } catch (error) {
       console.error('Error fetching teacher profile:', error);
@@ -176,6 +173,7 @@ const Profile = () => {
       const formData = new FormData();
       formData.append('profilePicture', profileImage);
 
+      console.log('Uploading profile picture...');
       const response = await axios.put(
         `${config.apiUrl}/api/teacher-profile/update-picture`,
         formData,
@@ -187,7 +185,9 @@ const Profile = () => {
         }
       );
 
-      // Update user profile in context
+      console.log('Profile picture update response:', response.data);
+
+      // Update user profile in context with the new profile picture
       updateProfile({ profilePicture: response.data.profilePicture });
 
       setSuccess('Profile picture updated successfully!');
@@ -195,8 +195,10 @@ const Profile = () => {
       setPreviewUrl('');
       setLoading(false);
 
-      // Refresh teacher profile
-      fetchTeacherProfile();
+      // Refresh teacher profile to get all updated data
+      setTimeout(() => {
+        fetchTeacherProfile();
+      }, 500);
     } catch (error) {
       console.error('Error updating profile picture:', error);
       setError(error.response?.data?.message || 'Failed to update profile picture');
@@ -244,6 +246,8 @@ const Profile = () => {
 
       const token = localStorage.getItem('token');
 
+      console.log('Submitting profile update with data:', formData);
+
       const response = await axios.put(
         `${config.apiUrl}/api/teacher-profile/update`,
         formData,
@@ -254,21 +258,30 @@ const Profile = () => {
         }
       );
 
-      // Update user profile in context
-      updateProfile(response.data.teacher);
+      console.log('Profile update response:', response.data);
 
-      // Update teacher data
-      setTeacherData(response.data.teacher);
+      // Update teacher data with the response
+      const updatedTeacher = response.data.teacher;
+      setTeacherData(updatedTeacher);
+
+      // Update user profile in context to ensure data consistency
+      updateProfile(updatedTeacher);
 
       // Show appropriate success message based on profile completion
-      if (teacherData?.profileComplete === false && response.data.teacher.profileComplete === true) {
+      if (teacherData?.profileComplete === false && updatedTeacher.profileComplete === true) {
         setSuccess('Profile completed successfully! Thank you for providing your details.');
       } else {
         setSuccess('Profile updated successfully!');
       }
 
+      // Exit edit mode
       setIsEditing(false);
       setLoading(false);
+
+      // Refresh the teacher profile data to ensure we have the latest data
+      setTimeout(() => {
+        fetchTeacherProfile();
+      }, 500);
     } catch (error) {
       console.error('Error updating profile:', error);
       setError(

@@ -260,7 +260,21 @@ export const AuthProvider = ({ children }) => {
 
   // Update user profile
   const updateProfile = (updatedData) => {
-    setUser(prev => ({ ...prev, ...updatedData }));
+    console.log('Updating user profile with data:', updatedData);
+    setUser(prev => {
+      // Create a deep merged object
+      const updated = {
+        ...prev,
+        ...updatedData,
+        // Ensure userData is properly updated
+        userData: {
+          ...(prev?.userData || {}),
+          ...updatedData
+        }
+      };
+      console.log('Updated user data:', updated);
+      return updated;
+    });
   };
 
   // Compute authentication state values

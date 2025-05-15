@@ -61,12 +61,24 @@ router.get('/students', authenticateToken, authorize(['teacher']), async (req, r
 // Get teacher profile (for teacher to view their own profile)
 router.get('/profile', authenticateToken, authorize(['teacher']), async (req, res) => {
   try {
-    const teacher = await User.findById(req.user.id).select('-password');
+    console.log('Fetching teacher profile for ID:', req.user.id);
+
+    // Get the teacher data with all fields except password
+    const teacher = await User.findById(req.user.id).select('-password -plainTextPassword');
 
     if (!teacher) {
+      console.error('Teacher not found with ID:', req.user.id);
       return res.status(404).json({ message: 'Teacher not found' });
     }
 
+    console.log('Teacher profile found:', {
+      id: teacher._id,
+      name: teacher.name,
+      department: teacher.department,
+      profileComplete: teacher.profileComplete
+    });
+
+    // Return the full teacher object
     res.json(teacher);
   } catch (error) {
     console.error('Error fetching teacher profile:', error);

@@ -104,6 +104,12 @@ router.put('/update',
       // Extract fields from request body
       const { name, email, phone, department, qualification, experience, subjects, bio } = req.body;
 
+      console.log('Updating teacher profile with data:', {
+        name, email, phone, department, qualification, experience,
+        subjects: Array.isArray(subjects) ? `${subjects.length} subjects` : subjects,
+        bio: bio ? 'Provided' : 'Not provided'
+      });
+
       // Update fields
       if (name) teacher.name = name;
       if (email) teacher.email = email;
@@ -111,7 +117,7 @@ router.put('/update',
       if (department) teacher.department = department;
       if (qualification) teacher.qualification = qualification;
       if (experience) teacher.experience = experience;
-      if (bio) teacher.bio = bio;
+      if (bio !== undefined) teacher.bio = bio;
       if (subjects) teacher.subjects = subjects;
 
       // Mark profile as complete if it was previously incomplete
@@ -124,9 +130,10 @@ router.put('/update',
 
       teacher.updatedAt = Date.now();
 
+      // Save the updated teacher profile
       await teacher.save();
 
-      console.log('Teacher profile updated successfully');
+      console.log('Teacher profile updated successfully with fields:', Object.keys(req.body));
 
       // Return updated teacher without password
       const teacherResponse = teacher.toObject();
