@@ -1,5 +1,20 @@
 /* Notice styling */
 
+/* Base notice content styling for better mobile display */
+.notice-content {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+/* Ensure images in notice content are responsive */
+.notice-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
 /* Style for links within notice content */
 .notice-content a {
   color: #0062f5; /* Brighter blue for better visibility */
@@ -13,6 +28,7 @@
   border-radius: 3px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border-bottom: 1px solid #1a75ff;
+  word-break: break-word; /* Allow links to break on mobile */
 }
 
 .notice-content a:hover {
@@ -105,4 +121,33 @@
   color: #a5c7ff;
   background-color: rgba(71, 145, 255, 0.25);
   border-bottom: 2px solid #75acff;
+}
+
+/* Responsive adjustments for mobile devices */
+@media (max-width: 640px) {
+  .notice-content {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .notice-content a {
+    display: inline-block;
+    margin: 2px 0;
+  }
+
+  /* Adjust external link icon size on mobile */
+  .notice-content a[target="_blank"]::after {
+    width: 0.8em;
+    height: 0.8em;
+    margin: 0 0.1em 0 0.2em;
+  }
+
+  /* Make code blocks in notices responsive */
+  .notice-content pre,
+  .notice-content code {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
 }

@@ -178,13 +178,16 @@ const Notices = () => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-primary-800">Notices Management</h1>
+    <div className="max-w-full px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
+        <h1 className="text-xl sm:text-2xl font-semibold text-primary-800">Notices Management</h1>
         <button
           onClick={() => setShowAddModal(true)}
-          className="inline-flex items-center px-4 py-2 border border-primary-500/30 text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700"
+          className="inline-flex items-center px-3 py-1.5 sm:px-4 sm:py-2 border border-primary-500/30 text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200 w-full sm:w-auto justify-center sm:justify-start"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
           Add New Notice
         </button>
       </div>
@@ -194,7 +197,7 @@ const Notices = () => {
         <div className="relative rounded-md shadow-sm">
           <input
             type="text"
-            className="focus:ring-primary-500 focus:border-primary-500 block w-full pr-10 sm:text-sm border-gray-300 rounded-md"
+            className="focus:ring-primary-500 focus:border-primary-500 block w-full pr-10 text-sm sm:text-sm border-gray-300 rounded-md"
             placeholder="Search notices..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -228,44 +231,53 @@ const Notices = () => {
         ) : (
           <ul className="divide-y divide-gray-200">
             {filteredNotices.map((notice) => (
-              <li key={notice._id}>
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <p className="text-sm font-medium text-primary-600 truncate">
+              <li key={notice._id} className="hover:bg-gray-50 transition-colors duration-150">
+                <div className="px-3 py-3 sm:px-6 sm:py-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-primary-600 break-words">
                         {notice.title}
                       </p>
                       {notice.important && (
-                        <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-error/10 text-error">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-error/10 text-error">
                           Important
                         </span>
                       )}
                     </div>
-                    <div className="ml-2 flex-shrink-0 flex">
+                    <div className="flex-shrink-0">
                       <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-success/10 text-success">
                         {formatDate(notice.createdAt)}
                       </p>
                     </div>
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex sm:flex-1">
-                      <div className="text-sm text-gray-500 notice-content">
+
+                  <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <div className="text-sm text-gray-500 notice-content overflow-hidden">
                         {notice.content.length > 150
-                          ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
-                          : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                          ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} className="break-words" />
+                          : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} className="break-words" />}
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                    <div className="mt-3 sm:mt-0 flex items-center justify-end gap-4 text-sm text-gray-500">
                       <button
                         onClick={() => openEditModal(notice)}
-                        className="text-accent-600 hover:text-accent-800 mr-4"
+                        className="flex items-center text-accent-600 hover:text-accent-800 transition-colors duration-150 px-2 py-1 rounded hover:bg-accent-50"
+                        aria-label="Edit notice"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteNotice(notice._id)}
-                        className="text-error hover:text-error/80"
+                        className="flex items-center text-error hover:text-error/80 transition-colors duration-150 px-2 py-1 rounded hover:bg-red-50"
+                        aria-label="Delete notice"
                       >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                         Delete
                       </button>
                     </div>
@@ -279,20 +291,38 @@ const Notices = () => {
 
       {/* Add Notice Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-2 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"
+              aria-hidden="true"
+              onClick={() => setShowAddModal(false)}
+            ></div>
 
+            {/* Modal positioning trick */}
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            {/* Modal panel */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full mx-2 sm:mx-auto">
+              <div className="absolute top-0 right-0 pt-3 pr-3 block sm:hidden">
+                <button
+                  type="button"
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
               <form onSubmit={handleAddNotice}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-primary-800">Add New Notice</h3>
+                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                      <h3 className="text-lg leading-6 font-medium text-primary-800 mb-2">Add New Notice</h3>
                       <div className="mt-4 space-y-4">
                         <div>
                           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -303,7 +333,7 @@ const Notices = () => {
                             name="title"
                             id="title"
                             required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
                             value={formData.title}
                             onChange={handleInputChange}
                           />
@@ -317,7 +347,7 @@ const Notices = () => {
                             id="content"
                             rows="4"
                             required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
                             value={formData.content}
                             onChange={handleInputChange}
                           ></textarea>
@@ -330,7 +360,7 @@ const Notices = () => {
                             type="checkbox"
                             name="important"
                             id="important"
-                            className="h-4 w-4 text-accent-600 focus:ring-accent-500 border-gray-300 rounded"
+                            className="h-5 w-5 text-accent-600 focus:ring-accent-500 border-gray-300 rounded"
                             checked={formData.important}
                             onChange={handleInputChange}
                           />
@@ -342,19 +372,19 @@ const Notices = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                  <button
+                    type="button"
+                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm"
+                    onClick={() => setShowAddModal(false)}
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     className="w-full inline-flex justify-center rounded-md border border-primary-500/30 shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
                   >
                     Add Notice
-                  </button>
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={() => setShowAddModal(false)}
-                  >
-                    Cancel
                   </button>
                 </div>
               </form>
@@ -365,20 +395,44 @@ const Notices = () => {
 
       {/* Edit Notice Modal */}
       {showEditModal && selectedNotice && (
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-2 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"
+              aria-hidden="true"
+              onClick={() => {
+                setSelectedNotice(null);
+                setShowEditModal(false);
+              }}
+            ></div>
 
+            {/* Modal positioning trick */}
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            {/* Modal panel */}
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full mx-2 sm:mx-auto">
+              <div className="absolute top-0 right-0 pt-3 pr-3 block sm:hidden">
+                <button
+                  type="button"
+                  className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                  onClick={() => {
+                    setSelectedNotice(null);
+                    setShowEditModal(false);
+                  }}
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
               <form onSubmit={handleEditNotice}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
-                    <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                      <h3 className="text-lg leading-6 font-medium text-primary-800">Edit Notice</h3>
+                    <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                      <h3 className="text-lg leading-6 font-medium text-primary-800 mb-2">Edit Notice</h3>
                       <div className="mt-4 space-y-4">
                         <div>
                           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -389,7 +443,7 @@ const Notices = () => {
                             name="title"
                             id="title"
                             required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
                             value={formData.title}
                             onChange={handleInputChange}
                           />
@@ -403,7 +457,7 @@ const Notices = () => {
                             id="content"
                             rows="4"
                             required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
                             value={formData.content}
                             onChange={handleInputChange}
                           ></textarea>
@@ -416,7 +470,7 @@ const Notices = () => {
                             type="checkbox"
                             name="important"
                             id="important"
-                            className="h-4 w-4 text-accent-600 focus:ring-accent-500 border-gray-300 rounded"
+                            className="h-5 w-5 text-accent-600 focus:ring-accent-500 border-gray-300 rounded"
                             checked={formData.important}
                             onChange={handleInputChange}
                           />
@@ -428,22 +482,22 @@ const Notices = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="submit"
-                    className="w-full inline-flex justify-center rounded-md border border-primary-500/30 shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    Update Notice
-                  </button>
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                   <button
                     type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:w-auto sm:text-sm"
                     onClick={() => {
                       setSelectedNotice(null);
                       setShowEditModal(false);
                     }}
                   >
                     Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="w-full inline-flex justify-center rounded-md border border-primary-500/30 shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  >
+                    Update Notice
                   </button>
                 </div>
               </form>
