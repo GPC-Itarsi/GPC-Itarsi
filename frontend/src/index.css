@@ -497,6 +497,20 @@ body {
   background-size: 20px 20px;
 }
 
+/* Animation for pulse background effect */
+@keyframes pulse-bg {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-pulse-bg {
+  animation: pulse-bg 1.5s infinite;
+}
+
 /* Animation for developer card */
 @keyframes fadeIn {
   from {

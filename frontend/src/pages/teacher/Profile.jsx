@@ -51,6 +51,24 @@ const Profile = () => {
     }
   }, [isEditing]);
 
+  // Ensure button state is reset when loading state changes
+  useEffect(() => {
+    if (!loading && saveButtonRef.current) {
+      // Ensure the button is properly re-enabled when loading completes
+      saveButtonRef.current.disabled = loading || !isFormModified;
+
+      // If there was an error, make sure to reset focus state
+      if (error) {
+        saveButtonRef.current.blur();
+        setTimeout(() => {
+          if (saveButtonRef.current) {
+            saveButtonRef.current.focus();
+          }
+        }, 100);
+      }
+    }
+  }, [loading, error, isFormModified]);
+
   const fetchTeacherProfile = async () => {
     try {
       setLoading(true);
@@ -234,12 +252,58 @@ const Profile = () => {
     return !isEqual(updatedFormData, originalFormData);
   };
 
+  // Validate form data
+  const validateForm = (data) => {
+    // Clear any existing errors
+    setError(null);
+
+    // Required fields validation
+    if (!data.name || data.name.trim() === '') {
+      setError('Full Name is required');
+      return false;
+    }
+
+    if (!data.department || data.department.trim() === '') {
+      setError('Department is required');
+      return false;
+    }
+
+    if (!data.qualification || data.qualification.trim() === '') {
+      setError('Qualification is required to complete your profile');
+      return false;
+    }
+
+    if (!data.experience || data.experience.trim() === '') {
+      setError('Experience is required to complete your profile');
+      return false;
+    }
+
+    // Email validation if provided
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    // Phone validation if provided (simple format check)
+    if (data.phone && !/^[0-9+\-\s()]{10,15}$/.test(data.phone)) {
+      setError('Please enter a valid phone number');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
     const updatedFormData = {
       ...formData,
       [name]: value
     };
+
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
 
     setFormData(updatedFormData);
     setIsFormModified(checkFormModified(updatedFormData));
@@ -254,6 +318,11 @@ const Profile = () => {
       ...formData,
       subjects: subjectsArray
     };
+
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
 
     setFormData(updatedFormData);
     setIsFormModified(checkFormModified(updatedFormData));
@@ -276,16 +345,20 @@ const Profile = () => {
     }
     lastSubmitTime.current = now;
 
-    // Validate required fields for profile completion
-    if (!formData.qualification) {
-      setError('Qualification is required to complete your profile');
+    // Validate form data before submission
+    if (!validateForm(formData)) {
+      // Error is already set by validateForm
+      // Focus on the save button to ensure it's not stuck
+      if (saveButtonRef.current) {
+        saveButtonRef.current.blur();
+        setTimeout(() => saveButtonRef.current.focus(), 100);
+      }
       return;
     }
 
-    if (!formData.experience) {
-      setError('Experience is required to complete your profile');
-      return;
-    }
+    // Create a controller for request timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
     try {
       setLoading(true);
@@ -302,7 +375,8 @@ const Profile = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`
-          }
+          },
+          signal: controller.signal
         }
       );
 
@@ -324,7 +398,6 @@ const Profile = () => {
 
       // Exit edit mode
       setIsEditing(false);
-      setLoading(false);
 
       // Reset form modification state
       setIsFormModified(false);
@@ -338,12 +411,26 @@ const Profile = () => {
       }, 500);
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError(
-        error.response?.data?.message ||
-        error.response?.data?.errors?.[0]?.msg ||
-        'Failed to update profile'
-      );
+
+      // Handle timeout errors
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        setError('Request timed out. Please try again.');
+      } else {
+        setError(
+          error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          'Failed to update profile. Please try again.'
+        );
+      }
+    } finally {
+      // Always clear the timeout and reset loading state
+      clearTimeout(timeoutId);
       setLoading(false);
+
+      // Ensure the button is re-enabled
+      if (saveButtonRef.current) {
+        saveButtonRef.current.disabled = false;
+      }
     }
   };
 
@@ -577,18 +664,46 @@ const Profile = () => {
                     ref={saveButtonRef}
                     className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
                     transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-                    ${isFormModified
-                      ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-105'
-                      : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'}`}
+                    ${loading
+                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 cursor-wait'
+                      : isFormModified
+                        ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-105 active:from-green-700 active:to-blue-700'
+                        : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'}`}
                     style={{
-                      boxShadow: isFormModified ? '0 0 15px rgba(0, 255, 0, 0.3)' : 'none',
+                      boxShadow: loading
+                        ? '0 0 15px rgba(255, 165, 0, 0.5)'
+                        : isFormModified
+                          ? '0 0 15px rgba(0, 255, 0, 0.3)'
+                          : 'none',
                       textShadow: isFormModified ? '0 0 5px rgba(255, 255, 255, 0.5)' : 'none',
-                      opacity: isFormModified ? '1' : '0.7'
+                      opacity: isFormModified || loading ? '1' : '0.7',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                     disabled={loading || !isFormModified}
-                    title={!isFormModified ? "No changes to save" : "Save changes"}
+                    title={!isFormModified ? "No changes to save" : loading ? "Saving changes..." : "Save changes"}
                   >
-                    {loading ? 'Saving...' : (
+                    {loading ? (
+                      <>
+                        <div className="absolute inset-0 overflow-hidden">
+                          <div className="animate-pulse-bg bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                               style={{
+                                 position: 'absolute',
+                                 top: 0,
+                                 left: '-100%',
+                                 right: 0,
+                                 bottom: 0,
+                                 width: '200%',
+                                 animation: 'pulse-bg 1.5s infinite'
+                               }}></div>
+                        </div>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                      </>
+                    ) : (
                       <>
                         <FaSave className={`mr-2 ${isFormModified ? 'animate-pulse' : ''}`} />
                         Save
