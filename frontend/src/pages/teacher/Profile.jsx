@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { getProfileImageUrl, handleImageError } from '../../utils/imageUtils';
 import config from '../../config';
 import { FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import { isEqual } from 'lodash';
 
 const Profile = () => {
   const { user, updateProfile } = useAuth();
@@ -30,6 +31,10 @@ const Profile = () => {
     subjects: [],
     bio: ''
   });
+  const [originalFormData, setOriginalFormData] = useState(null);
+  const [isFormModified, setIsFormModified] = useState(false);
+  const saveButtonRef = useRef(null);
+  const lastSubmitTime = useRef(0);
 
   // Always fetch the latest teacher profile data
   useEffect(() => {
@@ -37,6 +42,14 @@ const Profile = () => {
       fetchTeacherProfile();
     }
   }, [user]);
+
+  // Reset form modification state when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      // When entering edit mode, reset the form modification state
+      setIsFormModified(false);
+    }
+  }, [isEditing]);
 
   const fetchTeacherProfile = async () => {
     try {
@@ -61,8 +74,8 @@ const Profile = () => {
       // Update the teacher data state
       setTeacherData(response.data);
 
-      // Update the form data
-      setFormData({
+      // Create form data object
+      const newFormData = {
         name: response.data.name || '',
         email: response.data.email || '',
         phone: response.data.phone || '',
@@ -71,7 +84,16 @@ const Profile = () => {
         experience: response.data.experience || '',
         subjects: response.data.subjects || [],
         bio: response.data.bio || ''
-      });
+      };
+
+      // Update the form data
+      setFormData(newFormData);
+
+      // Store the original form data for comparison
+      setOriginalFormData(newFormData);
+
+      // Reset form modification state
+      setIsFormModified(false);
 
       // Update the user context with the latest teacher data
       // This ensures the data is available throughout the application
@@ -206,12 +228,21 @@ const Profile = () => {
     }
   };
 
+  // Check if form data has been modified from original
+  const checkFormModified = (updatedFormData) => {
+    if (!originalFormData) return false;
+    return !isEqual(updatedFormData, originalFormData);
+  };
+
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
+    const updatedFormData = {
       ...formData,
       [name]: value
-    });
+    };
+
+    setFormData(updatedFormData);
+    setIsFormModified(checkFormModified(updatedFormData));
   };
 
   const handleSubjectsChange = (e) => {
@@ -219,14 +250,31 @@ const Profile = () => {
       ? e.target.value.split(',').map(subject => subject.trim())
       : [];
 
-    setFormData({
+    const updatedFormData = {
       ...formData,
       subjects: subjectsArray
-    });
+    };
+
+    setFormData(updatedFormData);
+    setIsFormModified(checkFormModified(updatedFormData));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // If no changes were made, don't submit
+    if (!isFormModified) {
+      console.log('No changes detected, skipping submission');
+      return;
+    }
+
+    // Prevent multiple rapid submissions (throttle to once per second)
+    const now = Date.now();
+    if (now - lastSubmitTime.current < 1000) {
+      console.log('Submission throttled, please wait');
+      return;
+    }
+    lastSubmitTime.current = now;
 
     // Validate required fields for profile completion
     if (!formData.qualification) {
@@ -277,6 +325,12 @@ const Profile = () => {
       // Exit edit mode
       setIsEditing(false);
       setLoading(false);
+
+      // Reset form modification state
+      setIsFormModified(false);
+
+      // Update original form data to match current data
+      setOriginalFormData({...formData});
 
       // Refresh the teacher profile data to ensure we have the latest data
       setTimeout(() => {
@@ -502,7 +556,14 @@ const Profile = () => {
               ) : (
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => {
+                      // Reset form data to original values when canceling
+                      if (originalFormData) {
+                        setFormData({...originalFormData});
+                      }
+                      setIsFormModified(false);
+                      setIsEditing(false);
+                    }}
                     className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
                     text-gray-700 bg-white hover:bg-gray-50
                     transition-all duration-300 transform hover:scale-105
@@ -513,17 +574,26 @@ const Profile = () => {
                   <button
                     form="edit-profile-form"
                     type="submit"
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
-                    bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
-                    transition-all duration-300 transform hover:scale-105
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    ref={saveButtonRef}
+                    className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+                    transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                    ${isFormModified
+                      ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-105'
+                      : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'}`}
                     style={{
-                      boxShadow: '0 0 15px rgba(0, 255, 0, 0.3)',
-                      textShadow: '0 0 5px rgba(255, 255, 255, 0.5)'
+                      boxShadow: isFormModified ? '0 0 15px rgba(0, 255, 0, 0.3)' : 'none',
+                      textShadow: isFormModified ? '0 0 5px rgba(255, 255, 255, 0.5)' : 'none',
+                      opacity: isFormModified ? '1' : '0.7'
                     }}
-                    disabled={loading}
+                    disabled={loading || !isFormModified}
+                    title={!isFormModified ? "No changes to save" : "Save changes"}
                   >
-                    {loading ? 'Saving...' : <><FaSave className="mr-2 animate-pulse" /> Save</>}
+                    {loading ? 'Saving...' : (
+                      <>
+                        <FaSave className={`mr-2 ${isFormModified ? 'animate-pulse' : ''}`} />
+                        Save
+                      </>
+                    )}
                   </button>
                 </div>
               )}
