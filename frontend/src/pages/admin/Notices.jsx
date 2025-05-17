@@ -1,7 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import sanitizeHtml from '../../utils/sanitizeHtml';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { isValidUrl, ensureUrlProtocol } from '../../utils/urlUtils';
+import LinkDialog from '../../components/editor/LinkDialog';
+import LinkHelpModal from '../../components/admin/LinkHelpModal';
 
 const Notices = () => {
   const [notices, setNotices] = useState([]);
@@ -17,6 +22,83 @@ const Notices = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredNotices, setFilteredNotices] = useState([]);
+
+  // Link dialog state
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkDialogInitialText, setLinkDialogInitialText] = useState('');
+  const [linkDialogInitialUrl, setLinkDialogInitialUrl] = useState('');
+  const quillRef = useRef(null);
+
+  // Handle link insertion from the dialog
+  const handleLinkInsert = useCallback((text, url) => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const range = quill.getSelection();
+    if (!range) return;
+
+    // If text is selected, replace it with the link text
+    if (range.length > 0) {
+      quill.deleteText(range.index, range.length);
+      quill.insertText(range.index, text, { 'link': url });
+    } else {
+      // If no text is selected, insert the link text at the cursor position
+      quill.insertText(range.index, text, { 'link': url });
+    }
+
+    // Move cursor to the end of the inserted text
+    quill.setSelection(range.index + text.length, 0);
+  }, []);
+
+  // Quill editor modules and formats configuration
+  const quillModules = useMemo(() => ({
+    toolbar: {
+      container: [
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['link'],
+        ['clean']
+      ],
+      handlers: {
+        link: function(value) {
+          if (value) {
+            // Get the Quill editor instance
+            const quill = this.quill;
+            const range = quill.getSelection();
+
+            if (range) {
+              // Get the selected text
+              let selectedText = '';
+              if (range.length > 0) {
+                selectedText = quill.getText(range.index, range.length);
+              }
+
+              // Get the current link if any
+              let currentUrl = '';
+              const format = quill.getFormat(range);
+              if (format.link) {
+                currentUrl = format.link;
+              }
+
+              // Open the link dialog
+              setLinkDialogInitialText(selectedText);
+              setLinkDialogInitialUrl(currentUrl);
+              setShowLinkDialog(true);
+            }
+          } else {
+            // Remove link format
+            this.quill.format('link', false);
+          }
+        }
+      }
+    }
+  }), []);
+
+  const quillFormats = useMemo(() => [
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'link'
+  ], []);
 
   useEffect(() => {
     fetchNotices();
@@ -62,7 +144,17 @@ const Notices = () => {
   };
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked } = e.target || {};
+
+    // If this is from the Quill editor (not an event object with target)
+    if (e && !e.target) {
+      setFormData({
+        ...formData,
+        content: e
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
@@ -342,18 +434,23 @@ const Notices = () => {
                           <label htmlFor="content" className="block text-sm font-medium text-gray-700">
                             Content
                           </label>
-                          <textarea
-                            name="content"
-                            id="content"
-                            rows="4"
-                            required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
-                            value={formData.content}
-                            onChange={handleInputChange}
-                          ></textarea>
-                          <p className="mt-1 text-xs text-gray-500">
-                            You can add links using HTML: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>
-                          </p>
+                          <div className="mt-1 futuristic-editor">
+                            <ReactQuill
+                              ref={quillRef}
+                              theme="snow"
+                              value={formData.content}
+                              onChange={handleInputChange}
+                              modules={quillModules}
+                              formats={quillFormats}
+                              className="h-40 mb-10"
+                            />
+                          </div>
+                          <div className="mt-12 flex items-center justify-between">
+                            <p className="text-xs text-gray-500">
+                              Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> in the toolbar to add clickable links
+                            </p>
+                            <LinkHelpModal />
+                          </div>
                         </div>
                         <div className="flex items-center">
                           <input
@@ -392,6 +489,15 @@ const Notices = () => {
           </div>
         </div>
       )}
+
+      {/* Link Dialog */}
+      <LinkDialog
+        isOpen={showLinkDialog}
+        onClose={() => setShowLinkDialog(false)}
+        onInsert={handleLinkInsert}
+        initialText={linkDialogInitialText}
+        initialUrl={linkDialogInitialUrl}
+      />
 
       {/* Edit Notice Modal */}
       {showEditModal && selectedNotice && (
@@ -452,18 +558,23 @@ const Notices = () => {
                           <label htmlFor="content" className="block text-sm font-medium text-gray-700">
                             Content
                           </label>
-                          <textarea
-                            name="content"
-                            id="content"
-                            rows="4"
-                            required
-                            className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-sm text-sm border-gray-300 rounded-md"
-                            value={formData.content}
-                            onChange={handleInputChange}
-                          ></textarea>
-                          <p className="mt-1 text-xs text-gray-500">
-                            You can add links using HTML: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>
-                          </p>
+                          <div className="mt-1 futuristic-editor">
+                            <ReactQuill
+                              ref={quillRef}
+                              theme="snow"
+                              value={formData.content}
+                              onChange={handleInputChange}
+                              modules={quillModules}
+                              formats={quillFormats}
+                              className="h-40 mb-10"
+                            />
+                          </div>
+                          <div className="mt-12 flex items-center justify-between">
+                            <p className="text-xs text-gray-500">
+                              Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> in the toolbar to add clickable links
+                            </p>
+                            <LinkHelpModal />
+                          </div>
                         </div>
                         <div className="flex items-center">
                           <input

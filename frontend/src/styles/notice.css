@@ -94,6 +94,40 @@
   border-radius: 3px;
 }
 
+/* Style for invalid links */
+.notice-content a.invalid-link {
+  color: #ef4444; /* Red color for invalid links */
+  text-decoration: line-through;
+  background-color: rgba(239, 68, 68, 0.1);
+  border-bottom: 1px dashed #ef4444;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.notice-content a.invalid-link:hover {
+  color: #b91c1c;
+  background-color: rgba(239, 68, 68, 0.2);
+  box-shadow: none;
+  transform: none;
+}
+
+.notice-content a.invalid-link::after {
+  content: "⚠️";
+  font-size: 0.8em;
+  margin-left: 0.3em;
+}
+
+.dark-theme .notice-content a.invalid-link {
+  color: #fca5a5;
+  background-color: rgba(239, 68, 68, 0.2);
+  border-bottom: 1px dashed #fca5a5;
+}
+
+.dark-theme .notice-content a.invalid-link:hover {
+  color: #fecaca;
+  background-color: rgba(239, 68, 68, 0.3);
+}
+
 /* Add a special animation for links */
 @keyframes link-pulse {
   0% {
