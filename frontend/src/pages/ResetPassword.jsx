@@ -78,26 +78,19 @@ const ResetPassword = () => {
     }
   }, [token]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Add debug logging to confirm the function is being called
-    console.log('Reset Password form submitted');
-    console.log('Current state:', {
-      password: password ? '******' : 'empty',
-      confirmPassword: confirmPassword ? '******' : 'empty',
-      token
-    });
+  // Function to handle password reset
+  const resetPassword = async () => {
+    console.log('Reset Password function called');
 
     // Validate passwords
     if (password !== confirmPassword) {
       setError('Passwords do not match');
-      return;
+      return false;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
-      return;
+      return false;
     }
 
     try {
@@ -135,6 +128,8 @@ const ResetPassword = () => {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
+
+      return true;
     } catch (err) {
       console.error('Error resetting password:', err);
       console.error('Error details:', err.response?.data || err.message);
@@ -151,6 +146,8 @@ const ResetPassword = () => {
       } else {
         setError(err.response?.data?.message || 'An error occurred. Please try again later.');
       }
+
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -289,11 +286,7 @@ const ResetPassword = () => {
           </div>
         )}
 
-        <form
-          className="mt-8 space-y-6 relative z-10"
-          onSubmit={handleSubmit}
-          id="reset-password-form"
-        >
+        <div className="mt-8 space-y-6 relative z-10">
           <div className="rounded-md shadow-sm -space-y-px">
             <div className="form-group">
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
@@ -336,20 +329,9 @@ const ResetPassword = () => {
               type="button"
               disabled={isSubmitting || isSuccess}
               className="group relative w-full flex justify-center py-3 px-4 border border-primary-500/50 text-sm font-medium rounded-md text-white bg-primary-600/80 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-primary-500/20"
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 console.log('Reset Password button clicked directly');
-
-                // Manually trigger form submission
-                const form = document.getElementById('reset-password-form');
-                if (form) {
-                  console.log('Manually submitting the form');
-                  form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                } else {
-                  console.error('Form element not found');
-                  // Fallback to direct handler call
-                  handleSubmit(e);
-                }
+                resetPassword();
               }}
             >
               <span className="absolute inset-0 overflow-hidden rounded-md">
@@ -368,7 +350,7 @@ const ResetPassword = () => {
               )}
             </button>
           </div>
-        </form>
+        </div>
 
         <div className="mt-4 text-center relative z-10">
           <Link to="/login" className="font-medium text-primary-400 hover:text-primary-300 transition-colors duration-200 inline-flex items-center group">
