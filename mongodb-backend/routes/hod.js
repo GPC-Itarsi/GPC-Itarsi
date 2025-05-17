@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { authenticateToken, authorize } = require('../middleware/auth');
-const cloudinaryUpload = require('../middleware/cloudinaryUpload');
+const { handleCloudinaryUpload } = require('../middleware/cloudinaryUpload');
 
 // Get all HODs for public display
 router.get('/', async (req, res) => {
@@ -102,7 +102,7 @@ router.put('/:id/message', authenticateToken, async (req, res) => {
 });
 
 // Update HOD profile with Cloudinary (admin or self only)
-router.put('/:id/profile', authenticateToken, cloudinaryUpload.single('profilePicture'), async (req, res) => {
+router.put('/:id/profile', authenticateToken, handleCloudinaryUpload('profilePicture'), async (req, res) => {
   try {
     const { id } = req.params;
     const { name, department, qualification, experience, designation, message } = req.body;
