@@ -15,7 +15,7 @@ const sanitizeHtml = (html) => {
   // Define allowed tags and attributes
   const allowedTags = ['a', 'b', 'i', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span'];
   const allowedAttributes = {
-    'a': ['href', 'target', 'rel', 'class'],
+    'a': ['href', 'target', 'rel', 'class', 'style'],
     'span': ['class', 'style']
   };
 
@@ -100,6 +100,16 @@ const sanitizeHtml = (html) => {
             linkText.includes('required') || linkText.includes('deadline')) {
           node.classList.add('important-link');
         }
+
+        // Ensure links have proper styling inline to override any potential CSS conflicts
+        node.style.color = '#0062f5';
+        node.style.textDecoration = 'none';
+        node.style.fontWeight = '600';
+        node.style.backgroundColor = 'rgba(26, 117, 255, 0.1)';
+        node.style.borderRadius = '3px';
+        node.style.padding = '0 2px';
+        node.style.borderBottom = '1px solid #1a75ff';
+        node.style.cursor = 'pointer';
       } else {
         // If no href, add a default one
         node.setAttribute('href', '#');
