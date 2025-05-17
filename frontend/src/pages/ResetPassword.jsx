@@ -24,16 +24,45 @@ const ResetPassword = () => {
         setIsValidating(true);
         console.log(`Validating token: ${token}`);
 
-        // Clear any existing Authorization headers
-        delete axios.defaults.headers.common['Authorization'];
+        // Create a new axios instance to avoid global header issues
+        const axiosInstance = axios.create();
+        delete axiosInstance.defaults.headers.common['Authorization'];
 
-        const response = await axios.get(`${config.apiUrl}/api/password-reset/validate-token/${token}`);
+        console.log(`Making validation request to: ${config.apiUrl}/api/password-reset/validate-token/${token}`);
+
+        const response = await axiosInstance.get(
+          `${config.apiUrl}/api/password-reset/validate-token/${token}`,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              // Explicitly avoid sending any Authorization header
+            }
+          }
+        );
+
         console.log('Token validation response:', response.data);
-        setIsValidToken(true);
+
+        if (response.data && response.data.message === 'Token is valid') {
+          console.log('Token is valid, userId:', response.data.userId);
+          setIsValidToken(true);
+        } else {
+          console.warn('Unexpected response format:', response.data);
+          setError('Invalid response from server. Please try again or request a new reset link.');
+          setIsValidToken(false);
+        }
       } catch (err) {
         console.error('Invalid or expired token:', err);
         console.error('Error details:', err.response?.data || err.message);
-        setError('This password reset link is invalid or has expired. Please request a new one.');
+        console.error('Error status:', err.response?.status);
+
+        if (err.response?.status === 400) {
+          setError('This password reset link is invalid or has expired. Please request a new one.');
+        } else if (err.response?.status === 401) {
+          setError('Authentication error. Please request a new password reset link.');
+        } else {
+          setError('Error validating reset link. Please try again or request a new reset link.');
+        }
+
         setIsValidToken(false);
       } finally {
         setIsValidating(false);
@@ -70,12 +99,24 @@ const ResetPassword = () => {
 
       console.log(`Submitting password reset for token: ${token}`);
 
-      // Clear any existing Authorization headers
-      delete axios.defaults.headers.common['Authorization'];
+      // Make sure we don't have any Authorization headers that could interfere
+      const axiosInstance = axios.create();
+      delete axiosInstance.defaults.headers.common['Authorization'];
 
-      const response = await axios.post(`${config.apiUrl}/api/password-reset/reset-password/${token}`, {
-        password
-      });
+      // Log the request we're about to make
+      console.log(`Making request to: ${config.apiUrl}/api/password-reset/reset-password/${token}`);
+      console.log('Request payload:', { password: '******' });
+
+      const response = await axiosInstance.post(
+        `${config.apiUrl}/api/password-reset/reset-password/${token}`,
+        { password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            // Explicitly avoid sending any Authorization header
+          }
+        }
+      );
 
       console.log('Password reset response:', response.data);
 
@@ -89,8 +130,19 @@ const ResetPassword = () => {
     } catch (err) {
       console.error('Error resetting password:', err);
       console.error('Error details:', err.response?.data || err.message);
+      console.error('Error status:', err.response?.status);
+      console.error('Error headers:', err.response?.headers);
+
       setIsSuccess(false);
-      setError(err.response?.data?.message || 'An error occurred. Please try again later.');
+
+      // Provide more specific error messages based on status code
+      if (err.response?.status === 401) {
+        setError('Authentication error. Please try requesting a new password reset link.');
+      } else if (err.response?.status === 400) {
+        setError(err.response.data?.message || 'Invalid request. Please check your information and try again.');
+      } else {
+        setError(err.response?.data?.message || 'An error occurred. Please try again later.');
+      }
     } finally {
       setIsSubmitting(false);
     }

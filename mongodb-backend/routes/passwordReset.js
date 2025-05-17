@@ -177,8 +177,10 @@ router.post('/reset-password/:token', async (req, res) => {
     const { password } = req.body;
 
     console.log(`Processing password reset for token: ${token.substring(0, 10)}...`);
+    console.log(`Request headers:`, req.headers);
 
     if (!token || !password) {
+      console.log('Missing required fields for password reset');
       return res.status(400).json({ message: 'Token and new password are required' });
     }
 
@@ -198,6 +200,19 @@ router.post('/reset-password/:token', async (req, res) => {
 
     if (!user) {
       console.log('No user found with valid reset token');
+      console.log('Token validation failed. Checking database for any matching tokens...');
+
+      // For debugging: Find any users with reset tokens
+      const usersWithTokens = await User.find({
+        resetPasswordToken: { $exists: true, $ne: null },
+        resetPasswordExpires: { $exists: true }
+      }).select('username resetPasswordToken resetPasswordExpires');
+
+      console.log(`Found ${usersWithTokens.length} users with reset tokens:`);
+      usersWithTokens.forEach(u => {
+        console.log(`- User: ${u.username}, Token expires: ${new Date(u.resetPasswordExpires).toISOString()}, Valid: ${u.resetPasswordExpires > Date.now()}`);
+      });
+
       return res.status(400).json({
         message: 'Password reset token is invalid or has expired'
       });
