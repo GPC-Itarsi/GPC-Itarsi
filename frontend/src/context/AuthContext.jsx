@@ -261,17 +261,41 @@ export const AuthProvider = ({ children }) => {
   // Update user profile
   const updateProfile = (updatedData) => {
     console.log('Updating user profile with data:', updatedData);
+
+    // Ensure we have valid data to update with
+    if (!updatedData) {
+      console.error('Invalid data provided to updateProfile:', updatedData);
+      return;
+    }
+
     setUser(prev => {
+      if (!prev) {
+        console.log('No previous user data, setting initial user data');
+        // If there's no previous user data, just use the updated data
+        const newUser = {
+          ...updatedData,
+          id: updatedData._id || updatedData.id, // Ensure ID is set correctly
+          userData: {
+            ...updatedData
+          }
+        };
+        console.log('New user data:', newUser);
+        return newUser;
+      }
+
       // Create a deep merged object
       const updated = {
         ...prev,
         ...updatedData,
+        // Ensure ID is preserved or updated correctly
+        id: updatedData._id || updatedData.id || prev.id,
         // Ensure userData is properly updated
         userData: {
           ...(prev?.userData || {}),
           ...updatedData
         }
       };
+
       console.log('Updated user data:', updated);
       return updated;
     });

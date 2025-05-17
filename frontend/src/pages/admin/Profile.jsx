@@ -42,11 +42,16 @@ const Profile = () => {
           return;
         }
 
+        console.log('Fetching admin profile data...');
+        console.log('User from context:', user);
+
         const response = await axios.get(`${config.apiUrl}/api/admin/profile`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
         });
+
+        console.log('Admin profile data received:', response.data);
 
         const profileData = response.data;
         setProfileData({
@@ -58,15 +63,18 @@ const Profile = () => {
 
         // Only update user context if there are actual changes
         if (JSON.stringify(user) !== JSON.stringify(profileData)) {
+          console.log('Updating user context with profile data');
           updateProfile(profileData);
         }
 
       } catch (err) {
         console.error('Error fetching admin profile:', err);
+        console.error('Error details:', err.response?.data || err.message);
         setError(err.response?.data?.message || 'Failed to load profile. Please try again.');
 
         // Fallback to user context data if API call fails
         if (user) {
+          console.log('Falling back to user context data');
           setProfileData({
             name: user.name || '',
             email: user.email || '',
@@ -86,6 +94,15 @@ const Profile = () => {
   // Also set profile data from user context when it changes
   useEffect(() => {
     if (user && !loading) {
+      console.log('User context changed, checking if profile data needs update');
+      console.log('Current user data:', {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        bio: user.bio
+      });
+      console.log('Current profile data:', profileData);
+
       // Only update if the user data is different from current profile data
       const shouldUpdate =
         user.name !== profileData.name ||
@@ -94,16 +111,23 @@ const Profile = () => {
         user.bio !== profileData.bio;
 
       if (shouldUpdate) {
-        setProfileData(prevData => ({
-          ...prevData,
-          name: user.name || prevData.name || '',
-          email: user.email || prevData.email || '',
-          phone: user.phone || prevData.phone || '',
-          bio: user.bio || prevData.bio || ''
-        }));
+        console.log('Updating profile data from user context');
+        setProfileData(prevData => {
+          const newData = {
+            ...prevData,
+            name: user.name || prevData.name || '',
+            email: user.email || prevData.email || '',
+            phone: user.phone || prevData.phone || '',
+            bio: user.bio || prevData.bio || ''
+          };
+          console.log('New profile data:', newData);
+          return newData;
+        });
+      } else {
+        console.log('No update needed for profile data');
       }
     }
-  }, [user, loading, profileData]);
+  }, [user, loading]);
 
   const handleProfileChange = (e) => {
     const { name, value } = e.target;
@@ -156,8 +180,11 @@ const Profile = () => {
         return;
       }
 
-      // Update user context with form data immediately to prevent reloading issues
-      // This is a workaround for when the backend is having issues
+      console.log('Submitting profile data:', profileData);
+      console.log('User ID from context:', user?.id);
+      console.log('User object from context:', user);
+
+      // Update user context with form data immediately to provide feedback
       const updatedUserData = {
         ...user,
         name: profileData.name,
@@ -178,8 +205,16 @@ const Profile = () => {
       formData.append('phone', profileData.phone || '');
       formData.append('bio', profileData.bio || '');
 
+      // Log form data for debugging
+      console.log('Form data being sent:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
       // Check if profile image is valid before appending
       if (profileImage) {
+        console.log('Profile image selected:', profileImage.name, profileImage.type, profileImage.size);
+
         // Validate file size (max 2MB)
         if (profileImage.size > 2 * 1024 * 1024) {
           setError('Profile image must be less than 2MB');
@@ -196,12 +231,15 @@ const Profile = () => {
         }
 
         formData.append('profilePicture', profileImage);
+        console.log('Profile image appended to form data');
 
         // Set image preview for immediate feedback
         if (imagePreview) {
           updatedUserData.profilePicture = imagePreview;
           updateProfile(updatedUserData);
         }
+      } else {
+        console.log('No profile image selected');
       }
 
       // Determine which endpoint to use based on the Cloudinary toggle
@@ -210,6 +248,7 @@ const Profile = () => {
         : `${config.apiUrl}/api/admin/profile`;
 
       console.log(`Updating profile with ${useCloudinary ? 'Cloudinary' : 'local storage'} URL:`, endpoint);
+      console.log('Authorization token:', `Bearer ${token.substring(0, 10)}...`);
 
       // Set a timeout to handle potential server issues
       const timeoutId = setTimeout(() => {
@@ -217,15 +256,16 @@ const Profile = () => {
           setError('Request is taking too long. The server might be down or experiencing issues. Your profile has been updated locally.');
           setLoading(false);
         }
-      }, 10000); // 10 seconds timeout - reduced from 30 seconds
+      }, 15000); // 15 seconds timeout
 
       try {
+        console.log('Sending PUT request to:', endpoint);
         const response = await axios.put(endpoint, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`
           },
-          timeout: 10000 // 10 seconds timeout - reduced from 30 seconds
+          timeout: 15000 // 15 seconds timeout
         });
 
         // Clear the timeout since we got a response
@@ -251,6 +291,7 @@ const Profile = () => {
         if (serverError.response) {
           console.error('Error response data:', serverError.response.data);
           console.error('Error response status:', serverError.response.status);
+          console.error('Error response headers:', serverError.response.headers);
 
           setError(`Failed to update profile on server: ${serverError.response.status} - ${serverError.response?.data?.message || serverError.response.statusText}. Your profile has been updated locally.`);
         } else if (serverError.request) {

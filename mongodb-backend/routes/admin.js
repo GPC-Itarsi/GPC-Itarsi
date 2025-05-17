@@ -807,10 +807,28 @@ router.put('/profile', authenticateToken, authorize(['admin']), upload.single('p
     console.log('PUT /api/admin/profile - Updating admin profile for user ID:', req.user.id);
     console.log('Request body:', req.body);
     console.log('Request file:', req.file ? `File uploaded: ${req.file.filename}` : 'No file uploaded');
+    console.log('User from token:', req.user);
 
     const { name, email, phone, bio } = req.body;
 
-    const admin = await User.findById(req.user.id);
+    // Validate required fields
+    if (!name) {
+      console.error('Name is required but not provided');
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    // Find the admin user by ID
+    let admin;
+    try {
+      admin = await User.findById(req.user.id);
+      console.log('Admin user found:', admin ? 'Yes' : 'No');
+    } catch (findError) {
+      console.error('Error finding admin by ID:', findError);
+      return res.status(500).json({
+        message: 'Database error while finding admin user',
+        error: findError.message
+      });
+    }
 
     if (!admin) {
       console.error('Admin not found for user ID:', req.user.id);
@@ -833,7 +851,7 @@ router.put('/profile', authenticateToken, authorize(['admin']), upload.single('p
       admin.phone = phone;
     }
     if (bio) {
-      console.log('Updating bio');
+      console.log('Updating bio from', admin.bio, 'to', bio);
       admin.bio = bio;
     }
 
@@ -868,14 +886,26 @@ router.put('/profile', authenticateToken, authorize(['admin']), upload.single('p
       admin.profilePicture = req.file.filename;
     }
 
+    // Update timestamp
     admin.updatedAt = Date.now();
-    await admin.save();
-    console.log('Admin profile updated successfully');
+
+    // Save the updated admin profile
+    try {
+      await admin.save();
+      console.log('Admin profile updated successfully');
+    } catch (saveError) {
+      console.error('Error saving admin profile:', saveError);
+      return res.status(500).json({
+        message: 'Failed to save admin profile',
+        error: saveError.message
+      });
+    }
 
     // Return admin without password
     const adminResponse = admin.toObject();
     delete adminResponse.password;
 
+    console.log('Sending updated admin profile response:', adminResponse);
     res.json(adminResponse);
   } catch (error) {
     console.error('Error updating admin profile:', error);
@@ -894,10 +924,28 @@ router.put('/profile-cloudinary', authenticateToken, authorize(['admin']), cloud
     console.log('PUT /api/admin/profile-cloudinary - Updating admin profile with Cloudinary for user ID:', req.user.id);
     console.log('Request body:', req.body);
     console.log('Request file:', req.file ? `File uploaded to Cloudinary: ${JSON.stringify(req.file)}` : 'No file uploaded');
+    console.log('User from token:', req.user);
 
     const { name, email, phone, bio } = req.body;
 
-    const admin = await User.findById(req.user.id);
+    // Validate required fields
+    if (!name) {
+      console.error('Name is required but not provided');
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    // Find the admin user by ID
+    let admin;
+    try {
+      admin = await User.findById(req.user.id);
+      console.log('Admin user found:', admin ? 'Yes' : 'No');
+    } catch (findError) {
+      console.error('Error finding admin by ID:', findError);
+      return res.status(500).json({
+        message: 'Database error while finding admin user',
+        error: findError.message
+      });
+    }
 
     if (!admin) {
       console.error('Admin not found for user ID:', req.user.id);
@@ -920,7 +968,7 @@ router.put('/profile-cloudinary', authenticateToken, authorize(['admin']), cloud
       admin.phone = phone;
     }
     if (bio) {
-      console.log('Updating bio');
+      console.log('Updating bio from', admin.bio, 'to', bio);
       admin.bio = bio;
     }
 
@@ -978,14 +1026,26 @@ router.put('/profile-cloudinary', authenticateToken, authorize(['admin']), cloud
       }
     }
 
+    // Update timestamp
     admin.updatedAt = Date.now();
-    await admin.save();
-    console.log('Admin profile updated successfully with Cloudinary');
+
+    // Save the updated admin profile
+    try {
+      await admin.save();
+      console.log('Admin profile updated successfully with Cloudinary');
+    } catch (saveError) {
+      console.error('Error saving admin profile with Cloudinary:', saveError);
+      return res.status(500).json({
+        message: 'Failed to save admin profile with Cloudinary',
+        error: saveError.message
+      });
+    }
 
     // Return admin without password
     const adminResponse = admin.toObject();
     delete adminResponse.password;
 
+    console.log('Sending updated admin profile response:', adminResponse);
     res.json(adminResponse);
   } catch (error) {
     console.error('Error updating admin profile with Cloudinary:', error);
