@@ -22,10 +22,17 @@ const ResetPassword = () => {
     const validateToken = async () => {
       try {
         setIsValidating(true);
+        console.log(`Validating token: ${token}`);
+
+        // Clear any existing Authorization headers
+        delete axios.defaults.headers.common['Authorization'];
+
         const response = await axios.get(`${config.apiUrl}/api/password-reset/validate-token/${token}`);
+        console.log('Token validation response:', response.data);
         setIsValidToken(true);
       } catch (err) {
         console.error('Invalid or expired token:', err);
+        console.error('Error details:', err.response?.data || err.message);
         setError('This password reset link is invalid or has expired. Please request a new one.');
         setIsValidToken(false);
       } finally {
@@ -61,9 +68,16 @@ const ResetPassword = () => {
       setError('');
       setMessage('');
 
+      console.log(`Submitting password reset for token: ${token}`);
+
+      // Clear any existing Authorization headers
+      delete axios.defaults.headers.common['Authorization'];
+
       const response = await axios.post(`${config.apiUrl}/api/password-reset/reset-password/${token}`, {
         password
       });
+
+      console.log('Password reset response:', response.data);
 
       setIsSuccess(true);
       setMessage('Your password has been reset successfully!');
@@ -74,6 +88,7 @@ const ResetPassword = () => {
       }, 3000);
     } catch (err) {
       console.error('Error resetting password:', err);
+      console.error('Error details:', err.response?.data || err.message);
       setIsSuccess(false);
       setError(err.response?.data?.message || 'An error occurred. Please try again later.');
     } finally {

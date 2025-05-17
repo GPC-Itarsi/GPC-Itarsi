@@ -129,7 +129,10 @@ router.get('/validate-token/:token', async (req, res) => {
   try {
     const { token } = req.params;
 
+    console.log(`Validating reset token: ${token.substring(0, 10)}...`);
+
     if (!token) {
+      console.log('Token validation failed: No token provided');
       return res.status(400).json({ message: 'Token is required' });
     }
 
@@ -139,6 +142,8 @@ router.get('/validate-token/:token', async (req, res) => {
       .update(token)
       .digest('hex');
 
+    console.log(`Looking for user with hashed token: ${hashedToken.substring(0, 10)}...`);
+
     // Find user with this token and check if token is still valid
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
@@ -146,10 +151,13 @@ router.get('/validate-token/:token', async (req, res) => {
     });
 
     if (!user) {
+      console.log('Token validation failed: No user found with valid token');
       return res.status(400).json({
         message: 'Password reset token is invalid or has expired'
       });
     }
+
+    console.log(`Token validation successful for user: ${user.username}`);
 
     // Token is valid
     res.status(200).json({
@@ -168,6 +176,8 @@ router.post('/reset-password/:token', async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
 
+    console.log(`Processing password reset for token: ${token.substring(0, 10)}...`);
+
     if (!token || !password) {
       return res.status(400).json({ message: 'Token and new password are required' });
     }
@@ -178,6 +188,8 @@ router.post('/reset-password/:token', async (req, res) => {
       .update(token)
       .digest('hex');
 
+    console.log(`Looking for user with hashed token: ${hashedToken.substring(0, 10)}...`);
+
     // Find user with this token and check if token is still valid
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
@@ -185,10 +197,13 @@ router.post('/reset-password/:token', async (req, res) => {
     });
 
     if (!user) {
+      console.log('No user found with valid reset token');
       return res.status(400).json({
         message: 'Password reset token is invalid or has expired'
       });
     }
+
+    console.log(`Found user: ${user.username} with valid reset token`);
 
     // Update password
     user.password = password;
