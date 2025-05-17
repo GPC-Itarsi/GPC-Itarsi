@@ -123,6 +123,10 @@ const Users = () => {
         return 'bg-green-100 text-green-800';
       case 'developer':
         return 'bg-purple-100 text-purple-800';
+      case 'hod':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'principal':
+        return 'bg-indigo-100 text-indigo-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -278,11 +282,11 @@ const Users = () => {
                   </svg>
                 </div>
               </div>
-              <div className="inline-flex rounded-md shadow-sm">
+              <div className="inline-flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setFilter('all')}
-                  className={`relative inline-flex items-center px-4 py-2 rounded-l-md border border-gray-300 text-sm font-medium ${
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
                     filter === 'all' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -291,7 +295,7 @@ const Users = () => {
                 <button
                   type="button"
                   onClick={() => setFilter('admin')}
-                  className={`relative inline-flex items-center px-4 py-2 border-t border-b border-r border-gray-300 text-sm font-medium ${
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
                     filter === 'admin' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -299,8 +303,26 @@ const Users = () => {
                 </button>
                 <button
                   type="button"
+                  onClick={() => setFilter('principal')}
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
+                    filter === 'principal' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Principal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilter('hod')}
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
+                    filter === 'hod' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  HODs
+                </button>
+                <button
+                  type="button"
                   onClick={() => setFilter('teacher')}
-                  className={`relative inline-flex items-center px-4 py-2 border-t border-b border-r border-gray-300 text-sm font-medium ${
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
                     filter === 'teacher' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -309,7 +331,7 @@ const Users = () => {
                 <button
                   type="button"
                   onClick={() => setFilter('student')}
-                  className={`relative inline-flex items-center px-4 py-2 rounded-r-md border-t border-b border-r border-gray-300 text-sm font-medium ${
+                  className={`relative inline-flex items-center px-4 py-2 rounded-md border border-gray-300 text-sm font-medium ${
                     filter === 'student' ? 'bg-primary-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >

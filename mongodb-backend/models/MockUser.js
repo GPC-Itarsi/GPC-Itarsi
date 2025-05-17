@@ -159,6 +159,37 @@ const mockUsers = [
     },
     createdAt: new Date(),
     updatedAt: new Date()
+  },
+  {
+    _id: '60d0fe4f5311236168a109d4',
+    username: 'hod_cs',
+    password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM2K', // teacher123
+    name: 'Dr. Amit Sharma',
+    role: 'hod',
+    email: 'hod_cs@gpcitarsi.edu.in',
+    profilePicture: 'default-profile.jpg',
+    department: 'Computer Science',
+    subjects: ['Advanced Algorithms', 'Machine Learning'],
+    qualification: 'Ph.D. in Computer Science',
+    experience: '12 years',
+    designation: 'Head of Department, Computer Science',
+    message: 'Welcome to the Computer Science department at GPC Itarsi. Our department is committed to providing quality education in the field of computer science and information technology.',
+    createdAt: new Date(),
+    updatedAt: new Date()
+  },
+  {
+    _id: '60d0fe4f5311236168a109d5',
+    username: 'principal',
+    password: '$2a$10$rrm7JyNBpv3WN/6srfv2SefNB2GvGEYGz6q8QE6Yy7IFYwoOAMM2K', // teacher123
+    name: 'Dr. Rajesh Kumar',
+    role: 'principal',
+    email: 'principal@gpcitarsi.edu.in',
+    profilePicture: 'default-profile.jpg',
+    qualification: 'Ph.D. in Mechanical Engineering',
+    experience: '20 years',
+    designation: 'Principal, Government Polytechnic College, Itarsi',
+    createdAt: new Date(),
+    updatedAt: new Date()
   }
 ];
 

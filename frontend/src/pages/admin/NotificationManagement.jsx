@@ -65,6 +65,20 @@ const NotificationManagement = () => {
         }
       });
 
+      // Fetch HODs
+      const hodResponse = await axios.get(`${config.apiUrl}/api/hod`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      }).catch(() => ({ data: [] }));
+
+      // Get principal (assuming there's only one principal)
+      const principalResponse = await axios.get(`${config.apiUrl}/api/users?role=principal`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      }).catch(() => ({ data: [] }));
+
       // Combine users
       const allUsers = [
         ...studentsResponse.data.map(student => ({
@@ -76,7 +90,17 @@ const NotificationManagement = () => {
           id: teacher._id,
           name: teacher.name,
           type: 'teacher'
-        }))
+        })),
+        ...(hodResponse.data ? hodResponse.data.map(hod => ({
+          id: hod._id,
+          name: hod.name,
+          type: 'hod'
+        })) : []),
+        ...(principalResponse.data ? principalResponse.data.map(principal => ({
+          id: principal._id,
+          name: principal.name,
+          type: 'principal'
+        })) : [])
       ];
 
       setUsers(allUsers);
@@ -343,6 +367,8 @@ const NotificationManagement = () => {
                     >
                       <option value="student">Student</option>
                       <option value="teacher">Teacher</option>
+                      <option value="hod">HOD</option>
+                      <option value="principal">Principal</option>
                       <option value="admin">Admin</option>
                     </select>
                   </div>
@@ -432,6 +458,8 @@ const NotificationManagement = () => {
                     <option value="all">All Users</option>
                     <option value="student">Students</option>
                     <option value="teacher">Teachers</option>
+                    <option value="hod">HODs</option>
+                    <option value="principal">Principal</option>
                     <option value="admin">Admins</option>
                   </select>
                 </div>

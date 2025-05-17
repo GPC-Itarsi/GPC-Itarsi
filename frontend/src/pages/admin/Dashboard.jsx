@@ -23,6 +23,7 @@ import Chatbot from './Chatbot';
 import CustomButtons from './CustomButtons';
 import PrincipalMessage from './PrincipalMessage';
 import Attendance from './Attendance';
+import Users from './Users';
 
 import NotificationManagement from './NotificationManagement';
 import AdmissionDetails from './AdmissionDetails';
@@ -180,6 +181,28 @@ const Dashboard = () => {
                       />
                     </svg>
                     Teachers
+                  </Link>
+                  <Link
+                    to="/admin/users"
+                    className={`${
+                      isActive('/users') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-600'
+                    } group flex items-center px-2 py-3 text-base font-medium rounded-md transition-colors duration-150`}
+                  >
+                    <svg
+                      className="mr-4 h-5 w-5 text-secondary-300"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                      />
+                    </svg>
+                    User Roles
                   </Link>
                   <Link
                     to="/admin/attendance"
@@ -596,6 +619,28 @@ const Dashboard = () => {
                   Teachers
                 </Link>
                 <Link
+                  to="/admin/users"
+                  className={`${
+                    isActive('/users') ? 'bg-primary-900 text-white' : 'text-secondary-100 hover:bg-primary-700'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                >
+                  <svg
+                    className="mr-3 h-6 w-6 text-secondary-300"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                  User Roles
+                </Link>
+                <Link
                   to="/admin/attendance"
                   className={`${
                     isActive('/attendance') ? 'bg-primary-900 text-white' : 'text-secondary-100 hover:bg-primary-700'
@@ -974,6 +1019,7 @@ const Dashboard = () => {
                 <Route path="/" element={<Overview />} />
                 <Route path="/students" element={<Students />} />
                 <Route path="/teachers" element={<Teachers />} />
+                <Route path="/users" element={<Users />} />
                 <Route path="/attendance" element={<Attendance />} />
                 <Route path="/notices" element={<Notices />} />
                 <Route path="/gallery" element={<Gallery />} />

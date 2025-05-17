@@ -62,6 +62,10 @@ const Login = () => {
           navigate('/student');
         } else if (payload.role === 'developer') {
           navigate('/developer');
+        } else if (payload.role === 'hod') {
+          navigate('/teacher'); // HODs use the teacher dashboard for now
+        } else if (payload.role === 'principal') {
+          navigate('/admin'); // Principal uses the admin dashboard for now
         } else {
           navigate('/');
         }
@@ -98,7 +102,7 @@ const Login = () => {
             </div>
           )}
 
-          <div className="flex justify-center space-x-2">
+          <div className="flex flex-wrap justify-center gap-2">
             <button
               type="button"
               onClick={() => {
@@ -122,6 +126,30 @@ const Login = () => {
               }`}
             >
               Teacher
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUserType('hod');
+                console.log('Set userType to hod');
+              }}
+              className={`px-3 py-2 rounded-md ${
+                userType === 'hod' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
+              }`}
+            >
+              HOD
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUserType('principal');
+                console.log('Set userType to principal');
+              }}
+              className={`px-3 py-2 rounded-md ${
+                userType === 'principal' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
+              }`}
+            >
+              Principal
             </button>
             <button
               type="button"
@@ -154,7 +182,11 @@ const Login = () => {
                       ? 'Enter your roll number'
                       : userType === 'admin'
                         ? 'Enter admin username'
-                        : 'Enter your username'
+                        : userType === 'hod'
+                          ? 'Enter HOD username'
+                          : userType === 'principal'
+                            ? 'Enter principal username'
+                            : 'Enter your username'
                   }
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -225,6 +257,18 @@ const Login = () => {
           {userType === 'admin' && (
             <div className="mt-4 text-center text-sm text-secondary-600">
               <p>Enter admin username and password</p>
+            </div>
+          )}
+
+          {userType === 'hod' && (
+            <div className="mt-4 text-center text-sm text-secondary-600">
+              <p>Enter HOD username and password</p>
+            </div>
+          )}
+
+          {userType === 'principal' && (
+            <div className="mt-4 text-center text-sm text-secondary-600">
+              <p>Enter principal username and password</p>
             </div>
           )}
         </div>

@@ -24,11 +24,11 @@ router.get('/:id', authenticateToken, async (req, res) => {
     }
 
     const user = await User.findById(req.params.id).select('-password');
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);
@@ -73,7 +73,7 @@ router.post('/', authenticateToken, authorize(['admin']), async (req, res) => {
     // Return user without password
     const userResponse = user.toObject();
     delete userResponse.password;
-    
+
     res.status(201).json(userResponse);
   } catch (error) {
     console.error('Error creating user:', error);
@@ -90,7 +90,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -102,12 +102,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     // Update fields
     const fieldsToUpdate = ['name', 'email'];
-    
+
     // Admin can update any field
     if (req.user.role === 'admin') {
       fieldsToUpdate.push('role', 'username');
     }
-    
+
     // Update basic fields
     fieldsToUpdate.forEach(field => {
       if (req.body[field] !== undefined) {
@@ -139,11 +139,101 @@ router.put('/:id', authenticateToken, async (req, res) => {
     // Return user without password
     const userResponse = user.toObject();
     delete userResponse.password;
-    
+
     res.json(userResponse);
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Failed to update user', error: error.message });
+  }
+});
+
+// Change user role (admin only)
+router.put('/:id/change-role', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    const { role } = req.body;
+
+    if (!role) {
+      return res.status(400).json({ message: 'Role is required' });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'teacher', 'student', 'hod', 'principal'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Find the user
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if this is the last admin
+    if (user.role === 'admin' && role !== 'admin') {
+      const adminCount = await User.countDocuments({ role: 'admin' });
+      if (adminCount <= 1) {
+        return res.status(400).json({ message: 'Cannot change the last admin account' });
+      }
+    }
+
+    // Store the old role for reference
+    const oldRole = user.role;
+
+    // Update the role
+    user.role = role;
+
+    // Handle role-specific fields
+    if (role === 'student' && oldRole !== 'student') {
+      // If changing to student, set required student fields
+      if (!user.rollNumber) {
+        // Generate a unique roll number if not present
+        const year = new Date().getFullYear();
+        const branch = 'CS'; // Default branch
+        const count = await User.countDocuments({ role: 'student' });
+        user.rollNumber = `${branch}${year}${(count + 1).toString().padStart(3, '0')}`;
+      }
+      if (!user.class) user.class = 'First Year';
+      if (!user.branch) user.branch = 'CS';
+      if (user.attendance === undefined) user.attendance = 0;
+    }
+
+    if (role === 'teacher' && oldRole !== 'teacher') {
+      // If changing to teacher, set required teacher fields
+      if (!user.department) user.department = 'Computer Science';
+      if (!user.subjects) user.subjects = [];
+    }
+
+    if (role === 'hod' && oldRole !== 'hod') {
+      // If changing to HOD, set required HOD fields
+      if (!user.department) user.department = 'Computer Science';
+      if (!user.designation) user.designation = `Head of Department, ${user.department || 'Computer Science'}`;
+    }
+
+    if (role === 'principal' && oldRole !== 'principal') {
+      // If changing to principal, set required principal fields
+      if (!user.designation) user.designation = 'Principal, Government Polytechnic College, Itarsi';
+    }
+
+    if (role === 'developer' && oldRole !== 'developer') {
+      // If changing to developer, set required developer fields
+      if (!user.title) user.title = 'Web Developer';
+    }
+
+    user.updatedAt = Date.now();
+    await user.save();
+
+    // Return user without password
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json({
+      message: 'User role updated successfully',
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('Error changing user role:', error);
+    res.status(500).json({ message: 'Failed to change user role', error: error.message });
   }
 });
 
@@ -160,7 +250,7 @@ router.put('/:id/profile-picture', authenticateToken, upload.single('profilePict
     }
 
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -169,7 +259,7 @@ router.put('/:id/profile-picture', authenticateToken, upload.single('profilePict
     user.updatedAt = Date.now();
     await user.save();
 
-    res.json({ 
+    res.json({
       message: 'Profile picture updated successfully',
       profilePicture: user.profilePicture
     });
@@ -183,13 +273,13 @@ router.put('/:id/profile-picture', authenticateToken, upload.single('profilePict
 router.delete('/:id', authenticateToken, authorize(['admin']), async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     await User.findByIdAndDelete(req.params.id);
-    
+
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('Error deleting user:', error);

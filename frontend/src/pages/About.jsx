@@ -15,18 +15,20 @@ const About = () => {
   const [contactInfo, setContactInfo] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [hodData, setHodData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Fetch overview, principal message, and contact info data in parallel
+        // Fetch overview, principal message, HOD data, and contact info data in parallel
         try {
-          const [overviewResponse, principalResponse, contactResponse] = await Promise.all([
+          const [overviewResponse, principalResponse, contactResponse, hodResponse] = await Promise.all([
             axios.get(`${config.apiUrl}/api/overview`).catch(() => ({ data: null })),
             axios.get(`${config.apiUrl}/api/overview/principal-message`).catch(() => ({ data: null })),
-            axios.get(`${config.apiUrl}/api/contact-info`).catch(() => ({ data: null }))
+            axios.get(`${config.apiUrl}/api/contact-info`).catch(() => ({ data: null })),
+            axios.get(`${config.apiUrl}/api/hod`).catch(() => ({ data: [] }))
           ]);
 
           if (overviewResponse.data) {
@@ -39,6 +41,10 @@ const About = () => {
 
           if (contactResponse.data) {
             setContactInfo(contactResponse.data);
+          }
+
+          if (hodResponse.data) {
+            setHodData(hodResponse.data);
           }
         } catch (apiError) {
           console.error('API error:', apiError);
@@ -457,6 +463,145 @@ const About = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* HOD Section */}
+      <div className="py-20 bg-white relative overflow-hidden">
+        {/* Background pattern */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'linear-gradient(135deg, #4f46e5 10%, transparent 0, transparent 50%, #4f46e5 0, #4f46e5 60%, transparent 0, transparent)',
+            backgroundSize: '20px 20px'
+          }}></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="lg:text-center mb-16">
+            <h2 className="text-base text-primary-600 font-semibold tracking-wide uppercase inline-block highlight-text">Department Leadership</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Heads of Departments
+            </p>
+            <div className="h-1 w-20 bg-accent-500 mx-auto mt-4 rounded-full"></div>
+            <p className="mt-6 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+              Meet our dedicated Heads of Departments who lead our academic programs
+            </p>
+          </div>
+
+          <div className="mt-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {hodData && hodData.length > 0 ? (
+                hodData.map((hod) => (
+                  <div key={hod._id} className="bg-white shadow-xl overflow-hidden rounded-xl border border-gray-100 hover-card">
+                    <div className="relative">
+                      <div className="px-6 py-8 flex flex-col items-center">
+                        <div className="relative mb-6">
+                          <div className="absolute -top-3 -left-3 w-16 h-16 bg-primary-100 rounded-full opacity-50 z-0"></div>
+                          <div className="h-40 w-40 rounded-full overflow-hidden bg-white border-4 border-primary-100 shadow-xl relative z-10 image-hover">
+                            <img
+                              src={hod.profilePicture ? getProfileImageUrl(hod.profilePicture) : "/images/faculty-placeholder.svg"}
+                              alt={hod.name}
+                              className="h-full w-full object-cover"
+                              onError={handleImageError}
+                            />
+                          </div>
+                          <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-accent-100 rounded-full opacity-70 z-0"></div>
+                        </div>
+                        <div className="text-center">
+                          <div className="inline-block bg-primary-50 px-4 py-1 rounded-full mb-3">
+                            <p className="text-primary-700 font-medium text-sm">{hod.department}</p>
+                          </div>
+                          <h3 className="text-xl leading-6 font-bold text-gray-900">{hod.name}</h3>
+                          <p className="mt-2 text-md text-primary-600 font-medium">{hod.designation || `Head of Department, ${hod.department}`}</p>
+                          <p className="mt-1 text-sm text-gray-500">{hod.qualification}</p>
+                          <p className="mt-1 text-sm text-gray-500">{hod.experience} Experience</p>
+
+                          <div className="mt-6 text-gray-600 prose">
+                            <div className="relative">
+                              <div className="relative z-10">
+                                {hod.message ? (
+                                  <p className="text-sm italic">{hod.message}</p>
+                                ) : (
+                                  <p className="text-sm italic">Leading the {hod.department} department with a focus on academic excellence and innovation in teaching and research.</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Fallback HOD data if API fails or returns empty
+                [
+                  {
+                    id: 'fallback1',
+                    name: 'Dr. Amit Sharma',
+                    department: 'Computer Science',
+                    designation: 'Head of Department, Computer Science',
+                    qualification: 'Ph.D. in Computer Science',
+                    experience: '12 years',
+                    message: 'Welcome to the Computer Science department at GPC Itarsi. Our department is committed to providing quality education in the field of computer science and information technology.'
+                  },
+                  {
+                    id: 'fallback2',
+                    name: 'Dr. Rajesh Verma',
+                    department: 'Mechanical Engineering',
+                    designation: 'Head of Department, Mechanical Engineering',
+                    qualification: 'Ph.D. in Mechanical Engineering',
+                    experience: '15 years',
+                    message: 'The Mechanical Engineering department strives for excellence in teaching and research, preparing students for successful careers in the industry.'
+                  },
+                  {
+                    id: 'fallback3',
+                    name: 'Dr. Sunita Patel',
+                    department: 'Electronics & Telecommunication',
+                    designation: 'Head of Department, Electronics & Telecommunication',
+                    qualification: 'Ph.D. in Electronics Engineering',
+                    experience: '10 years',
+                    message: 'Our department focuses on providing hands-on experience with the latest technologies in electronics and telecommunication engineering.'
+                  }
+                ].map((hod) => (
+                  <div key={hod.id} className="bg-white shadow-xl overflow-hidden rounded-xl border border-gray-100 hover-card">
+                    <div className="relative">
+                      <div className="px-6 py-8 flex flex-col items-center">
+                        <div className="relative mb-6">
+                          <div className="absolute -top-3 -left-3 w-16 h-16 bg-primary-100 rounded-full opacity-50 z-0"></div>
+                          <div className="h-40 w-40 rounded-full overflow-hidden bg-white border-4 border-primary-100 shadow-xl relative z-10 image-hover">
+                            <img
+                              src="/images/faculty-placeholder.svg"
+                              alt={hod.name}
+                              className="h-full w-full object-cover"
+                              onError={handleImageError}
+                            />
+                          </div>
+                          <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-accent-100 rounded-full opacity-70 z-0"></div>
+                        </div>
+                        <div className="text-center">
+                          <div className="inline-block bg-primary-50 px-4 py-1 rounded-full mb-3">
+                            <p className="text-primary-700 font-medium text-sm">{hod.department}</p>
+                          </div>
+                          <h3 className="text-xl leading-6 font-bold text-gray-900">{hod.name}</h3>
+                          <p className="mt-2 text-md text-primary-600 font-medium">{hod.designation}</p>
+                          <p className="mt-1 text-sm text-gray-500">{hod.qualification}</p>
+                          <p className="mt-1 text-sm text-gray-500">{hod.experience} Experience</p>
+
+                          <div className="mt-6 text-gray-600 prose">
+                            <div className="relative">
+                              <div className="relative z-10">
+                                <p className="text-sm italic">{hod.message}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

@@ -50,6 +50,22 @@ router.post('/login', async (req, res) => {
         role: 'admin'
       });
       console.log('Admin user found:', user ? 'Yes' : 'No');
+    } else if (userType === 'hod') {
+      // For HOD users, search by username and role
+      console.log('HOD login detected, searching by username:', username);
+      user = await UserModel.findOne({
+        username: { $regex: new RegExp('^' + username + '$', 'i') },
+        role: 'hod'
+      });
+      console.log('HOD user found:', user ? 'Yes' : 'No');
+    } else if (userType === 'principal') {
+      // For Principal user, search by username and role
+      console.log('Principal login detected, searching by username:', username);
+      user = await UserModel.findOne({
+        username: { $regex: new RegExp('^' + username + '$', 'i') },
+        role: 'principal'
+      });
+      console.log('Principal user found:', user ? 'Yes' : 'No');
     } else {
       // For other user types, search by username
       user = await UserModel.findOne({ username: { $regex: new RegExp('^' + username + '$', 'i') } });
