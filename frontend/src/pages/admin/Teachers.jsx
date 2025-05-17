@@ -547,16 +547,21 @@ const Teachers = () => {
                           <label htmlFor="department" className="form-label">
                             Department
                           </label>
-                          <input
-                            type="text"
+                          <select
                             name="department"
                             id="department"
                             required
                             className="form-input"
-                            placeholder="Enter department (e.g. CS, Electronics and Telecommunication)"
                             value={formData.department}
                             onChange={handleInputChange}
-                          />
+                          >
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Mechanical">Mechanical</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                            <option value="Science & Humanities">Science & Humanities</option>
+                          </select>
                         </div>
                         <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
                           <div className="flex">
@@ -641,16 +646,21 @@ const Teachers = () => {
                           <label htmlFor="department" className="form-label">
                             Department
                           </label>
-                          <input
-                            type="text"
+                          <select
                             name="department"
                             id="department"
                             required
                             className="form-input"
-                            placeholder="Enter department (e.g. CS, Electronics and Telecommunication)"
                             value={formData.department}
                             onChange={handleInputChange}
-                          />
+                          >
+                            <option value="">Select Department</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Mechanical">Mechanical</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Electronics & Telecommunication">Electronics & Telecommunication</option>
+                            <option value="Science & Humanities">Science & Humanities</option>
+                          </select>
                         </div>
                         <div className="form-group">
                           <label htmlFor="subjects" className="form-label">
