@@ -65,6 +65,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     sparse: true
   },
+  displayOrder: {
+    type: Number,
+    default: 9999, // Default to a high number so new faculty appear at the end
+    sparse: true
+  },
   profileComplete: {
     type: Boolean,
     default: false

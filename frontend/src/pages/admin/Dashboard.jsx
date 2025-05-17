@@ -24,6 +24,7 @@ import CustomButtons from './CustomButtons';
 import PrincipalMessage from './PrincipalMessage';
 import Attendance from './Attendance';
 import Users from './Users';
+import FacultyOrder from './FacultyOrder';
 
 import NotificationManagement from './NotificationManagement';
 import AdmissionDetails from './AdmissionDetails';
@@ -181,6 +182,28 @@ const Dashboard = () => {
                       />
                     </svg>
                     Teachers
+                  </Link>
+                  <Link
+                    to="/admin/faculty-order"
+                    className={`${
+                      isActive('/faculty-order') ? 'bg-primary-700 text-white' : 'text-secondary-100 hover:bg-primary-600'
+                    } group flex items-center px-2 py-3 text-base font-medium rounded-md transition-colors duration-150`}
+                  >
+                    <svg
+                      className="mr-4 h-5 w-5 text-secondary-300"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                      />
+                    </svg>
+                    Faculty Order
                   </Link>
                   <Link
                     to="/admin/users"
@@ -619,6 +642,28 @@ const Dashboard = () => {
                   Teachers
                 </Link>
                 <Link
+                  to="/admin/faculty-order"
+                  className={`${
+                    isActive('/faculty-order') ? 'bg-primary-900 text-white' : 'text-secondary-100 hover:bg-primary-700'
+                  } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+                >
+                  <svg
+                    className="mr-3 h-6 w-6 text-secondary-300"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                    />
+                  </svg>
+                  Faculty Order
+                </Link>
+                <Link
                   to="/admin/users"
                   className={`${
                     isActive('/users') ? 'bg-primary-900 text-white' : 'text-secondary-100 hover:bg-primary-700'
@@ -1035,6 +1080,7 @@ const Dashboard = () => {
                 <Route path="/notifications" element={<NotificationManagement />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admission-details" element={<AdmissionDetails />} />
+                <Route path="/faculty-order" element={<FacultyOrder />} />
                 {/* Grades feature has been removed */}
                 <Route path="/file-manager" element={<FileManager />} />
               </Routes>

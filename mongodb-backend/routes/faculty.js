@@ -23,7 +23,9 @@ router.get('/', async (req, res) => {
     // First try to get teachers from User model with role 'teacher'
     try {
       console.log('Attempting to fetch teachers from User model');
-      faculty = await UserModel.find({ role: 'teacher' }).select('-password -plainTextPassword');
+      faculty = await UserModel.find({ role: 'teacher' })
+        .select('-password -plainTextPassword')
+        .sort({ displayOrder: 1, name: 1 }); // Sort by displayOrder first, then by name
       console.log(`User model returned ${faculty.length} teachers`);
     } catch (err) {
       userModelError = err;
@@ -190,6 +192,65 @@ router.get('/department/:dept', async (req, res) => {
   } catch (error) {
     console.error('Error fetching faculty members by department:', error);
     res.status(500).json({ message: 'Failed to fetch faculty members by department', error: error.message });
+  }
+});
+
+// Update faculty display order (admin only)
+router.put('/update-order', authenticateToken, authorize(['admin']), async (req, res) => {
+  try {
+    console.log('PUT /api/faculty/update-order - Updating faculty display order');
+    const { facultyOrder } = req.body;
+
+    if (!facultyOrder || !Array.isArray(facultyOrder)) {
+      return res.status(400).json({ message: 'Invalid request. Faculty order array is required.' });
+    }
+
+    console.log(`Received order update for ${facultyOrder.length} faculty members`);
+
+    // Process each faculty member in the array
+    const updatePromises = facultyOrder.map(async (item, index) => {
+      if (!item._id) {
+        console.warn(`Skipping item at index ${index} - missing _id`);
+        return null;
+      }
+
+      try {
+        // Update the display order for this faculty member
+        const result = await UserModel.findOneAndUpdate(
+          { _id: item._id, role: 'teacher' },
+          { displayOrder: index },
+          { new: true }
+        ).select('name displayOrder');
+
+        if (!result) {
+          console.warn(`Faculty member not found with ID: ${item._id}`);
+          return null;
+        }
+
+        console.log(`Updated display order for ${result.name} to ${result.displayOrder}`);
+        return result;
+      } catch (updateError) {
+        console.error(`Error updating faculty member ${item._id}:`, updateError);
+        return null;
+      }
+    });
+
+    // Wait for all updates to complete
+    const results = await Promise.all(updatePromises);
+    const successfulUpdates = results.filter(Boolean);
+
+    console.log(`Successfully updated ${successfulUpdates.length} out of ${facultyOrder.length} faculty members`);
+    res.json({
+      message: `Successfully updated display order for ${successfulUpdates.length} faculty members`,
+      updatedFaculty: successfulUpdates
+    });
+  } catch (error) {
+    console.error('Error updating faculty display order:', error);
+    res.status(500).json({
+      message: 'Failed to update faculty display order',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'production' ? null : error.stack
+    });
   }
 });
 
