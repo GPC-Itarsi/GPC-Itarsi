@@ -29,6 +29,9 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border-bottom: 1px solid #1a75ff;
   word-break: break-word; /* Allow links to break on mobile */
+  display: inline-flex;
+  align-items: center;
+  margin: 0 1px;
 }
 
 .notice-content a:hover {
@@ -37,6 +40,23 @@
   text-decoration: none;
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Add a subtle animation to make links more noticeable */
+.notice-content a {
+  animation: subtle-pulse 3s infinite;
+}
+
+@keyframes subtle-pulse {
+  0% {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  50% {
+    box-shadow: 0 1px 6px rgba(26, 117, 255, 0.3);
+  }
+  100% {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
 }
 
 /* Style for links in dark-themed notices (like in the home page) */

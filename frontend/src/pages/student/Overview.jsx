@@ -10,6 +10,7 @@ import DashboardCard from '../../components/dashboard/DashboardCard';
 import DashboardStat from '../../components/dashboard/DashboardStat';
 import DashboardTable from '../../components/dashboard/DashboardTable';
 import UpcomingEvents from '../../components/calendar/UpcomingEvents';
+import NoticeDetail from '../../components/shared/NoticeDetail';
 
 const Overview = () => {
   const { user } = useAuth();
@@ -389,28 +390,11 @@ const Overview = () => {
               <div className="divide-y divide-gray-200">
                 {notices.map((notice) => (
                   <div key={notice._id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <h3 className="text-sm font-medium text-primary-600 truncate mr-2">
-                          {notice.title}
-                        </h3>
-                        {notice.important && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            Important
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex-shrink-0">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {formatDate(notice.createdAt)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-600 notice-content">
-                      {notice.content.length > 150
-                        ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
-                        : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
-                    </div>
+                    <NoticeDetail
+                      notice={notice}
+                      truncate={true}
+                      maxLength={150}
+                    />
                   </div>
                 ))}
               </div>

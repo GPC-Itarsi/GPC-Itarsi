@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import config from '../../config';
 import sanitizeHtml from '../../utils/sanitizeHtml';
+import LinkInsertionTool from '../../components/admin/LinkInsertionTool';
 
 const Notices = () => {
   const [notices, setNotices] = useState([]);
@@ -67,6 +68,39 @@ const Notices = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  // Reference to the content textarea
+  const contentTextareaRef = useRef(null);
+
+  // Handle link insertion
+  const handleLinkInsert = (linkHtml) => {
+    // Get the current cursor position
+    const textarea = contentTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // Insert the link at the cursor position
+    const newContent =
+      formData.content.substring(0, start) +
+      linkHtml +
+      formData.content.substring(end);
+
+    // Update the form data
+    setFormData({
+      ...formData,
+      content: newContent
+    });
+
+    // Focus back on the textarea after a short delay
+    setTimeout(() => {
+      textarea.focus();
+      // Set cursor position after the inserted link
+      const newPosition = start + linkHtml.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 100);
   };
 
   const handleAddNotice = async (e) => {
@@ -342,7 +376,13 @@ const Notices = () => {
                           <label htmlFor="content" className="block text-sm font-medium text-gray-700">
                             Content
                           </label>
+                          <LinkInsertionTool
+                            onInsert={handleLinkInsert}
+                            currentContent={formData.content}
+                            setContent={(newContent) => setFormData({...formData, content: newContent})}
+                          />
                           <textarea
+                            ref={contentTextareaRef}
                             name="content"
                             id="content"
                             rows="4"
@@ -351,8 +391,18 @@ const Notices = () => {
                             value={formData.content}
                             onChange={handleInputChange}
                           ></textarea>
-                          <p className="mt-1 text-xs text-gray-500">
-                            You can add links using HTML: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                            <h4 className="text-sm font-medium text-gray-700 mb-1">Preview:</h4>
+                            <div className="notice-content text-sm p-2 bg-white border border-gray-100 rounded min-h-[50px] max-h-[150px] overflow-y-auto">
+                              {formData.content ? (
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.content) }} />
+                              ) : (
+                                <span className="text-gray-400 italic">No content to preview</span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-2 text-xs text-gray-500">
+                            <span className="font-medium">Tip:</span> Use the link insertion tool above to add clickable links to your notice.
                           </p>
                         </div>
                         <div className="flex items-center">
@@ -452,7 +502,13 @@ const Notices = () => {
                           <label htmlFor="content" className="block text-sm font-medium text-gray-700">
                             Content
                           </label>
+                          <LinkInsertionTool
+                            onInsert={handleLinkInsert}
+                            currentContent={formData.content}
+                            setContent={(newContent) => setFormData({...formData, content: newContent})}
+                          />
                           <textarea
+                            ref={contentTextareaRef}
                             name="content"
                             id="content"
                             rows="4"
@@ -461,8 +517,18 @@ const Notices = () => {
                             value={formData.content}
                             onChange={handleInputChange}
                           ></textarea>
-                          <p className="mt-1 text-xs text-gray-500">
-                            You can add links using HTML: <code>&lt;a href="https://example.com"&gt;Link text&lt;/a&gt;</code>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                            <h4 className="text-sm font-medium text-gray-700 mb-1">Preview:</h4>
+                            <div className="notice-content text-sm p-2 bg-white border border-gray-100 rounded min-h-[50px] max-h-[150px] overflow-y-auto">
+                              {formData.content ? (
+                                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(formData.content) }} />
+                              ) : (
+                                <span className="text-gray-400 italic">No content to preview</span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="mt-2 text-xs text-gray-500">
+                            <span className="font-medium">Tip:</span> Use the link insertion tool above to add clickable links to your notice.
                           </p>
                         </div>
                         <div className="flex items-center">
