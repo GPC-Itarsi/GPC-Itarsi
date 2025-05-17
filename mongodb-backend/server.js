@@ -102,6 +102,7 @@ const adminRoutes = require('./routes/admin');
 const developerRoutes = require('./routes/developer');
 const admissionDetailsRoutes = require('./routes/admission-details');
 const settingsRoutes = require('./routes/settings');
+const passwordResetRoutes = require('./routes/passwordReset');
 
 // Special handling for problematic routes
 app.options('/api/contact-info', (req, res) => {
@@ -233,6 +234,7 @@ app.use('/api/teachers', teacherRoutes);
 app.use('/api/teacher-profile', teacherProfileRoutes);
 app.use('/api/teacher-dashboard', teacherDashboardRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/password-reset', passwordResetRoutes);
 // Apply special CORS middleware for notices route
 const noticesCorsMiddleware = require('./middleware/notices-cors');
 app.use('/api/notices', noticesCorsMiddleware, noticeRoutes);

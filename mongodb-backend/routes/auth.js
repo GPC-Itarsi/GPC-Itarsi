@@ -62,14 +62,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // TEMPORARY: Skip password check for testing
-    console.log('TEMPORARY: Skipping password check for testing');
-    const isMatch = true; // Force password match
-    // const isMatch = await user.comparePassword(password);
-    // if (!isMatch) {
-    //   console.log('Login failed: Invalid password');
-    //   return res.status(401).json({ message: 'Invalid credentials' });
-    // }
+    // Verify password
+    console.log('Verifying password for user:', username);
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      console.log('Login failed: Invalid password');
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
 
     console.log('Login successful for user:', username);
 

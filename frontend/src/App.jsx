@@ -21,6 +21,8 @@ const Faculty = lazy(() => import('./pages/Faculty'))
 const Gallery = lazy(() => import('./pages/Gallery'))
 const About = lazy(() => import('./pages/About'))
 const Login = lazy(() => import('./pages/Login'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+// ResetPassword page is no longer needed as we're using OTP-based reset
 const Downloads = lazy(() => import('./pages/Downloads'))
 const Admission = lazy(() => import('./pages/Admission'))
 
@@ -65,6 +67,7 @@ function App() {
                     <Route path="/downloads" element={<Downloads />} />
                     <Route path="/admission" element={<Admission />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
 
                     {/* Admin route - no authentication required */}
                     <Route path="/admin/*" element={<AdminDashboard />} />
