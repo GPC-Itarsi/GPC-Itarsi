@@ -110,15 +110,51 @@ router.put('/update',
         bio: bio ? 'Provided' : 'Not provided'
       });
 
-      // Update fields
-      if (name) teacher.name = name;
-      if (email) teacher.email = email;
-      if (phone) teacher.phone = phone;
-      if (department) teacher.department = department;
-      if (qualification) teacher.qualification = qualification;
-      if (experience) teacher.experience = experience;
-      if (bio !== undefined) teacher.bio = bio;
-      if (subjects) teacher.subjects = subjects;
+      // Check if there are any actual changes to make
+      let hasChanges = false;
+
+      // Compare each field to see if there are changes
+      if (name && name !== teacher.name) {
+        teacher.name = name;
+        hasChanges = true;
+      }
+      if (email && email !== teacher.email) {
+        teacher.email = email;
+        hasChanges = true;
+      }
+      if (phone && phone !== teacher.phone) {
+        teacher.phone = phone;
+        hasChanges = true;
+      }
+      if (department && department !== teacher.department) {
+        teacher.department = department;
+        hasChanges = true;
+      }
+      if (qualification && qualification !== teacher.qualification) {
+        teacher.qualification = qualification;
+        hasChanges = true;
+      }
+      if (experience && experience !== teacher.experience) {
+        teacher.experience = experience;
+        hasChanges = true;
+      }
+      if (bio !== undefined && bio !== teacher.bio) {
+        teacher.bio = bio;
+        hasChanges = true;
+      }
+      if (subjects && JSON.stringify(subjects) !== JSON.stringify(teacher.subjects)) {
+        teacher.subjects = subjects;
+        hasChanges = true;
+      }
+
+      // If no changes were made, return early
+      if (!hasChanges) {
+        console.log('No changes detected in teacher profile update request');
+        return res.json({
+          message: 'No changes detected',
+          teacher: teacher.toObject()
+        });
+      }
 
       // Mark profile as complete if it was previously incomplete
       // and required fields are now filled

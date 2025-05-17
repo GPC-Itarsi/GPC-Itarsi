@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { getProfileImageUrl, handleImageError } from '../../utils/imageUtils';
+import { getProfileImageUrl } from '../../utils/imageUtils';
 import config from '../../config';
 import { FaEdit, FaSave, FaTimes } from 'react-icons/fa';
 import { isEqual } from 'lodash';
@@ -35,43 +35,340 @@ const Profile = () => {
   const [isFormModified, setIsFormModified] = useState(false);
   const saveButtonRef = useRef(null);
   const lastSubmitTime = useRef(0);
+  const isSaveInProgress = useRef(false);
+  const fetchRequestId = useRef(0);
+  const lastFetchTime = useRef(0);
+  const profileDataVersion = useRef(0);
 
-  // Always fetch the latest teacher profile data
+  // Reset state on component mount
+  useEffect(() => {
+    console.log('Component mounted - resetting state');
+
+    // Reset all state
+    setIsEditing(false);
+    setIsFormModified(false);
+    setError(null);
+    setSuccess('');
+
+    // Ensure we're not in a loading state on mount
+    setLoading(false);
+
+    // Reset all operation flags
+    isSaveInProgress.current = false;
+    lastSubmitTime.current = 0;
+    fetchRequestId.current = 0;
+    lastFetchTime.current = 0;
+    profileDataVersion.current = 0;
+
+    // Create an abort controller for cleanup
+    const controller = new AbortController();
+
+    // Return cleanup function
+    return () => {
+      console.log('Component unmounting - cleaning up');
+
+      // Abort any in-flight requests
+      controller.abort();
+
+      // Reset all flags on unmount to prevent issues on remount
+      isSaveInProgress.current = false;
+      fetchRequestId.current = 0;
+    };
+  }, []);
+
+  // Fetch teacher profile data only when the component mounts or user changes
   useEffect(() => {
     if (user) {
-      fetchTeacherProfile();
-    }
-  }, [user]);
-
-  // Reset form modification state when entering edit mode
-  useEffect(() => {
-    if (isEditing) {
-      // When entering edit mode, reset the form modification state
-      setIsFormModified(false);
-    }
-  }, [isEditing]);
-
-  // Ensure button state is reset when loading state changes
-  useEffect(() => {
-    if (!loading && saveButtonRef.current) {
-      // Ensure the button is properly re-enabled when loading completes
-      saveButtonRef.current.disabled = loading || !isFormModified;
-
-      // If there was an error, make sure to reset focus state
-      if (error) {
-        saveButtonRef.current.blur();
-        setTimeout(() => {
-          if (saveButtonRef.current) {
-            saveButtonRef.current.focus();
-          }
-        }, 100);
+      // Throttle API calls - don't fetch more than once every 5 seconds
+      const now = Date.now();
+      if (now - lastFetchTime.current < 5000) {
+        console.log('Throttling profile fetch - last fetch was less than 5 seconds ago');
+        return;
       }
-    }
-  }, [loading, error, isFormModified]);
 
-  const fetchTeacherProfile = async () => {
+      // Update last fetch time
+      lastFetchTime.current = now;
+
+      // Increment request ID to track the latest request
+      fetchRequestId.current += 1;
+      const currentRequestId = fetchRequestId.current;
+
+      console.log(`Initiating profile fetch with request ID: ${currentRequestId}`);
+      fetchTeacherProfile(currentRequestId);
+    }
+  }, [user]); // Only depend on user, not on any state that might change during normal component operation
+
+  // Handle entering edit mode - reset form data to original values
+  const enterEditMode = useCallback(() => {
+    console.log('Entering edit mode');
+
+    // Reset any previous errors or success messages
+    setError(null);
+    setSuccess('');
+
+    // First set the form data to match the original data
+    if (originalFormData) {
+      console.log('Setting form data to original values:', originalFormData);
+      setFormData({...originalFormData});
+    } else {
+      console.warn('Original form data is not available, cannot reset form');
+    }
+
+    // Then set editing mode to true
+    setIsFormModified(false);
+    setIsEditing(true);
+
+    // Reset save operation flags
+    isSaveInProgress.current = false;
+
+    console.log('Edit mode activated');
+  }, [originalFormData]);
+
+  // Handle exiting edit mode without saving
+  const cancelEditing = useCallback(() => {
+    console.log('Canceling edit mode');
+
+    // Reset any previous errors or success messages
+    setError(null);
+    setSuccess('');
+
+    // Reset form data to original values
+    if (originalFormData) {
+      console.log('Resetting form data to original values');
+      setFormData({...originalFormData});
+    } else {
+      console.warn('Original form data is not available, cannot reset form');
+    }
+
+    // Exit edit mode
+    setIsFormModified(false);
+    setIsEditing(false);
+
+    // Reset save operation flags
+    isSaveInProgress.current = false;
+
+    console.log('Edit mode canceled');
+  }, [originalFormData]);
+
+  // Validate form data
+  const validateForm = useCallback((data) => {
+    // Clear any existing errors
+    setError(null);
+
+    // Required fields validation
+    if (!data.name || data.name.trim() === '') {
+      setError('Full Name is required');
+      return false;
+    }
+
+    if (!data.department || data.department.trim() === '') {
+      setError('Department is required');
+      return false;
+    }
+
+    if (!data.qualification || data.qualification.trim() === '') {
+      setError('Qualification is required to complete your profile');
+      return false;
+    }
+
+    if (!data.experience || data.experience.trim() === '') {
+      setError('Experience is required to complete your profile');
+      return false;
+    }
+
+    // Email validation if provided
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    // Phone validation if provided (simple format check)
+    if (data.phone && !/^[0-9+\-\s()]{10,15}$/.test(data.phone)) {
+      setError('Please enter a valid phone number');
+      return false;
+    }
+
+    return true;
+  }, []);
+
+  // Dedicated function for saving profile data
+  const handleProfileSave = useCallback(async () => {
+    console.log('handleProfileSave called');
+
+    // Check if a save operation is already in progress
+    if (isSaveInProgress.current) {
+      console.log('Save operation already in progress, skipping duplicate call');
+      return;
+    }
+
+    // Safety check to prevent auto-triggering on component mount
+    if (!saveButtonRef.current) {
+      console.log('Save button ref not available, likely auto-triggered');
+      return;
+    }
+
+    // Double-check if we're in edit mode
+    if (!isEditing) {
+      console.log('Not in edit mode, skipping save');
+      return;
+    }
+
+    // Double-check if there are changes to save
+    if (!isFormModified) {
+      console.log('No changes detected, skipping save');
+      return;
+    }
+
+    // Prevent multiple rapid submissions (throttle to once per second)
+    const now = Date.now();
+    if (now - lastSubmitTime.current < 1000) {
+      console.log('Save throttled, please wait');
+      return;
+    }
+
+    // Set the flag to indicate a save operation is in progress
+    isSaveInProgress.current = true;
+
+    lastSubmitTime.current = now;
+
+    // Validate form data before saving
+    if (!validateForm(formData)) {
+      console.log('Form validation failed');
+      return;
+    }
+
+    // Create a controller for request timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
     try {
       setLoading(true);
+      setError(null);
+      setSuccess('');
+
+      const token = localStorage.getItem('token');
+
+      console.log('Saving profile with data:', formData);
+
+      const response = await axios.put(
+        `${config.apiUrl}/api/teacher-profile/update`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          signal: controller.signal
+        }
+      );
+
+      console.log('Profile update response:', response.data);
+
+      // Update teacher data with the response
+      const updatedTeacher = response.data.teacher;
+      setTeacherData(updatedTeacher);
+
+      // Update user profile in context to ensure data consistency
+      // Only update specific fields that won't trigger a re-render of this component
+      const minimalProfileUpdate = {
+        profilePicture: updatedTeacher.profilePicture
+      };
+
+      if (JSON.stringify(user?.profilePicture) !== JSON.stringify(updatedTeacher.profilePicture)) {
+        console.log('Updating profile picture in user context');
+        updateProfile(minimalProfileUpdate);
+      }
+
+      // Show appropriate success message based on profile completion
+      if (teacherData?.profileComplete === false && updatedTeacher.profileComplete === true) {
+        setSuccess('Profile completed successfully! Thank you for providing your details.');
+      } else {
+        setSuccess('Profile updated successfully!');
+      }
+
+      // Exit edit mode
+      setIsEditing(false);
+
+      // Reset form modification state
+      setIsFormModified(false);
+
+      // Update original form data to match current data
+      setOriginalFormData({...formData});
+
+      // Don't automatically refresh the profile data after saving
+      // This prevents potential save loops
+      console.log('Profile updated successfully, not refreshing to prevent save loops');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+
+      // Handle timeout errors
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        setError('Request timed out. Please try again.');
+      } else {
+        setError(
+          error.response?.data?.message ||
+          error.response?.data?.errors?.[0]?.msg ||
+          'Failed to update profile. Please try again.'
+        );
+      }
+    } finally {
+      // Always clear the timeout and reset loading state
+      clearTimeout(timeoutId);
+      setLoading(false);
+
+      // Reset the save in progress flag
+      isSaveInProgress.current = false;
+
+      // Ensure the button is re-enabled
+      if (saveButtonRef.current) {
+        saveButtonRef.current.disabled = false;
+      }
+
+      console.log('Save operation completed, flags reset');
+    }
+  }, [formData, isFormModified, isEditing, teacherData, updateProfile, validateForm]);
+
+  // Handle save button click - this is the ONLY place where profile save should be called
+  const handleSaveClick = useCallback((e) => {
+    if (e) {
+      e.preventDefault(); // Prevent default form submission
+    }
+    console.log('Save button clicked');
+
+    // Prevent multiple rapid clicks (debounce)
+    if (saveButtonRef.current) {
+      saveButtonRef.current.disabled = true;
+
+      // Re-enable after a short delay to prevent accidental double-clicks
+      setTimeout(() => {
+        if (saveButtonRef.current) {
+          saveButtonRef.current.disabled = false;
+        }
+      }, 2000); // 2 seconds debounce
+    }
+
+    // Only proceed if in edit mode, there are actual changes, and not already loading
+    if (isEditing && isFormModified && !loading) {
+      console.log('Proceeding with save');
+      handleProfileSave();
+    } else {
+      console.log('Save button clicked but not in edit mode, form not modified, or already loading');
+    }
+  }, [isEditing, isFormModified, loading, handleProfileSave]);
+
+  const fetchTeacherProfile = async (requestId) => {
+    // Skip if no request ID provided (should never happen)
+    if (!requestId) {
+      console.warn('No request ID provided for fetchTeacherProfile, skipping');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Reset save operation flags
+      isSaveInProgress.current = false;
+
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -80,19 +377,47 @@ const Profile = () => {
         return;
       }
 
-      console.log('Fetching teacher profile data...');
+      console.log(`Fetching teacher profile data (request ID: ${requestId})...`);
+
+      // Create a controller for request cancellation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
       const response = await axios.get(`${config.apiUrl}/api/teachers/profile`, {
         headers: {
           Authorization: `Bearer ${token}`
-        }
+        },
+        signal: controller.signal
       });
 
-      console.log('Teacher profile data received:', response.data);
+      // Clear the timeout
+      clearTimeout(timeoutId);
+
+      // Check if this is still the latest request
+      if (requestId !== fetchRequestId.current) {
+        console.log(`Ignoring response for outdated request ID: ${requestId}, current is: ${fetchRequestId.current}`);
+        return;
+      }
+
+      console.log(`Teacher profile data received (request ID: ${requestId}):`, response.data);
+
+      // Check if the data has actually changed by comparing with a hash or version
+      const dataHash = JSON.stringify(response.data);
+      const newVersion = dataHash.length; // Simple "version" based on data size
+
+      if (newVersion === profileDataVersion.current) {
+        console.log('Profile data unchanged, skipping update');
+        setLoading(false);
+        return;
+      }
+
+      // Update the version
+      profileDataVersion.current = newVersion;
 
       // Update the teacher data state
       setTeacherData(response.data);
 
-      // Create form data object
+      // Create form data object with default values for all fields
       const newFormData = {
         name: response.data.name || '',
         email: response.data.email || '',
@@ -100,33 +425,68 @@ const Profile = () => {
         department: response.data.department || '',
         qualification: response.data.qualification || '',
         experience: response.data.experience || '',
-        subjects: response.data.subjects || [],
+        subjects: Array.isArray(response.data.subjects) ? [...response.data.subjects] : [],
         bio: response.data.bio || ''
       };
+
+      console.log('Setting up form data:', newFormData);
 
       // Update the form data
       setFormData(newFormData);
 
+      // Create a deep copy for the original form data to ensure they're separate objects
+      const originalFormDataCopy = JSON.parse(JSON.stringify(newFormData));
+
       // Store the original form data for comparison
-      setOriginalFormData(newFormData);
+      setOriginalFormData(originalFormDataCopy);
 
       // Reset form modification state
       setIsFormModified(false);
 
+      // Exit edit mode if we were in it
+      setIsEditing(false);
+
       // Update the user context with the latest teacher data
       // This ensures the data is available throughout the application
-      updateProfile(response.data);
+      // IMPORTANT: We're disabling this to prevent circular updates
+      // updateProfile(response.data);
 
-      // If profile is not complete, automatically enter edit mode
+      // Instead, only update specific fields that won't trigger a re-render of this component
+      const minimalProfileUpdate = {
+        profilePicture: response.data.profilePicture
+      };
+
+      if (JSON.stringify(user?.profilePicture) !== JSON.stringify(response.data.profilePicture)) {
+        console.log('Updating profile picture in user context');
+        updateProfile(minimalProfileUpdate);
+      }
+
+      // If profile is not complete, show a notification but don't automatically enter edit mode
+      // This prevents the auto-save loop
       if (response.data.profileComplete === false) {
-        setIsEditing(true);
+        console.log('Profile is incomplete, but not automatically entering edit mode');
+        // We'll show a notification instead in the UI
       }
 
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching teacher profile:', error);
-      setError(error.response?.data?.message || 'Failed to load profile');
+      // Check if this is still the latest request
+      if (requestId !== fetchRequestId.current) {
+        console.log(`Ignoring error for outdated request ID: ${requestId}, current is: ${fetchRequestId.current}`);
+        return;
+      }
+
+      console.error(`Error fetching teacher profile (request ID: ${requestId}):`, error);
+
+      // Only set error for network issues, not for aborted requests
+      if (error.name !== 'AbortError' && error.code !== 'ECONNABORTED') {
+        setError(error.response?.data?.message || 'Failed to load profile');
+      }
+
       setLoading(false);
+
+      // Reset save operation flags on error
+      isSaveInProgress.current = false;
     }
   };
 
@@ -197,6 +557,12 @@ const Profile = () => {
     }
   };
 
+  // Handle image loading errors
+  const handleImageError = (e) => {
+    console.log('Image failed to load, using default image');
+    e.target.src = '/images/default-profile.png'; // Fallback to default image
+  };
+
   const handleUpdateProfilePicture = async () => {
     if (!profileImage) {
       setError('Please select an image to upload');
@@ -228,17 +594,20 @@ const Profile = () => {
       console.log('Profile picture update response:', response.data);
 
       // Update user profile in context with the new profile picture
-      updateProfile({ profilePicture: response.data.profilePicture });
+      // Only update if the profile picture has actually changed
+      if (JSON.stringify(user?.profilePicture) !== JSON.stringify(response.data.profilePicture)) {
+        console.log('Updating profile picture in user context');
+        updateProfile({ profilePicture: response.data.profilePicture });
+      }
 
       setSuccess('Profile picture updated successfully!');
       setProfileImage(null);
       setPreviewUrl('');
       setLoading(false);
 
-      // Refresh teacher profile to get all updated data
-      setTimeout(() => {
-        fetchTeacherProfile();
-      }, 500);
+      // Don't automatically refresh the profile data after updating picture
+      // This prevents potential save loops
+      console.log('Profile picture updated successfully, not refreshing to prevent save loops');
     } catch (error) {
       console.error('Error updating profile picture:', error);
       setError(error.response?.data?.message || 'Failed to update profile picture');
@@ -246,193 +615,107 @@ const Profile = () => {
     }
   };
 
+
+
   // Check if form data has been modified from original
-  const checkFormModified = (updatedFormData) => {
-    if (!originalFormData) return false;
-    return !isEqual(updatedFormData, originalFormData);
-  };
-
-  // Validate form data
-  const validateForm = (data) => {
-    // Clear any existing errors
-    setError(null);
-
-    // Required fields validation
-    if (!data.name || data.name.trim() === '') {
-      setError('Full Name is required');
+  const checkFormModified = useCallback(() => {
+    if (!originalFormData) {
+      console.warn('Original form data is not available, cannot check for modifications');
       return false;
     }
 
-    if (!data.department || data.department.trim() === '') {
-      setError('Department is required');
-      return false;
+    // Deep comparison using lodash isEqual
+    const isModified = !isEqual(formData, originalFormData);
+
+    // Only log when the modification state changes to avoid console spam
+    if (isModified !== isFormModified) {
+      console.log('Form modification check:', isModified);
+      if (isModified) {
+        console.log('Changes detected:', {
+          name: formData.name !== originalFormData.name ?
+            { original: originalFormData.name, new: formData.name } : 'unchanged',
+          email: formData.email !== originalFormData.email ?
+            { original: originalFormData.email, new: formData.email } : 'unchanged',
+          phone: formData.phone !== originalFormData.phone ?
+            { original: originalFormData.phone, new: formData.phone } : 'unchanged',
+          department: formData.department !== originalFormData.department ?
+            { original: originalFormData.department, new: formData.department } : 'unchanged',
+          qualification: formData.qualification !== originalFormData.qualification ?
+            { original: originalFormData.qualification, new: formData.qualification } : 'unchanged',
+          experience: formData.experience !== originalFormData.experience ?
+            { original: originalFormData.experience, new: formData.experience } : 'unchanged',
+          bio: formData.bio !== originalFormData.bio ?
+            { original: originalFormData.bio, new: formData.bio } : 'unchanged',
+          subjects: !isEqual(formData.subjects, originalFormData.subjects) ?
+            { original: originalFormData.subjects, new: formData.subjects } : 'unchanged'
+        });
+      }
+      setIsFormModified(isModified);
     }
 
-    if (!data.qualification || data.qualification.trim() === '') {
-      setError('Qualification is required to complete your profile');
-      return false;
-    }
+    return isModified;
+  }, [formData, originalFormData, isFormModified]);
 
-    if (!data.experience || data.experience.trim() === '') {
-      setError('Experience is required to complete your profile');
-      return false;
-    }
+  // Update form modification state whenever form data changes
+  // Use a debounced version to prevent too many checks
+  useEffect(() => {
+    if (!isEditing) return;
 
-    // Email validation if provided
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      setError('Please enter a valid email address');
-      return false;
-    }
+    // Debounce the check to avoid excessive processing
+    const timeoutId = setTimeout(() => {
+      checkFormModified();
+    }, 300); // 300ms debounce
 
-    // Phone validation if provided (simple format check)
-    if (data.phone && !/^[0-9+\-\s()]{10,15}$/.test(data.phone)) {
-      setError('Please enter a valid phone number');
-      return false;
-    }
+    // Clean up the timeout on unmount or when dependencies change
+    return () => clearTimeout(timeoutId);
+  }, [formData, isEditing, checkFormModified]);
 
-    return true;
-  };
-
-  const handleFormChange = (e) => {
+  // Handle form field changes
+  const handleFormChange = useCallback((e) => {
     const { name, value } = e.target;
-    const updatedFormData = {
-      ...formData,
-      [name]: value
-    };
+
+    // Only update if the value has actually changed
+    if (formData[name] === value) {
+      return;
+    }
 
     // Clear error when user starts typing
     if (error) {
       setError(null);
     }
 
-    setFormData(updatedFormData);
-    setIsFormModified(checkFormModified(updatedFormData));
-  };
+    // Update the form data
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }, [formData, error]);
 
-  const handleSubjectsChange = (e) => {
+  // Handle subjects field changes
+  const handleSubjectsChange = useCallback((e) => {
     const subjectsArray = e.target.value
       ? e.target.value.split(',').map(subject => subject.trim())
       : [];
 
-    const updatedFormData = {
-      ...formData,
-      subjects: subjectsArray
-    };
+    // Check if subjects have actually changed
+    const currentSubjectsStr = formData.subjects.join(', ');
+    if (currentSubjectsStr === e.target.value) {
+      return;
+    }
 
     // Clear error when user starts typing
     if (error) {
       setError(null);
     }
 
-    setFormData(updatedFormData);
-    setIsFormModified(checkFormModified(updatedFormData));
-  };
+    // Update the form data
+    setFormData(prev => ({
+      ...prev,
+      subjects: subjectsArray
+    }));
+  }, [formData, error]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    // If no changes were made, don't submit
-    if (!isFormModified) {
-      console.log('No changes detected, skipping submission');
-      return;
-    }
-
-    // Prevent multiple rapid submissions (throttle to once per second)
-    const now = Date.now();
-    if (now - lastSubmitTime.current < 1000) {
-      console.log('Submission throttled, please wait');
-      return;
-    }
-    lastSubmitTime.current = now;
-
-    // Validate form data before submission
-    if (!validateForm(formData)) {
-      // Error is already set by validateForm
-      // Focus on the save button to ensure it's not stuck
-      if (saveButtonRef.current) {
-        saveButtonRef.current.blur();
-        setTimeout(() => saveButtonRef.current.focus(), 100);
-      }
-      return;
-    }
-
-    // Create a controller for request timeout handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-    try {
-      setLoading(true);
-      setError(null);
-      setSuccess('');
-
-      const token = localStorage.getItem('token');
-
-      console.log('Submitting profile update with data:', formData);
-
-      const response = await axios.put(
-        `${config.apiUrl}/api/teacher-profile/update`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          },
-          signal: controller.signal
-        }
-      );
-
-      console.log('Profile update response:', response.data);
-
-      // Update teacher data with the response
-      const updatedTeacher = response.data.teacher;
-      setTeacherData(updatedTeacher);
-
-      // Update user profile in context to ensure data consistency
-      updateProfile(updatedTeacher);
-
-      // Show appropriate success message based on profile completion
-      if (teacherData?.profileComplete === false && updatedTeacher.profileComplete === true) {
-        setSuccess('Profile completed successfully! Thank you for providing your details.');
-      } else {
-        setSuccess('Profile updated successfully!');
-      }
-
-      // Exit edit mode
-      setIsEditing(false);
-
-      // Reset form modification state
-      setIsFormModified(false);
-
-      // Update original form data to match current data
-      setOriginalFormData({...formData});
-
-      // Refresh the teacher profile data to ensure we have the latest data
-      setTimeout(() => {
-        fetchTeacherProfile();
-      }, 500);
-    } catch (error) {
-      console.error('Error updating profile:', error);
-
-      // Handle timeout errors
-      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
-        setError('Request timed out. Please try again.');
-      } else {
-        setError(
-          error.response?.data?.message ||
-          error.response?.data?.errors?.[0]?.msg ||
-          'Failed to update profile. Please try again.'
-        );
-      }
-    } finally {
-      // Always clear the timeout and reset loading state
-      clearTimeout(timeoutId);
-      setLoading(false);
-
-      // Ensure the button is re-enabled
-      if (saveButtonRef.current) {
-        saveButtonRef.current.disabled = false;
-      }
-    }
-  };
 
   return (
     <div>
@@ -465,7 +748,7 @@ const Profile = () => {
       {/* Profile Completion Notification */}
       {teacherData && teacherData.profileComplete === false && (
         <div className="mt-6 bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded relative
-          shadow-lg transition-all duration-500 animate-pulse"
+          shadow-lg transition-all duration-500"
           style={{
             boxShadow: '0 0 15px rgba(0, 0, 255, 0.2)',
             background: 'linear-gradient(to right, rgba(219, 234, 254, 0.9), rgba(191, 219, 254, 0.9))'
@@ -479,8 +762,16 @@ const Profile = () => {
             </div>
             <div className="ml-3">
               <p className="text-sm font-medium">
-                Welcome! Please complete your profile by filling in your qualification, experience, and other details.
+                Welcome! Your profile is incomplete. Please click the "Edit Profile" button to complete your profile by filling in your qualification, experience, and other details.
               </p>
+              {!isEditing && (
+                <button
+                  onClick={enterEditMode}
+                  className="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Edit Profile
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -628,7 +919,7 @@ const Profile = () => {
               </div>
               {!isEditing ? (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={enterEditMode}
                   className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
                   bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600
                   transition-all duration-300 transform hover:scale-105
@@ -641,76 +932,15 @@ const Profile = () => {
                   <FaEdit className="mr-2 animate-pulse" /> Edit Profile
                 </button>
               ) : (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => {
-                      // Reset form data to original values when canceling
-                      if (originalFormData) {
-                        setFormData({...originalFormData});
-                      }
-                      setIsFormModified(false);
-                      setIsEditing(false);
-                    }}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
-                    text-gray-700 bg-white hover:bg-gray-50
-                    transition-all duration-300 transform hover:scale-105
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    <FaTimes className="mr-2" /> Cancel
-                  </button>
-                  <button
-                    form="edit-profile-form"
-                    type="submit"
-                    ref={saveButtonRef}
-                    className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
-                    transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-                    ${loading
-                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500 cursor-wait'
-                      : isFormModified
-                        ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-105 active:from-green-700 active:to-blue-700'
-                        : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'}`}
-                    style={{
-                      boxShadow: loading
-                        ? '0 0 15px rgba(255, 165, 0, 0.5)'
-                        : isFormModified
-                          ? '0 0 15px rgba(0, 255, 0, 0.3)'
-                          : 'none',
-                      textShadow: isFormModified ? '0 0 5px rgba(255, 255, 255, 0.5)' : 'none',
-                      opacity: isFormModified || loading ? '1' : '0.7',
-                      position: 'relative',
-                      overflow: 'hidden'
-                    }}
-                    disabled={loading || !isFormModified}
-                    title={!isFormModified ? "No changes to save" : loading ? "Saving changes..." : "Save changes"}
-                  >
-                    {loading ? (
-                      <>
-                        <div className="absolute inset-0 overflow-hidden">
-                          <div className="animate-pulse-bg bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
-                               style={{
-                                 position: 'absolute',
-                                 top: 0,
-                                 left: '-100%',
-                                 right: 0,
-                                 bottom: 0,
-                                 width: '200%',
-                                 animation: 'pulse-bg 1.5s infinite'
-                               }}></div>
-                        </div>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <FaSave className={`mr-2 ${isFormModified ? 'animate-pulse' : ''}`} />
-                        Save
-                      </>
-                    )}
-                  </button>
-                </div>
+                <button
+                  onClick={cancelEditing}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium
+                  text-gray-700 bg-white hover:bg-gray-50
+                  transition-all duration-300 transform hover:scale-105
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <FaTimes className="mr-2" /> Cancel
+                </button>
               )}
             </div>
 
@@ -781,7 +1011,10 @@ const Profile = () => {
               </div>
             ) : (
               <div className="border-t border-gray-200 p-4 bg-gradient-to-b from-gray-50 to-white">
-                <form id="edit-profile-form" onSubmit={handleSubmit}>
+                <div
+                  id="edit-profile-form"
+                  className="profile-form-container"
+                >
                   <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                     <div className="col-span-1 sm:col-span-2">
                       <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -937,7 +1170,46 @@ const Profile = () => {
                       ></textarea>
                     </div>
                   </div>
-                </form>
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={handleSaveClick}
+                      ref={saveButtonRef}
+                      className={`inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+                      transition-all duration-300 transform focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                      ${loading
+                        ? 'bg-gradient-to-r from-yellow-500 to-orange-500 cursor-wait'
+                        : isFormModified
+                          ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover:scale-105 active:from-green-700 active:to-blue-700'
+                          : 'bg-gradient-to-r from-gray-400 to-gray-500 cursor-not-allowed'}`}
+                      style={{
+                        boxShadow: loading
+                          ? '0 0 15px rgba(255, 165, 0, 0.5)'
+                          : isFormModified
+                            ? '0 0 15px rgba(0, 255, 0, 0.3)'
+                            : 'none',
+                        textShadow: isFormModified ? '0 0 5px rgba(255, 255, 255, 0.5)' : 'none',
+                        opacity: isFormModified || loading ? '1' : '0.7',
+                      }}
+                      disabled={loading || !isFormModified || !isEditing}
+                    >
+                      {loading ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <FaSave className={`mr-2 ${isFormModified ? 'animate-pulse' : ''}`} />
+                          Save
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
