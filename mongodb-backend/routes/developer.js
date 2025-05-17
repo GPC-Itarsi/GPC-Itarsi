@@ -313,27 +313,19 @@ router.get('/s', async (req, res) => {
   }
 });
 
-// Get all users with passwords (developer only)
+// Get all users (developer only)
 router.get('/users', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
-    console.log('Fetching all users with passwords for developer');
+    console.log('Fetching all users for developer');
 
-    // Include plainTextPassword field in the query results
-    // In MongoDB, we can't mix inclusion and exclusion in the same projection (except for _id)
-    // So we'll just exclude the password field and include everything else
-    const users = await User.find({}, {
-      password: 0 // Exclude only the hashed password for security
-    });
+    // Exclude password field for security
+    const users = await User.find({}).select('-password');
 
     console.log(`Found ${users.length} users`);
 
-    // Log if any users have plainTextPassword field
-    const usersWithPassword = users.filter(user => user.plainTextPassword);
-    console.log(`${usersWithPassword.length} users have plainTextPassword field`);
-
     res.json(users);
   } catch (error) {
-    console.error('Error fetching users with passwords:', error);
+    console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Failed to fetch users', error: error.message });
   }
 });
@@ -433,62 +425,37 @@ router.delete('/users/:id', authenticateToken, authorize(['developer']), async (
   }
 });
 
-// Update plaintext passwords for existing users (developer only)
-router.post('/update-plaintext-passwords', authenticateToken, authorize(['developer']), async (req, res) => {
+// Reset user password (developer only)
+router.post('/reset-user-password/:id', authenticateToken, authorize(['developer']), async (req, res) => {
   try {
-    console.log('Starting plaintext password update process');
+    const userId = req.params.id;
+    const { newPassword } = req.body;
 
-    // Get all users - explicitly include the password field which we need for reference
-    const users = await User.find().select('+password');
-    console.log(`Found ${users.length} users to process`);
-
-    let updatedCount = 0;
-    let errorCount = 0;
-
-    // Default passwords based on role
-    const defaultPasswords = {
-      admin: 'admin123',
-      teacher: 'teacher123',
-      student: '1234',
-      developer: 'developer123'
-    };
-
-    // Update each user with a plaintext password
-    for (const user of users) {
-      try {
-        // Always update the plaintext password to ensure it's set correctly
-        // Use default password based on role if we can't determine the actual password
-        const defaultPassword = defaultPasswords[user.role] || '1234';
-
-        // Set the plaintext password directly
-        user.plainTextPassword = defaultPassword;
-
-        // Save without validation to avoid any validation errors
-        await User.findByIdAndUpdate(
-          user._id,
-          { $set: { plainTextPassword: defaultPassword } },
-          { new: true, runValidators: false }
-        );
-
-        console.log(`Updated plaintext password for user: ${user.username} (${user._id})`);
-        updatedCount++;
-      } catch (userError) {
-        console.error(`Error updating user ${user.username}:`, userError);
-        errorCount++;
-      }
+    if (!newPassword) {
+      return res.status(400).json({ message: 'New password is required' });
     }
 
-    console.log(`Password update complete. Updated: ${updatedCount}, Errors: ${errorCount}`);
+    // Find user
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    console.log(`Password reset for user: ${user.username} (${user._id})`);
 
     res.json({
-      message: 'Plaintext passwords updated successfully',
-      updatedCount,
-      errorCount,
-      totalUsers: users.length
+      message: 'Password reset successfully',
+      userId: user._id,
+      username: user.username
     });
   } catch (error) {
-    console.error('Error updating plaintext passwords:', error);
-    res.status(500).json({ message: 'Failed to update plaintext passwords', error: error.message });
+    console.error('Error resetting user password:', error);
+    res.status(500).json({ message: 'Failed to reset user password', error: error.message });
   }
 });
 

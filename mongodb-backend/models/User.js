@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const UserSchema = new mongoose.Schema({
   username: {
@@ -13,10 +14,7 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  plainTextPassword: {
-    type: String,
-    select: true // Include in query results by default for developer dashboard
-  },
+  // Removed plainTextPassword field for security
   name: {
     type: String,
     required: true
@@ -98,6 +96,24 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: function() { return this.role === 'developer'; }
   },
+  // Password reset fields
+  resetPasswordToken: {
+    type: String,
+    sparse: true
+  },
+  resetPasswordExpires: {
+    type: Date,
+    sparse: true
+  },
+  // OTP for password reset
+  resetOTP: {
+    type: String,
+    sparse: true
+  },
+  resetOTPExpires: {
+    type: Date,
+    sparse: true
+  },
   // Common fields
   createdAt: {
     type: Date,
@@ -115,11 +131,6 @@ UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
 
   try {
-    // Always store the plaintext password for administrative purposes
-    // This ensures the plainTextPassword field is updated whenever the password is changed
-    this.plainTextPassword = this.password;
-    console.log(`Storing plaintext password for user ${this.username}: ${this.plainTextPassword}`);
-
     // Generate a salt
     const salt = await bcrypt.genSalt(10);
     // Hash the password along with the new salt
@@ -134,6 +145,40 @@ UserSchema.pre('save', async function(next) {
 // Method to compare password for login
 UserSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to generate password reset token
+UserSchema.methods.generatePasswordResetToken = function() {
+  // Generate a random token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+
+  // Hash the token and set it to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set token expiry time (1 hour from now)
+  this.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+  return resetToken;
+};
+
+// Method to generate OTP for password reset
+UserSchema.methods.generatePasswordResetOTP = function() {
+  // Generate a 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Hash the OTP and store it
+  this.resetOTP = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+
+  // Set OTP expiry time (10 minutes from now)
+  this.resetOTPExpires = Date.now() + 600000; // 10 minutes
+
+  return otp;
 };
 
 module.exports = mongoose.model('User', UserSchema);
