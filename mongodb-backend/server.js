@@ -79,6 +79,18 @@ if (!fs.existsSync(publicDir)) {
   fs.mkdirSync(publicDir, { recursive: true });
 }
 
+// Import utilities
+const { getCacheStats, resetCacheStats } = require('./utils/cache');
+const { getMetrics, resetMetrics, configure: configurePerformance } = require('./utils/performance');
+const { authenticateToken, authorize } = require('./middleware/auth');
+
+// Configure performance monitoring
+configurePerformance({
+  slowQueryThreshold: 200, // ms
+  maxSlowQueries: 50,
+  enabled: true
+});
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -259,6 +271,46 @@ app.use('/api/settings', settingsRoutes);
 // Root route
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to GPC Itarsi MongoDB Backend API' });
+});
+
+// Performance monitoring route (admin only)
+app.get('/api/performance', authenticateToken, authorize(['admin', 'developer']), (req, res) => {
+  try {
+    // Get performance metrics
+    const metrics = getMetrics();
+
+    // Get cache statistics
+    const cacheStats = getCacheStats();
+
+    // Update cache metrics in performance metrics
+    metrics.cache = cacheStats;
+
+    res.json({
+      metrics,
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      memory: process.memoryUsage()
+    });
+  } catch (error) {
+    console.error('Error fetching performance metrics:', error);
+    res.status(500).json({ message: 'Error fetching performance metrics' });
+  }
+});
+
+// Reset performance metrics (admin only)
+app.post('/api/performance/reset', authenticateToken, authorize(['admin', 'developer']), (req, res) => {
+  try {
+    // Reset performance metrics
+    resetMetrics();
+
+    // Reset cache statistics
+    resetCacheStats();
+
+    res.json({ message: 'Performance metrics reset successfully' });
+  } catch (error) {
+    console.error('Error resetting performance metrics:', error);
+    res.status(500).json({ message: 'Error resetting performance metrics' });
+  }
 });
 
 // Handle OPTIONS requests for all routes

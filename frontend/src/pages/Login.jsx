@@ -29,10 +29,37 @@ const Login = () => {
       setLoading(true);
       setError('');
 
+      // Show loading state in the button
+      const loginButton = document.getElementById('login-button');
+      if (loginButton) {
+        loginButton.disabled = true;
+        loginButton.innerHTML = '<span class="spinner"></span> Logging in...';
+      }
+
       console.log('Attempting login with:', { username, password });
 
-      // Use the login function from AuthContext
-      await login(username, password);
+      // Use the login function from AuthContext with retry mechanism
+      let loginAttempts = 0;
+      const maxAttempts = 2;
+      let loginSuccess = false;
+
+      while (loginAttempts < maxAttempts && !loginSuccess) {
+        try {
+          await login(username, password);
+          loginSuccess = true;
+        } catch (loginError) {
+          loginAttempts++;
+          console.error(`Login attempt ${loginAttempts} failed:`, loginError);
+
+          if (loginAttempts < maxAttempts) {
+            console.log(`Retrying login (attempt ${loginAttempts + 1} of ${maxAttempts})...`);
+            // Wait a bit before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          } else {
+            throw loginError; // Re-throw the error after all attempts fail
+          }
+        }
+      }
 
       // Get the user from localStorage (it's set by the login function)
       const token = localStorage.getItem('token');
@@ -73,7 +100,28 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Login failed. Please check your username and password and try again.');
+
+      // Reset button state
+      const loginButton = document.getElementById('login-button');
+      if (loginButton) {
+        loginButton.disabled = false;
+        loginButton.innerHTML = 'Sign in';
+      }
+
+      // Provide more specific error messages based on the error
+      if (error.message.includes('Network Error')) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else if (error.message.includes('timeout')) {
+        setError('Request timed out. The server is taking too long to respond. Please try again later.');
+      } else if (error.response && error.response.status === 401) {
+        setError('Invalid username or password. Please check your credentials and try again.');
+      } else if (error.response && error.response.status === 403) {
+        setError('Access denied. You do not have permission to log in with these credentials.');
+      } else if (error.response && error.response.status >= 500) {
+        setError('Server error. Please try again later or contact support.');
+      } else {
+        setError('Login failed. Please check your username and password and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -137,6 +185,7 @@ const Login = () => {
 
             <div>
               <button
+                id="login-button"
                 type="submit"
                 disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-primary-400/30 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 transition-colors duration-200"

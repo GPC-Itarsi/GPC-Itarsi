@@ -1,54 +1,122 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const MockUser = require('../models/MockUser');
+const { authCache, userCache, getUserById, cacheUser } = require('../utils/cache');
+const { measureExecutionTime, recordTokenVerification } = require('../utils/performance');
 
 // Always use the real User model since we're connected to MongoDB Atlas
 const UserModel = User;
 
 // Authentication middleware
 const authenticateToken = async (req, res, next) => {
-  console.log('Authentication check for path:', req.path);
-  console.log('Request headers:', req.headers);
+  const startTime = performance.now();
+  const path = req.path;
   const authHeader = req.headers['authorization'];
-  console.log('Authorization header:', authHeader);
   const token = authHeader && authHeader.split(' ')[1];
-  console.log('Extracted token:', token ? `${token.substring(0, 10)}...` : 'none');
+
+  // Only log detailed info for non-common paths to reduce log noise
+  const isCommonPath = path.includes('/api/auth/me') || path.includes('/api/overview');
+
+  if (!isCommonPath) {
+    console.log('Authentication check for path:', path);
+    // Reduce logging of sensitive data
+    console.log('Authorization header:', authHeader ? `${authHeader.substring(0, 15)}...` : 'none');
+    console.log('Extracted token:', token ? `${token.substring(0, 10)}...` : 'none');
+  }
 
   if (!token) {
-    console.log('No token provided for path:', req.path);
+    console.log('No token provided for path:', path);
     return res.status(401).json({ message: 'Authentication token required' });
   }
-  console.log('Token found for path:', req.path);
+
+  if (!isCommonPath) {
+    console.log('Token found for path:', path);
+  }
 
   try {
-    // Log token format for debugging (only first few characters)
-    if (token) {
-      console.log('Token format check:', token.substring(0, 10) + '...');
-      console.log('Token length:', token.length);
-    }
+    // Check token cache first
+    const cacheKey = `token:${token.substring(0, 50)}`; // Use first 50 chars as key
+    let decoded = authCache.get(cacheKey);
+    let verificationTime = 0;
 
-    // Check if token is malformed before verification
-    let cleanToken = token;
-    if (token.includes(' ') || token.includes('\n') || token.includes('\t')) {
-      console.error('Token contains whitespace characters, cleaning...');
-      cleanToken = token.trim().replace(/\s+/g, '');
-    }
-
-    console.log('Attempting to verify JWT token with secret');
-    const decoded = jwt.verify(cleanToken, process.env.JWT_SECRET || 'your-jwt-secret-key');
-    console.log('JWT token verified successfully');
-
-    // Get the user from the database
-    if (decoded && decoded.id) {
-      console.log('Looking up user data for ID:', decoded.id);
-      const user = await UserModel.findById(decoded.id);
-
-      if (!user) {
-        console.log('User not found for token ID:', decoded.id);
-        return res.status(403).json({ message: 'User not found for token' });
+    if (!decoded) {
+      // Token not in cache, verify it
+      if (!isCommonPath) {
+        // Log token format for debugging (only first few characters)
+        console.log('Token format check:', token.substring(0, 10) + '...');
+        console.log('Token length:', token.length);
       }
 
-      console.log('User found:', user.name);
+      // Check if token is malformed before verification
+      let cleanToken = token;
+      if (token.includes(' ') || token.includes('\n') || token.includes('\t')) {
+        console.error('Token contains whitespace characters, cleaning...');
+        cleanToken = token.trim().replace(/\s+/g, '');
+      }
+
+      // Measure token verification time
+      const verificationStart = performance.now();
+
+      if (!isCommonPath) {
+        console.log('Attempting to verify JWT token with secret');
+      }
+
+      decoded = jwt.verify(cleanToken, process.env.JWT_SECRET || 'your-jwt-secret-key');
+
+      verificationTime = performance.now() - verificationStart;
+
+      if (!isCommonPath) {
+        console.log('JWT token verified successfully in', verificationTime.toFixed(2), 'ms');
+      }
+
+      // Cache the decoded token for future requests
+      // Set TTL to slightly less than token expiry to ensure we don't cache expired tokens
+      const tokenTTL = 60 * 60; // 1 hour (assuming token expires in 24h)
+      authCache.set(cacheKey, decoded, tokenTTL);
+
+      // Record token verification performance
+      recordTokenVerification(true, verificationTime);
+    } else if (!isCommonPath) {
+      console.log('Token found in cache');
+    }
+
+    // Get the user from cache or database
+    if (decoded && decoded.id) {
+      let user;
+      const userId = decoded.id;
+
+      // Try to get user from cache first
+      user = getUserById(userId);
+
+      if (!user) {
+        if (!isCommonPath) {
+          console.log('User not in cache, looking up user data for ID:', userId);
+        }
+
+        // Measure database query time
+        const dbQueryStart = performance.now();
+        user = await UserModel.findById(userId);
+        const dbQueryTime = performance.now() - dbQueryStart;
+
+        if (!isCommonPath) {
+          console.log('Database query completed in', dbQueryTime.toFixed(2), 'ms');
+        }
+
+        if (!user) {
+          console.log('User not found for token ID:', userId);
+          return res.status(403).json({ message: 'User not found for token' });
+        }
+
+        // Cache the user for future requests
+        cacheUser(userId, user);
+      } else if (!isCommonPath) {
+        console.log('User found in cache');
+      }
+
+      if (!isCommonPath) {
+        console.log('User found:', user.name);
+      }
+
       req.user = {
         id: user._id.toString(), // Convert ObjectId to string for easier comparison
         _id: user._id.toString(), // Keep both id and _id for compatibility
@@ -62,7 +130,9 @@ const authenticateToken = async (req, res, next) => {
         title: user.title
       };
 
-      console.log('User ID set in request:', req.user.id, 'with role:', req.user.role);
+      if (!isCommonPath) {
+        console.log('User ID set in request:', req.user.id, 'with role:', req.user.role);
+      }
     } else {
       console.log('No user ID in token, using decoded token data directly');
       req.user = decoded;
@@ -81,6 +151,14 @@ const authenticateToken = async (req, res, next) => {
       }
     }
 
+    // Calculate total authentication time
+    const totalTime = performance.now() - startTime;
+
+    // Only log timing for non-common paths to reduce log noise
+    if (!isCommonPath && totalTime > 100) { // Only log slow authentications
+      console.log(`Authentication completed in ${totalTime.toFixed(2)} ms for path: ${path}`);
+    }
+
     next();
   } catch (error) {
     console.error('JWT verification error:', error.message);
@@ -94,6 +172,9 @@ const authenticateToken = async (req, res, next) => {
       console.error('2. Token corruption during transmission');
       console.error('3. Frontend not sending the token correctly');
     }
+
+    // Record failed token verification
+    recordTokenVerification(false, performance.now() - startTime);
 
     return res.status(403).json({ message: 'Invalid or expired token', error: error.message });
   }

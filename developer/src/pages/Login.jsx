@@ -26,7 +26,44 @@ const Login = () => {
 
     try {
       console.log('Login form submitted with:', { username, password });
-      const success = await login(username, password);
+
+      // Show loading state in the button
+      const loginButton = document.getElementById('dev-login-button');
+      if (loginButton) {
+        loginButton.disabled = true;
+        loginButton.innerHTML = '<div class="futuristic-loader mr-2"></div> Authenticating...';
+      }
+
+      // Implement retry mechanism for better reliability
+      let loginAttempts = 0;
+      const maxAttempts = 2;
+      let success = false;
+      let lastError = null;
+
+      while (loginAttempts < maxAttempts && !success) {
+        try {
+          console.log(`Login attempt ${loginAttempts + 1} of ${maxAttempts}`);
+          success = await login(username, password);
+
+          if (!success) {
+            throw new Error('Login returned false');
+          }
+        } catch (loginError) {
+          lastError = loginError;
+          loginAttempts++;
+          console.error(`Login attempt ${loginAttempts} failed:`, loginError);
+
+          if (loginAttempts < maxAttempts) {
+            console.log(`Retrying login in 1 second (attempt ${loginAttempts + 1} of ${maxAttempts})...`);
+            // Wait before retrying
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+
+      if (!success) {
+        throw lastError || new Error('Login failed after multiple attempts');
+      }
 
       // Check if token was stored in localStorage
       const token = localStorage.getItem('token');
@@ -43,6 +80,14 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login submission error:', err);
+
+      // Reset button state
+      const loginButton = document.getElementById('dev-login-button');
+      if (loginButton) {
+        loginButton.disabled = false;
+        loginButton.innerHTML = 'Sign in';
+      }
+
       // Error is already handled by the AuthContext
     } finally {
       setIsLoading(false);
@@ -113,6 +158,7 @@ const Login = () => {
 
           <div>
             <button
+              id="dev-login-button"
               type="submit"
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300"

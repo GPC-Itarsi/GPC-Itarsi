@@ -498,6 +498,35 @@ body {
 }
 
 /* Animation for pulse background effect */
+@keyframes pulse-bg {
+  0%, 100% {
+    background-color: rgba(26, 117, 255, 0.05);
+  }
+  50% {
+    background-color: rgba(26, 117, 255, 0.1);
+  }
+}
+
+/* Spinner animation for loading states */
+@keyframes spinner-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  animation: spinner-rotate 0.8s linear infinite;
+  margin-right: 8px;
+}
 
 /* Futuristic text glow effect */
 .text-glow {
