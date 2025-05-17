@@ -257,6 +257,7 @@ router.post('/reset-password-with-otp', async (req, res) => {
     const { email, otp, password } = req.body;
 
     console.log('Reset password request received:', { email, otp: otp ? '******' : undefined, password: password ? '******' : undefined });
+    console.log('Request headers:', req.headers);
 
     if (!email || !otp || !password) {
       console.log('Missing required fields:', {
@@ -277,11 +278,15 @@ router.post('/reset-password-with-otp', async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or OTP' });
     }
 
+    console.log(`Found user: ${user.username} (${user._id})`);
+
     // Check if we have a reset token from the verify-otp step
     const token = req.headers.authorization?.split(' ')[1];
     let isTokenValid = false;
 
     if (token) {
+      console.log(`Validating token: ${token.substring(0, 10)}...`);
+
       // Try to validate with token first
       const hashedToken = crypto
         .createHash('sha256')
@@ -293,21 +298,41 @@ router.post('/reset-password-with-otp', async (req, res) => {
                     user.resetPasswordExpires > Date.now();
 
       console.log('Token validation result:', isTokenValid);
+
+      if (!isTokenValid && user.resetPasswordToken) {
+        console.log('Token mismatch:');
+        console.log(`- Provided token hash: ${hashedToken.substring(0, 10)}...`);
+        console.log(`- Stored token hash: ${user.resetPasswordToken.substring(0, 10)}...`);
+        console.log(`- Token expiry: ${user.resetPasswordExpires ? new Date(user.resetPasswordExpires).toISOString() : 'none'}`);
+        console.log(`- Token expired: ${user.resetPasswordExpires ? user.resetPasswordExpires < Date.now() : 'N/A'}`);
+      }
+    } else {
+      console.log('No authorization token provided in headers');
     }
 
     // If token is not valid, try OTP validation
     if (!isTokenValid) {
+      console.log('Token validation failed, trying OTP validation');
+
       // Hash the provided OTP
       const hashedOTP = crypto
         .createHash('sha256')
         .update(otp)
         .digest('hex');
 
+      console.log(`Validating OTP for user: ${user.username}`);
+      console.log(`- Provided OTP hash: ${hashedOTP.substring(0, 10)}...`);
+      console.log(`- Stored OTP hash: ${user.resetOTP ? user.resetOTP.substring(0, 10) + '...' : 'none'}`);
+      console.log(`- OTP expiry: ${user.resetOTPExpires ? new Date(user.resetOTPExpires).toISOString() : 'none'}`);
+      console.log(`- OTP expired: ${user.resetOTPExpires ? user.resetOTPExpires < Date.now() : 'N/A'}`);
+
       // Check if OTP matches and is still valid
       if (user.resetOTP !== hashedOTP || !user.resetOTPExpires || user.resetOTPExpires < Date.now()) {
         console.log('Invalid or expired OTP');
         return res.status(400).json({ message: 'Invalid or expired OTP' });
       }
+
+      console.log('OTP validation successful');
     }
 
     // Update password
@@ -324,22 +349,41 @@ router.post('/reset-password-with-otp', async (req, res) => {
     console.log(`Password reset successful for user: ${user.username}`);
 
     // Send confirmation email
-    const message = `
-      <h1>Password Reset Successful</h1>
-      <p>Your password has been successfully reset.</p>
-      <p>If you did not perform this action, please contact the administrator immediately.</p>
-    `;
+    try {
+      const message = `
+        <h1>Password Reset Successful</h1>
+        <p>Your password has been successfully reset.</p>
+        <p>If you did not perform this action, please contact the administrator immediately.</p>
+      `;
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Password Reset Successful - GPC Itarsi',
-      html: message
-    });
+      await sendEmail({
+        to: user.email,
+        subject: 'Password Reset Successful - GPC Itarsi',
+        html: message
+      });
+
+      console.log(`Confirmation email sent to: ${user.email}`);
+    } catch (emailError) {
+      // Don't fail the password reset if email sending fails
+      console.error('Error sending confirmation email:', emailError);
+    }
 
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
     console.error('Error resetting password with OTP:', error);
-    res.status(500).json({ message: 'Error resetting password', error: error.message });
+
+    // More detailed error logging
+    if (error.name === 'MongoServerError') {
+      console.error('MongoDB error code:', error.code);
+    } else if (error.name === 'ValidationError') {
+      console.error('Validation error details:', error.errors);
+    }
+
+    res.status(500).json({
+      message: 'Error resetting password',
+      error: error.message,
+      errorType: error.name
+    });
   }
 });
 

@@ -30,7 +30,7 @@ const ForgotPassword = () => {
       setError('');
       setMessage('');
 
-      const response = await axios.post(`${config.apiUrl}/api/password-reset/forgot-password`, { email });
+      await axios.post(`${config.apiUrl}/api/password-reset/forgot-password`, { email });
 
       setIsSuccess(true);
       setMessage('If an account with that email exists, a password reset OTP has been sent.');
@@ -79,7 +79,12 @@ const ForgotPassword = () => {
       // Keep the OTP in state for the next step
       // We'll need it for the reset-password-with-otp endpoint
 
-      setStep(3); // Move to password reset step
+      // Reset isSuccess and clear message when moving to password reset step
+      setTimeout(() => {
+        setIsSuccess(false);
+        setMessage(''); // Clear the success message
+        setStep(3); // Move to password reset step
+      }, 1500);
     } catch (err) {
       console.error('Error verifying OTP:', err);
       if (err.response) {
@@ -96,29 +101,33 @@ const ForgotPassword = () => {
   // Step 3: Reset Password
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    console.log('Reset password form submitted');
+    console.log('Reset password form submitted - handleResetPassword function called');
 
     // Validate passwords
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      console.log('Password validation failed: Passwords do not match');
       return;
     }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
+      console.log('Password validation failed: Password too short');
       return;
     }
 
     try {
+      console.log('Password validation passed, proceeding with reset');
       setIsSubmitting(true);
       setError('');
       setMessage('');
 
-      console.log('Sending password reset request with:', { email, password });
+      console.log('Sending password reset request with:', { email, otp: otp ? '******' : undefined, password: password ? '******' : undefined });
 
       // Make sure we have the OTP from the previous step
       if (!otp) {
         setError('OTP is missing. Please go back and verify your OTP again.');
+        console.log('Error: OTP is missing');
         setIsSubmitting(false);
         return;
       }
@@ -129,17 +138,42 @@ const ForgotPassword = () => {
 
       console.log('Using headers:', headers);
 
-      const response = await axios.post(
-        `${config.apiUrl}/api/password-reset/reset-password-with-otp`,
-        {
-          email,
-          otp,
-          password
-        },
-        { headers }
-      );
+      // Create a new axios instance to avoid global header issues
+      const axiosInstance = axios.create();
+      delete axiosInstance.defaults.headers.common['Authorization'];
 
-      console.log('Password reset response:', response.data);
+      // Add the token to this specific request if available
+      if (resetToken) {
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${resetToken}`;
+      }
+
+      console.log('Making request to:', `${config.apiUrl}/api/password-reset/reset-password-with-otp`);
+      console.log('Request payload:', { email, otp: '******', password: '******' });
+      console.log('Request headers:', axiosInstance.defaults.headers.common);
+
+      try {
+        const response = await axiosInstance.post(
+          `${config.apiUrl}/api/password-reset/reset-password-with-otp`,
+          {
+            email,
+            otp,
+            password
+          },
+          { timeout: 10000 } // Add timeout to prevent hanging requests
+        );
+
+        console.log('Password reset response:', response.data);
+        console.log('Password reset successful');
+      } catch (requestError) {
+        console.error('Error in axios request:', requestError);
+        if (requestError.response) {
+          console.error('Response status:', requestError.response.status);
+          console.error('Response data:', requestError.response.data);
+        } else if (requestError.request) {
+          console.error('No response received, request details:', requestError.request);
+        }
+        throw requestError; // Re-throw to be caught by the outer catch block
+      }
 
       setIsSuccess(true);
       setMessage('Your password has been reset successfully!');
@@ -153,12 +187,32 @@ const ForgotPassword = () => {
       }, 3000);
     } catch (err) {
       console.error('Error resetting password:', err);
+
+      // Detailed error logging
       if (err.response) {
         console.error('Error response data:', err.response.data);
         console.error('Error response status:', err.response.status);
+        console.error('Error response headers:', err.response.headers);
+      } else if (err.request) {
+        console.error('Error request:', err.request);
+      } else {
+        console.error('Error message:', err.message);
       }
+
       setIsSuccess(false);
-      setError(err.response?.data?.message || 'An error occurred. Please try again later.');
+
+      // More specific error messages
+      if (err.response?.status === 500) {
+        setError('Server error. Please try again later or contact support.');
+      } else if (err.response?.status === 400) {
+        setError(err.response.data?.message || 'Invalid request. Please check your information and try again.');
+      } else if (err.response?.status === 401) {
+        setError('Authentication error. Please try requesting a new password reset.');
+      } else if (err.code === 'ECONNABORTED' || !err.response) {
+        setError('Network error. Please check your internet connection and try again.');
+      } else {
+        setError(err.response?.data?.message || 'An error occurred. Please try again later.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -394,12 +448,6 @@ const ForgotPassword = () => {
                 type="submit"
                 disabled={isSubmitting || isSuccess}
                 className="group relative w-1/2 flex justify-center py-3 px-4 border border-primary-500/50 text-sm font-medium rounded-md text-white bg-primary-600/80 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-400 disabled:opacity-50 transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-primary-500/20"
-                onClick={(e) => {
-                  // Add extra debug logging
-                  console.log('Reset Password button clicked');
-                  console.log('Form will submit with:', { email, otp, password: password ? '******' : undefined });
-                  // The actual submission is handled by the form's onSubmit
-                }}
               >
                 <span className="absolute inset-0 overflow-hidden rounded-md">
                   <span className="absolute inset-0 rounded-md bg-gradient-to-r from-primary-500/40 to-secondary-500/40 opacity-0 group-hover:opacity-100 group-hover:blur-sm transition-all duration-500"></span>
