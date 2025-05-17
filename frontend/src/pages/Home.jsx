@@ -7,7 +7,6 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextReveal, CanvasWave, AnimatedCard } from '../components/animations';
 import CustomButtonsSection from '../components/CustomButtonsSection';
-import NoticeDetail from '../components/shared/NoticeDetail';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -135,11 +134,26 @@ const Home = () => {
                           .filter(notice => notice.important) // Only show important notices in the popup
                           .map((notice) => (
                             <li key={notice._id} className="py-3">
-                              <NoticeDetail
-                                notice={notice}
-                                truncate={true}
-                                maxLength={150}
-                              />
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium text-primary-500 truncate">
+                                  {notice.title}
+                                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-200 text-accent-700">
+                                    Important
+                                  </span>
+                                </p>
+                                <div className="ml-2 flex-shrink-0 flex">
+                                  <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    {new Date(notice.createdAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-1">
+                                <div className="text-sm text-secondary-600 notice-content">
+                                  {notice.content.length > 100
+                                    ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 100)}...`) }} />
+                                    : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                                </div>
+                              </div>
                             </li>
                           ))}
                       </ul>
@@ -588,12 +602,33 @@ const Home = () => {
                 {notices.map((notice) => (
                   <li key={notice._id} className="hover:bg-white/5 transition-colors duration-200">
                     <div className="px-6 py-5 sm:px-8">
-                      <NoticeDetail
-                        notice={notice}
-                        darkTheme={true}
-                        truncate={true}
-                        maxLength={150}
-                      />
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-white truncate flex items-center">
+                          {notice.important && (
+                            <span className="mr-2 flex-shrink-0 w-2 h-2 rounded-full bg-accent-500 animate-pulse"></span>
+                          )}
+                          {notice.title}
+                          {notice.important && (
+                            <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-accent-500/20 text-accent-300 border border-accent-500/30">
+                              Important
+                            </span>
+                          )}
+                        </p>
+                        <div className="ml-2 flex-shrink-0 flex">
+                          <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-800/50 text-gray-200 border border-primary-700/30">
+                            {new Date(notice.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2 sm:flex sm:justify-between">
+                        <div className="sm:flex">
+                          <div className="text-sm text-gray-300 notice-content dark-theme">
+                            {notice.content.length > 150
+                              ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
+                              : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </li>
                 ))}
