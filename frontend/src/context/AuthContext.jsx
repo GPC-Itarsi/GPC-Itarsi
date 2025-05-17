@@ -112,12 +112,12 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (username, password, userType) => {
+  const login = async (username, password) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('Attempting login with:', { username, password, userType });
+      console.log('Attempting login with:', { username, password });
 
       // Validate inputs
       if (!username || !password) {
@@ -128,11 +128,10 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorMsg);
       }
 
-      // Create the login payload based on user type
+      // Create the login payload
       const loginPayload = {
         username,
-        password,
-        userType: userType || 'admin' // Default to admin if not specified
+        password
       };
 
       console.log('Sending login request with payload:', loginPayload);
@@ -157,33 +156,6 @@ export const AuthProvider = ({ children }) => {
 
       const { token, user, userData } = response.data;
       console.log('Login response:', { token: token.substring(0, 20) + '...', user, userData });
-
-      // Validate user role based on userType
-      if (userType === 'student' && user.role !== 'student') {
-        const errorMsg = 'Access denied. Please log in with a student account.';
-        console.error(errorMsg);
-        setError(errorMsg);
-        setLoading(false);
-        throw new Error(errorMsg);
-      } else if (userType === 'teacher' && user.role !== 'teacher') {
-        const errorMsg = 'Access denied. Please log in with a teacher account.';
-        console.error(errorMsg);
-        setError(errorMsg);
-        setLoading(false);
-        throw new Error(errorMsg);
-      } else if (userType === 'admin' && user.role !== 'admin') {
-        const errorMsg = 'Access denied. Please log in with an admin account.';
-        console.error(errorMsg);
-        setError(errorMsg);
-        setLoading(false);
-        throw new Error(errorMsg);
-      } else if (userType === 'developer' && user.role !== 'developer') {
-        const errorMsg = 'Access denied. Please log in with a developer account.';
-        console.error(errorMsg);
-        setError(errorMsg);
-        setLoading(false);
-        throw new Error(errorMsg);
-      }
 
       // Save token to localStorage
       localStorage.setItem('token', token);

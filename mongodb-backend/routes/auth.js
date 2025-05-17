@@ -11,64 +11,23 @@ const UserModel = User;
 // Login route
 router.post('/login', async (req, res) => {
   try {
-    const { username, password, userType } = req.body;
-    console.log('Login attempt:', { username, userType });
+    const { username, password } = req.body;
+    console.log('Login attempt:', { username });
 
     let user;
 
-    // If userType is student, we need to handle it differently
-    if (userType === 'student') {
-      console.log('Student login detected, searching by roll number:', username);
-      // For students, we should search by roll number
-      user = await UserModel.findOne({
-        rollNumber: username,
-        role: 'student'
-      });
+    // First, try to find user by roll number (for students)
+    console.log('Searching by roll number:', username);
+    user = await UserModel.findOne({
+      rollNumber: { $regex: new RegExp('^' + username + '$', 'i') }
+    });
 
-      // If not found, try case-insensitive search
-      if (!user) {
-        console.log('Student not found with exact roll number, trying case-insensitive search');
-        user = await UserModel.findOne({
-          rollNumber: { $regex: new RegExp('^' + username + '$', 'i') },
-          role: 'student'
-        });
-      }
-
-      // If still not found, try searching by username as fallback
-      if (!user) {
-        console.log('Student not found by roll number, trying username as fallback');
-        user = await UserModel.findOne({
-          username: { $regex: new RegExp('^' + username + '$', 'i') },
-          role: 'student'
-        });
-      }
-    } else if (userType === 'admin') {
-      // For admin users, search by username and role
-      console.log('Admin login detected, searching by username:', username);
+    // If not found by roll number, try by username
+    if (!user) {
+      console.log('User not found by roll number, trying username:', username);
       user = await UserModel.findOne({
-        username: { $regex: new RegExp('^' + username + '$', 'i') },
-        role: 'admin'
+        username: { $regex: new RegExp('^' + username + '$', 'i') }
       });
-      console.log('Admin user found:', user ? 'Yes' : 'No');
-    } else if (userType === 'hod') {
-      // For HOD users, search by username and role
-      console.log('HOD login detected, searching by username:', username);
-      user = await UserModel.findOne({
-        username: { $regex: new RegExp('^' + username + '$', 'i') },
-        role: 'hod'
-      });
-      console.log('HOD user found:', user ? 'Yes' : 'No');
-    } else if (userType === 'principal') {
-      // For Principal user, search by username and role
-      console.log('Principal login detected, searching by username:', username);
-      user = await UserModel.findOne({
-        username: { $regex: new RegExp('^' + username + '$', 'i') },
-        role: 'principal'
-      });
-      console.log('Principal user found:', user ? 'Yes' : 'No');
-    } else {
-      // For other user types, search by username
-      user = await UserModel.findOne({ username: { $regex: new RegExp('^' + username + '$', 'i') } });
     }
 
     console.log('User found:', user ? 'Yes' : 'No');

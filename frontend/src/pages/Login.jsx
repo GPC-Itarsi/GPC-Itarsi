@@ -8,9 +8,8 @@ import collegeLogo from '../assets/college-logo.png';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // Default to student login type
-  const [userType, setUserType] = useState('student');
-  console.log('Initial userType:', userType);
+  // Keep userType state for backward compatibility but it won't be used for role selection
+  const [userType, setUserType] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,12 +29,10 @@ const Login = () => {
       setLoading(true);
       setError('');
 
-      // Log the current userType state before attempting login
-      console.log('Current userType before login attempt:', userType);
-      console.log('Attempting login with:', { username, password, userType });
+      console.log('Attempting login with:', { username, password });
 
       // Use the login function from AuthContext
-      await login(username, password, userType);
+      await login(username, password);
 
       // Get the user from localStorage (it's set by the login function)
       const token = localStorage.getItem('token');
@@ -102,74 +99,13 @@ const Login = () => {
             </div>
           )}
 
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setUserType('student');
-                console.log('Set userType to student');
-              }}
-              className={`px-3 py-2 rounded-md ${
-                userType === 'student' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
-              }`}
-            >
-              Student
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUserType('teacher');
-                console.log('Set userType to teacher');
-              }}
-              className={`px-3 py-2 rounded-md ${
-                userType === 'teacher' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
-              }`}
-            >
-              Teacher
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUserType('hod');
-                console.log('Set userType to hod');
-              }}
-              className={`px-3 py-2 rounded-md ${
-                userType === 'hod' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
-              }`}
-            >
-              HOD
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUserType('principal');
-                console.log('Set userType to principal');
-              }}
-              className={`px-3 py-2 rounded-md ${
-                userType === 'principal' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
-              }`}
-            >
-              Principal
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUserType('admin');
-                console.log('Set userType to admin');
-              }}
-              className={`px-3 py-2 rounded-md ${
-                userType === 'admin' ? 'bg-primary-600 text-white' : 'bg-secondary-100 text-secondary-700'
-              }`}
-            >
-              Admin
-            </button>
-          </div>
+
 
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm -space-y-px">
               <div className="form-group">
                 <label htmlFor="username" className="form-label">
-                  {userType === 'student' ? 'Roll Number' : 'Username'}
+                  ID / Username / Roll Number
                 </label>
                 <input
                   id="username"
@@ -177,17 +113,7 @@ const Login = () => {
                   type="text"
                   required
                   className="form-input"
-                  placeholder={
-                    userType === 'student'
-                      ? 'Enter your roll number'
-                      : userType === 'admin'
-                        ? 'Enter admin username'
-                        : userType === 'hod'
-                          ? 'Enter HOD username'
-                          : userType === 'principal'
-                            ? 'Enter principal username'
-                            : 'Enter your username'
-                  }
+                  placeholder="Enter your ID, username or roll number"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                 />
@@ -242,35 +168,9 @@ const Login = () => {
             </div>
           </form>
 
-          {userType === 'student' && (
-            <div className="mt-4 text-center text-sm text-secondary-600">
-              <p>Enter your roll number and password</p>
-            </div>
-          )}
-
-          {userType === 'teacher' && (
-            <div className="mt-4 text-center text-sm text-secondary-600">
-              <p>Enter your username and password</p>
-            </div>
-          )}
-
-          {userType === 'admin' && (
-            <div className="mt-4 text-center text-sm text-secondary-600">
-              <p>Enter admin username and password</p>
-            </div>
-          )}
-
-          {userType === 'hod' && (
-            <div className="mt-4 text-center text-sm text-secondary-600">
-              <p>Enter HOD username and password</p>
-            </div>
-          )}
-
-          {userType === 'principal' && (
-            <div className="mt-4 text-center text-sm text-secondary-600">
-              <p>Enter principal username and password</p>
-            </div>
-          )}
+          <div className="mt-4 text-center text-sm text-secondary-600">
+            <p>Enter your ID/username/roll number and password</p>
+          </div>
         </div>
       </div>
     </div>
