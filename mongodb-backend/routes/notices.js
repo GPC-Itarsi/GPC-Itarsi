@@ -3,8 +3,6 @@ const router = express.Router();
 const Notice = require('../models/Notice');
 const MockUser = require('../models/MockUser');
 const { authenticateToken, authorize } = require('../middleware/auth');
-const upload = require('../middleware/upload');
-const { cloudinaryUpload, cloudinary } = require('../middleware/cloudinaryUpload');
 
 // Mock notices for development when MongoDB is not available
 const mockNotices = [
@@ -125,7 +123,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Add a new notice (admin and teacher)
-router.post('/', authenticateToken, authorize(['admin', 'teacher']), cloudinaryUpload.single('attachment'), async (req, res) => {
+router.post('/', authenticateToken, authorize(['admin', 'teacher']), async (req, res) => {
   try {
     const { title, content, category, important, expiresAt } = req.body;
 
@@ -139,8 +137,6 @@ router.post('/', authenticateToken, authorize(['admin', 'teacher']), cloudinaryU
       content,
       category: category || 'general',
       important: important === 'true' || important === true,
-      attachment: req.file ? req.file.path : undefined,
-      cloudinaryPublicId: req.file ? req.file.filename : undefined,
       postedBy: req.user.id,
       expiresAt: expiresAt || undefined
     });
@@ -158,7 +154,7 @@ router.post('/', authenticateToken, authorize(['admin', 'teacher']), cloudinaryU
 });
 
 // Update notice (admin and original poster)
-router.put('/:id', authenticateToken, cloudinaryUpload.single('attachment'), async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const notice = await Notice.findById(req.params.id);
 
@@ -183,23 +179,6 @@ router.put('/:id', authenticateToken, cloudinaryUpload.single('attachment'), asy
         }
       }
     });
-
-    // Update attachment if provided
-    if (req.file) {
-      // If there was a previous Cloudinary file, delete it
-      if (notice.cloudinaryPublicId) {
-        try {
-          await cloudinary.uploader.destroy(notice.cloudinaryPublicId);
-          console.log(`Deleted previous notice attachment from Cloudinary: ${notice.cloudinaryPublicId}`);
-        } catch (err) {
-          console.error('Error deleting previous notice attachment from Cloudinary:', err);
-          // Continue with update even if Cloudinary deletion fails
-        }
-      }
-
-      notice.attachment = req.file.path;
-      notice.cloudinaryPublicId = req.file.filename;
-    }
 
     notice.updatedAt = Date.now();
     await notice.save();
@@ -226,17 +205,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
     // Check if user is admin or the original poster
     if (req.user.role !== 'admin' && notice.postedBy.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized to delete this notice' });
-    }
-
-    // If the notice has a Cloudinary attachment, delete it
-    if (notice.cloudinaryPublicId) {
-      try {
-        await cloudinary.uploader.destroy(notice.cloudinaryPublicId);
-        console.log(`Deleted notice attachment from Cloudinary: ${notice.cloudinaryPublicId}`);
-      } catch (err) {
-        console.error('Error deleting notice attachment from Cloudinary:', err);
-        // Continue with deletion even if Cloudinary deletion fails
-      }
     }
 
     await Notice.findByIdAndDelete(req.params.id);
