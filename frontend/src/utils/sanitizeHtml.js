@@ -13,10 +13,11 @@ const sanitizeHtml = (html) => {
   const htmlString = String(html);
 
   // Define allowed tags and attributes
-  const allowedTags = ['a', 'b', 'i', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span'];
+  const allowedTags = ['a', 'b', 'i', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span', 'button'];
   const allowedAttributes = {
     'a': ['href', 'target', 'rel', 'class', 'style'],
-    'span': ['class', 'style']
+    'span': ['class', 'style'],
+    'button': ['class', 'style', 'type']
   };
 
   // URL validation regex pattern

@@ -6,8 +6,11 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { isValidUrl, ensureUrlProtocol } from '../../utils/urlUtils';
 import LinkDialog from '../../components/editor/LinkDialog';
+import ButtonDialog from '../../components/editor/ButtonDialog';
 import LinkHelpModal from '../../components/admin/LinkHelpModal';
 import NoticeContent from '../../components/notices/NoticeContent';
+import '../../styles/notice-buttons.css';
+import '../../styles/quill-custom.css';
 
 const Notices = () => {
   const [notices, setNotices] = useState([]);
@@ -28,6 +31,11 @@ const Notices = () => {
   const [showLinkDialog, setShowLinkDialog] = useState(false);
   const [linkDialogInitialText, setLinkDialogInitialText] = useState('');
   const [linkDialogInitialUrl, setLinkDialogInitialUrl] = useState('');
+
+  // Button dialog state
+  const [showButtonDialog, setShowButtonDialog] = useState(false);
+  const [buttonDialogInitialText, setButtonDialogInitialText] = useState('');
+  const [buttonDialogInitialUrl, setButtonDialogInitialUrl] = useState('');
   const quillRef = useRef(null);
 
   // Handle link insertion from the dialog
@@ -51,13 +59,33 @@ const Notices = () => {
     quill.setSelection(range.index + text.length, 0);
   }, []);
 
+  // Handle button insertion from the dialog
+  const handleButtonInsert = useCallback((buttonHtml) => {
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+
+    const range = quill.getSelection();
+    if (!range) return;
+
+    // Delete the current selection if any
+    if (range.length > 0) {
+      quill.deleteText(range.index, range.length);
+    }
+
+    // Insert the button HTML
+    quill.clipboard.dangerouslyPasteHTML(range.index, buttonHtml);
+
+    // Move cursor after the inserted button
+    quill.setSelection(range.index + buttonHtml.length, 0);
+  }, []);
+
   // Quill editor modules and formats configuration
   const quillModules = useMemo(() => ({
     toolbar: {
       container: [
         ['bold', 'italic', 'underline', 'strike'],
         [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-        ['link'],
+        ['link', 'button'],
         ['clean']
       ],
       handlers: {
@@ -89,6 +117,24 @@ const Notices = () => {
           } else {
             // Remove link format
             this.quill.format('link', false);
+          }
+        },
+        button: function() {
+          // Get the Quill editor instance
+          const quill = this.quill;
+          const range = quill.getSelection();
+
+          if (range) {
+            // Get the selected text
+            let selectedText = '';
+            if (range.length > 0) {
+              selectedText = quill.getText(range.index, range.length);
+            }
+
+            // Open the button dialog
+            setButtonDialogInitialText(selectedText);
+            setButtonDialogInitialUrl('');
+            setShowButtonDialog(true);
           }
         }
       }
@@ -449,9 +495,10 @@ const Notices = () => {
                             />
                           </div>
                           <div className="mt-12 flex items-center justify-between">
-                            <p className="text-xs text-gray-500">
-                              Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> in the toolbar to add clickable links
-                            </p>
+                            <div className="text-xs text-gray-500">
+                              <p>Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> to add clickable links</p>
+                              <p className="mt-1">Use the button option <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">Button</span> to add styled buttons with links</p>
+                            </div>
                             <LinkHelpModal />
                           </div>
                         </div>
@@ -500,6 +547,15 @@ const Notices = () => {
         onInsert={handleLinkInsert}
         initialText={linkDialogInitialText}
         initialUrl={linkDialogInitialUrl}
+      />
+
+      {/* Button Dialog */}
+      <ButtonDialog
+        isOpen={showButtonDialog}
+        onClose={() => setShowButtonDialog(false)}
+        onInsert={handleButtonInsert}
+        initialText={buttonDialogInitialText}
+        initialUrl={buttonDialogInitialUrl}
       />
 
       {/* Edit Notice Modal */}
@@ -573,9 +629,10 @@ const Notices = () => {
                             />
                           </div>
                           <div className="mt-12 flex items-center justify-between">
-                            <p className="text-xs text-gray-500">
-                              Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> in the toolbar to add clickable links
-                            </p>
+                            <div className="text-xs text-gray-500">
+                              <p>Use the link button <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">🔗</span> to add clickable links</p>
+                              <p className="mt-1">Use the button option <span className="inline-block px-1 py-0.5 bg-gray-100 rounded">Button</span> to add styled buttons with links</p>
+                            </div>
                             <LinkHelpModal />
                           </div>
                         </div>
