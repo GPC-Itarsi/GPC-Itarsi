@@ -3,8 +3,8 @@ import axios from 'axios';
 import config from '../../config';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import sanitizeHtml from '../../utils/sanitizeHtml';
 import AdminDeveloperCard from '../../components/AdminDeveloperCard';
+import NoticeContent from '../../components/notices/NoticeContent';
 
 const Overview = () => {
   const { user } = useAuth();
@@ -353,13 +353,12 @@ const Overview = () => {
                           </div>
                           <div className="mt-2 sm:flex sm:justify-between">
                             <div className="sm:flex">
-                              <div
-                                className="text-sm text-gray-500"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {notice.content.length > 100
-                                  ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 100)}...`) }} />
-                                  : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                              <div className="text-sm text-gray-500">
+                                <NoticeContent
+                                  content={notice.content}
+                                  maxLength={100}
+                                  truncate={notice.content.length > 100}
+                                />
                               </div>
                             </div>
                           </div>

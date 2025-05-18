@@ -7,6 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import { isValidUrl, ensureUrlProtocol } from '../../utils/urlUtils';
 import LinkDialog from '../../components/editor/LinkDialog';
 import LinkHelpModal from '../../components/admin/LinkHelpModal';
+import NoticeContent from '../../components/notices/NoticeContent';
 
 const Notices = () => {
   const [notices, setNotices] = useState([]);
@@ -345,13 +346,12 @@ const Notices = () => {
 
                   <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
                     <div className="flex-1 min-w-0 pr-2">
-                      <div
-                        className="text-sm text-gray-500 notice-content overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {notice.content.length > 150
-                          ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} className="break-words" />
-                          : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} className="break-words" />}
+                      <div className="text-sm text-gray-500 overflow-hidden">
+                        <NoticeContent
+                          content={notice.content}
+                          maxLength={150}
+                          truncate={notice.content.length > 150}
+                        />
                       </div>
                     </div>
                     <div className="mt-3 sm:mt-0 flex items-center justify-end gap-4 text-sm text-gray-500">

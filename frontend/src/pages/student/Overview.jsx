@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import sanitizeHtml from '../../utils/sanitizeHtml';
 import config from '../../config';
+import NoticeContent from '../../components/notices/NoticeContent';
 
 // Dashboard Components
 import DashboardCard from '../../components/dashboard/DashboardCard';
@@ -406,13 +406,12 @@ const Overview = () => {
                         </span>
                       </div>
                     </div>
-                    <div
-                      className="mt-2 text-sm text-gray-600 notice-content"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {notice.content.length > 150
-                        ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
-                        : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                    <div className="mt-2 text-sm text-gray-600">
+                      <NoticeContent
+                        content={notice.content}
+                        maxLength={150}
+                        truncate={notice.content.length > 150}
+                      />
                     </div>
                   </div>
                 ))}

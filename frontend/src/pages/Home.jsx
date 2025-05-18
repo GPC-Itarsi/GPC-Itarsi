@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import sanitizeHtml from '../utils/sanitizeHtml';
 import config from '../config';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TextReveal, CanvasWave, AnimatedCard } from '../components/animations';
 import CustomButtonsSection from '../components/CustomButtonsSection';
+import NoticeContent from '../components/notices/NoticeContent';
 
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
@@ -147,15 +147,12 @@ const Home = () => {
                                   </p>
                                 </div>
                               </div>
-                              <div className="mt-1">
-                                <div
-                                  className="text-sm text-secondary-600 notice-content"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {notice.content.length > 100
-                                    ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 100)}...`) }} />
-                                    : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
-                                </div>
+                              <div className="mt-1 text-sm text-secondary-600">
+                                <NoticeContent
+                                  content={notice.content}
+                                  maxLength={100}
+                                  truncate={notice.content.length > 100}
+                                />
                               </div>
                             </li>
                           ))}
@@ -625,13 +622,13 @@ const Home = () => {
                       </div>
                       <div className="mt-2 sm:flex sm:justify-between">
                         <div className="sm:flex">
-                          <div
-                            className="text-sm text-gray-300 notice-content dark-theme"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {notice.content.length > 150
-                              ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
-                              : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
+                          <div className="text-sm text-gray-300">
+                            <NoticeContent
+                              content={notice.content}
+                              darkTheme={true}
+                              maxLength={150}
+                              truncate={notice.content.length > 150}
+                            />
                           </div>
                         </div>
                       </div>

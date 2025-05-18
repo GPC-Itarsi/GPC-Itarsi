@@ -15,7 +15,7 @@ const sanitizeHtml = (html) => {
   // Define allowed tags and attributes
   const allowedTags = ['a', 'b', 'i', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'span'];
   const allowedAttributes = {
-    'a': ['href', 'target', 'rel', 'class', 'style', 'onclick'],
+    'a': ['href', 'target', 'rel', 'class', 'style'],
     'span': ['class', 'style']
   };
 
@@ -112,8 +112,7 @@ const sanitizeHtml = (html) => {
           node.style.borderBottom = '1px solid #1a75ff';
           node.style.cursor = 'pointer';
 
-          // Add onclick attribute to prevent event bubbling and ensure link is clickable
-          node.setAttribute('onclick', 'event.stopPropagation(); return true;');
+          // No need to add onclick attribute as we'll handle clicks with event delegation
         } else {
           // If no href, add a default one
           node.setAttribute('href', '#');
