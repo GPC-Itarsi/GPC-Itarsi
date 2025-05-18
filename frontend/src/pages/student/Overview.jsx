@@ -406,7 +406,10 @@ const Overview = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="mt-2 text-sm text-gray-600 notice-content">
+                    <div
+                      className="mt-2 text-sm text-gray-600 notice-content"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {notice.content.length > 150
                         ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
                         : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}

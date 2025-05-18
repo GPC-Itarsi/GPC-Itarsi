@@ -6,6 +6,8 @@
   overflow-wrap: break-word;
   hyphens: auto;
   max-width: 100%;
+  position: relative; /* Ensure proper stacking context */
+  z-index: 10; /* Higher z-index to ensure links are clickable */
 }
 
 /* Ensure images in notice content are responsive */
@@ -32,6 +34,8 @@
   border-bottom: 1px solid #1a75ff !important;
   word-break: break-word !important; /* Allow links to break on mobile */
   display: inline-block !important;
+  z-index: 20 !important; /* Higher z-index to ensure links are clickable */
+  pointer-events: auto !important; /* Ensure links are clickable */
 }
 
 .notice-content a:hover,
@@ -42,6 +46,8 @@
   text-decoration: none !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  z-index: 20 !important; /* Higher z-index to ensure links are clickable */
+  pointer-events: auto !important; /* Ensure links are clickable */
 }
 
 /* Style for links in dark-themed notices (like in the home page) */
@@ -54,6 +60,8 @@
   border-bottom: 1px solid #4791ff !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 5px rgba(71, 145, 255, 0.3) !important;
   display: inline-block !important;
+  z-index: 20 !important; /* Higher z-index to ensure links are clickable */
+  pointer-events: auto !important; /* Ensure links are clickable */
 }
 
 .dark-theme .notice-content a:hover,
@@ -64,6 +72,8 @@
   text-decoration: none !important;
   transform: translateY(-1px) !important;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2), 0 0 8px rgba(71, 145, 255, 0.4) !important;
+  z-index: 20 !important; /* Higher z-index to ensure links are clickable */
+  pointer-events: auto !important; /* Ensure links are clickable */
 }
 
 /* Add a more visible icon to indicate external links */

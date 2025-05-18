@@ -353,7 +353,10 @@ const Overview = () => {
                           </div>
                           <div className="mt-2 sm:flex sm:justify-between">
                             <div className="sm:flex">
-                              <div className="text-sm text-gray-500">
+                              <div
+                                className="text-sm text-gray-500"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 {notice.content.length > 100
                                   ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 100)}...`) }} />
                                   : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}

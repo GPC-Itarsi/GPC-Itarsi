@@ -148,7 +148,10 @@ const Home = () => {
                                 </div>
                               </div>
                               <div className="mt-1">
-                                <div className="text-sm text-secondary-600 notice-content">
+                                <div
+                                  className="text-sm text-secondary-600 notice-content"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
                                   {notice.content.length > 100
                                     ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 100)}...`) }} />
                                     : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}
@@ -622,7 +625,10 @@ const Home = () => {
                       </div>
                       <div className="mt-2 sm:flex sm:justify-between">
                         <div className="sm:flex">
-                          <div className="text-sm text-gray-300 notice-content dark-theme">
+                          <div
+                            className="text-sm text-gray-300 notice-content dark-theme"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {notice.content.length > 150
                               ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} />
                               : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} />}

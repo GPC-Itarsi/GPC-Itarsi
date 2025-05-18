@@ -345,7 +345,10 @@ const Notices = () => {
 
                   <div className="mt-2 flex flex-col sm:flex-row sm:justify-between">
                     <div className="flex-1 min-w-0 pr-2">
-                      <div className="text-sm text-gray-500 notice-content overflow-hidden">
+                      <div
+                        className="text-sm text-gray-500 notice-content overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         {notice.content.length > 150
                           ? <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(`${notice.content.substring(0, 150)}...`) }} className="break-words" />
                           : <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(notice.content) }} className="break-words" />}
