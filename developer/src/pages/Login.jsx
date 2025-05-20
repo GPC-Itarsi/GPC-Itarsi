@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import collegeLogo from '../assets/college-logo.png';
 import '../styles/FuturisticDashboard.css';
@@ -153,6 +153,17 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              {/* You can add a "Remember me" checkbox here if needed */}
+            </div>
+            <div className="text-sm">
+              <Link to="/developer/reset-password" className="font-medium text-primary-400 hover:text-primary-300 transition-colors duration-200">
+                Forgot password?
+              </Link>
             </div>
           </div>
 
