@@ -14,6 +14,7 @@ import Profile from './Profile';
 import Overview from './Overview';
 import Settings from './Settings';
 import Users from './Users';
+import ResetPassword from './ResetPassword';
 
 const Dashboard = () => {
   const location = useLocation();
@@ -164,6 +165,31 @@ const Dashboard = () => {
                   />
                 </svg>
                 Users
+              </Link>
+
+              <Link
+                to="/developer/reset-password"
+                className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                  location.pathname === '/developer/reset-password'
+                    ? 'active text-white'
+                    : 'text-primary-100 hover:text-white'
+                }`}
+              >
+                <svg
+                  className="mr-3 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                  />
+                </svg>
+                Reset Password
               </Link>
 
               {/* Logout Button */}
@@ -338,6 +364,31 @@ const Dashboard = () => {
                   Users
                 </Link>
 
+                <Link
+                  to="/developer/reset-password"
+                  className={`futuristic-nav-link flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+                    location.pathname === '/developer/reset-password'
+                      ? 'active text-white'
+                      : 'text-primary-100 hover:text-white'
+                  }`}
+                >
+                  <svg
+                    className="mr-3 h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                    />
+                  </svg>
+                  Reset Password
+                </Link>
+
                 {/* Logout Button */}
                 <button
                   onClick={handleLogout}
@@ -396,6 +447,7 @@ const Dashboard = () => {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/users" element={<Users />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
               </Routes>
             </div>
           </div>
