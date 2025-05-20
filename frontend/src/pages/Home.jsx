@@ -226,7 +226,7 @@ const Home = () => {
           <div className="absolute top-1/4 right-10 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
           <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
 
-        {/* Content */}
+          {/* Content */}
         <div className="relative w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Left column - Text content */}
@@ -392,7 +392,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Section Divider */}
       <div className="relative">
@@ -571,7 +571,7 @@ const Home = () => {
             </a>
           </div>
         </div>
-      </div>
+      </section>
 
 
 
@@ -663,7 +663,7 @@ const Home = () => {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Section Divider */}
       <div className="relative">
@@ -733,7 +733,7 @@ const Home = () => {
             </Link>
           </div>
         </div>
-      </div>
+      </section>
       </div>
     </div>
   );
