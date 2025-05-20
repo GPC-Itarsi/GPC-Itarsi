@@ -7,6 +7,11 @@ import { getProfileImageUrl, handleImageError } from '../utils/imageUtils';
 import CourseDetailsModal from '../components/CourseDetailsModal';
 import { getDepartmentImageUrl } from '../utils/departmentImageUtils';
 
+// Import SEO components
+import SEO from '../components/SEO';
+import SchemaMarkup from '../components/SchemaMarkup';
+import { generateCollegeSchema, generateBreadcrumbSchema } from '../utils/schemaMarkup';
+
 const About = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,6 +21,23 @@ const About = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [hodData, setHodData] = useState([]);
+
+  // Generate breadcrumb schema for the about page
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    {
+      name: 'Home',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/'
+    },
+    {
+      name: 'About',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/about'
+    }
+  ]);
+
+  // Generate college schema with additional information
+  const collegeSchema = generateCollegeSchema({
+    description: 'Government Polytechnic College Itarsi (GPC Itarsi) is a premier technical institution offering diploma courses in engineering and technology. Learn about our mission, vision, faculty, and facilities.'
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +113,18 @@ const About = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* SEO Optimization */}
+      <SEO
+        title="About Government Polytechnic College Itarsi"
+        description="Learn about Government Polytechnic College Itarsi (GPC Itarsi), our mission, vision, faculty, and facilities. A premier technical institution offering diploma courses in engineering and technology."
+        keywords="Government Polytechnic College Itarsi, GPC Itarsi, GPCI, Polytechnic College Itarsi, about GPC, about GPCI, technical education, diploma courses, engineering college Itarsi"
+        ogImage="/images/campus.jpg"
+      />
+
+      {/* Schema.org Markup */}
+      <SchemaMarkup schema={breadcrumbSchema} id="breadcrumb-schema" />
+      <SchemaMarkup schema={collegeSchema} id="college-schema" />
+
       {/* Hero Section */}
       <div className="relative bg-gradient-to-b from-primary-600 to-primary-800 text-white overflow-hidden">
         {/* Background pattern */}

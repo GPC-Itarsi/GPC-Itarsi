@@ -3,6 +3,11 @@ import axios from 'axios';
 import config from '../config';
 import '../styles/faculty.css';
 
+// Import SEO components
+import SEO from '../components/SEO';
+import SchemaMarkup from '../components/SchemaMarkup';
+import { generateBreadcrumbSchema, generatePersonSchema } from '../utils/schemaMarkup';
+
 // Helper function to map department abbreviations to full names
 const mapDepartment = (dept) => {
   if (!dept) return 'General';
@@ -23,6 +28,18 @@ const Faculty = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedDepartment, setSelectedDepartment] = useState('');
+
+  // Generate breadcrumb schema for the faculty page
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    {
+      name: 'Home',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/'
+    },
+    {
+      name: 'Faculty',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/faculty'
+    }
+  ]);
 
   useEffect(() => {
     fetchFaculty();
@@ -223,6 +240,17 @@ const Faculty = () => {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-8 sm:py-12">
+      {/* SEO Optimization */}
+      <SEO
+        title="Faculty - Government Polytechnic College Itarsi"
+        description="Meet the experienced faculty members of Government Polytechnic College Itarsi (GPC Itarsi). Our dedicated professors and instructors provide quality technical education across various departments."
+        keywords="Government Polytechnic College Itarsi faculty, GPC Itarsi professors, GPCI teachers, Polytechnic faculty Itarsi, engineering faculty, technical education instructors"
+        ogImage="/images/faculty-banner.jpg"
+      />
+
+      {/* Schema.org Markup */}
+      <SchemaMarkup schema={breadcrumbSchema} id="breadcrumb-schema" />
+
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-primary-600">
           Our Faculty

@@ -8,6 +8,11 @@ import { TextReveal, CanvasWave, AnimatedCard } from '../components/animations';
 import CustomButtonsSection from '../components/CustomButtonsSection';
 import NoticeContent from '../components/notices/NoticeContent';
 
+// Import SEO components
+import SEO from '../components/SEO';
+import SchemaMarkup from '../components/SchemaMarkup';
+import { generateBreadcrumbSchema } from '../utils/schemaMarkup';
+
 // Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,7 +22,7 @@ const Home = () => {
   const [error, setError] = useState(null);
   const [showNoticePopup, setShowNoticePopup] = useState(false);
   const [collegeData, setCollegeData] = useState({
-    title: 'Government Polytechnic College, Itarsi',
+    title: 'Government Polytechnic College Itarsi',
     shortDescription: 'A premier technical institution offering diploma courses in engineering and technology.',
     stats: {
       students: 450,
@@ -27,6 +32,14 @@ const Home = () => {
     },
     establishedYear: 2011
   });
+
+  // Generate breadcrumb schema for the home page
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    {
+      name: 'Home',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/'
+    }
+  ]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,6 +112,17 @@ const Home = () => {
 
   return (
     <div className="bg-white">
+      {/* SEO Optimization */}
+      <SEO
+        title="Government Polytechnic College Itarsi - Official Website"
+        description="Welcome to Government Polytechnic College Itarsi (GPC Itarsi). A premier technical institution offering diploma courses in engineering and technology. Join GPCI for quality education."
+        keywords="Government Polytechnic College Itarsi, GPC Itarsi, GPCI, Polytechnic College Itarsi, GPC, Polytechnic, Government Polytechnic, technical education, diploma courses"
+        ogImage="/college-og-image.jpg"
+      />
+
+      {/* Schema.org Breadcrumb Markup */}
+      <SchemaMarkup schema={breadcrumbSchema} id="breadcrumb-schema" />
+
       {/* Notice Popup */}
       {showNoticePopup && notices.length > 0 && (
         <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
@@ -197,7 +221,7 @@ const Home = () => {
         </div>
 
         {/* Hero Section - Enhanced Professional Design */}
-        <div className="relative overflow-hidden min-h-[85vh] flex items-center pt-4">
+        <header className="relative overflow-hidden min-h-[85vh] flex items-center pt-4">
           {/* Additional decorative elements */}
           <div className="absolute top-1/4 right-10 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
           <div className="absolute bottom-1/4 left-10 w-64 h-64 bg-accent-500/10 rounded-full blur-3xl animate-pulse-slow animation-delay-2000"></div>
@@ -376,7 +400,7 @@ const Home = () => {
       </div>
 
       {/* Our Campus Section - Professional Design */}
-      <div className="relative py-12 overflow-hidden">
+      <section aria-labelledby="campus-section-title" className="relative py-12 overflow-hidden">
         {/* Background elements similar to hero section */}
         <div className="absolute inset-0 z-0">
           {/* Grid pattern */}
@@ -394,7 +418,7 @@ const Home = () => {
               </svg>
               Explore Our Facilities
             </div>
-            <TextReveal className="mt-2 text-5xl font-extrabold text-white sm:text-6xl tracking-tight">
+            <TextReveal id="campus-section-title" className="mt-2 text-5xl font-extrabold text-white sm:text-6xl tracking-tight">
               Our <span className="text-accent-500 relative inline-block">
                 Campus
                 <span className="absolute -bottom-2 left-0 w-full h-1 bg-accent-500/50 rounded-full"></span>
@@ -560,7 +584,7 @@ const Home = () => {
       </div>
 
       {/* Notices Section */}
-      <div className="relative py-12 overflow-hidden">
+      <section aria-labelledby="notices-section-title" className="relative py-12 overflow-hidden">
         {/* Background elements similar to hero section */}
         <div className="absolute inset-0 z-0">
           {/* Grid pattern */}
@@ -578,7 +602,7 @@ const Home = () => {
               </svg>
               Announcements
             </div>
-            <TextReveal className="mt-2 text-5xl font-extrabold text-white sm:text-4xl tracking-tight">
+            <TextReveal id="notices-section-title" className="mt-2 text-5xl font-extrabold text-white sm:text-4xl tracking-tight">
               Latest <span className="text-accent-500 relative inline-block">
                 Notices
                 <span className="absolute -bottom-2 left-0 w-full h-1 bg-accent-500/50 rounded-full"></span>
@@ -647,7 +671,7 @@ const Home = () => {
       </div>
 
       {/* Call to Action Section */}
-      <div className="relative overflow-hidden">
+      <section aria-labelledby="cta-section-title" className="relative overflow-hidden">
         {/* Background elements similar to hero section */}
         <div className="absolute inset-0 z-0">
           {/* Animated circles */}
@@ -672,7 +696,7 @@ const Home = () => {
             Ready to Join Us?
           </div>
 
-          <TextReveal className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+          <TextReveal id="cta-section-title" className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             Begin Your Educational <span className="text-accent-500 relative inline-block">
               Journey
               <span className="absolute -bottom-2 left-0 w-full h-1 bg-accent-500/50 rounded-full"></span>

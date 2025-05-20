@@ -8,6 +8,10 @@ import { NotificationProvider } from './context/NotificationContext'
 import { CalendarProvider } from './context/CalendarContext'
 // Grade feature has been removed
 
+// SEO and Schema Components
+import SchemaMarkup from './components/SchemaMarkup'
+import { generateCollegeSchema } from './utils/schemaMarkup'
+
 // Components that are used on every page - load eagerly
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -48,11 +52,17 @@ function App() {
     </div>
   );
 
+  // Generate college schema for the entire site
+  const collegeSchema = generateCollegeSchema();
+
   return (
     <AuthProvider>
       <NotificationProvider>
         <CalendarProvider>
           <Router future={{ v7_relativeSplatPath: true }}>
+            {/* Add schema.org structured data */}
+            <SchemaMarkup schema={collegeSchema} id="college-schema" />
+
             <div className="min-h-screen flex flex-col">
               <Navbar />
               <main className="flex-grow">

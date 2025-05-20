@@ -2,11 +2,28 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import config from '../config';
 
+// Import SEO components
+import SEO from '../components/SEO';
+import SchemaMarkup from '../components/SchemaMarkup';
+import { generateBreadcrumbSchema } from '../utils/schemaMarkup';
+
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+
+  // Generate breadcrumb schema for the courses page
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    {
+      name: 'Home',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/'
+    },
+    {
+      name: 'Courses',
+      url: 'https://gpc-itarsi-9cl7.onrender.com/courses'
+    }
+  ]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -39,9 +56,20 @@ const Courses = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen py-12">
+      {/* SEO Optimization */}
+      <SEO
+        title="Courses - Government Polytechnic College Itarsi"
+        description="Explore diploma courses offered by Government Polytechnic College Itarsi (GPC Itarsi). Our programs include Computer Science, Mechanical Engineering, Electrical Engineering, and Electronics & Telecommunication."
+        keywords="Government Polytechnic College Itarsi courses, GPC Itarsi diploma, GPCI programs, Polytechnic courses Itarsi, engineering diploma, technical education, computer science diploma, mechanical engineering diploma"
+        ogImage="/images/courses-banner.jpg"
+      />
+
+      {/* Schema.org Markup */}
+      <SchemaMarkup schema={breadcrumbSchema} id="breadcrumb-schema" />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Academics</h2>
+          <h1 className="text-base text-blue-600 font-semibold tracking-wide uppercase">Academics</h1>
           <p className="mt-1 text-4xl font-extrabold text-gray-900 sm:text-5xl sm:tracking-tight">
             Our Courses
           </p>
